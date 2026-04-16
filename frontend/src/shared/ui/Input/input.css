@@ -1,0 +1,21 @@
+.ui-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.ui-input-lable {
+  font-size: 14px;
+  color: #666;
+}
+
+.ui-input {
+  width: 100%;
+  border: 1px solid #d9dfea;
+  border-radius: 14px;
+  padding: 12px 14px;
+  outline: none;
+  font-size: 14px;
+  background: white;
+}

@@ -1,0 +1,7 @@
+.user-home-card {
+  max-width: 720px;
+  background: white;
+  padding: 24px;
+  border-radius: 20px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06);
+}

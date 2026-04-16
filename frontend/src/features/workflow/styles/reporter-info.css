@@ -1,0 +1,149 @@
+/* ============================================================
+   reporter-info.css
+   Đặt tại: frontend/src/workflow/styles/reporter-info.css
+
+   Import vào workflow-form.css:
+   @import "./reporter-info.css";
+
+   Gồm 2 phần:
+     1. tri-*   → dùng trong TaskReporterInfo (bên trong modal)
+     2. wf-due-badge → dùng trên task card ở board
+   ============================================================ */
+
+/* ── 1. TASK REPORTER INFO (bên trong modal) ─────────────── */
+
+.tri-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 0;
+  border-top: 1px solid var(--color-border-tertiary);
+  border-bottom: 1px solid var(--color-border-tertiary);
+  margin-bottom: 12px;
+}
+
+.tri-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tri-label {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  min-width: 72px;
+  flex-shrink: 0;
+}
+
+/* ── Person card ── */
+.tri-person {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tri-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--color-background-secondary);
+  border: 1px solid var(--color-border-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.tri-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tri-avatar__initial {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  line-height: 1;
+}
+
+.tri-person__name {
+  font-size: 13px;
+  color: var(--color-text-primary);
+}
+
+.tri-role-badge {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ── Ngày tạo ── */
+.tri-date {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  margin-left: auto;
+}
+
+/* ── Due date text ── */
+.tri-due-date {
+  font-size: 13px;
+  color: var(--color-text-primary);
+}
+
+/* ── Overdue badge trong modal ── */
+.tri-badge {
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.tri-badge--overdue {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.tri-badge--near {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.tri-badge--approaching {
+  background: #fffbeb;
+  color: #b45309;
+}
+
+/* ── 2. WF-DUE-BADGE (trên task card ở board) ───────────── */
+
+.wf-due-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-weight: 500;
+  white-space: nowrap;
+  margin-top: 4px;
+}
+
+.wf-due-badge--overdue {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.wf-due-badge--near {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.wf-due-badge--approaching {
+  background: #fffbeb;
+  color: #b45309;
+}

@@ -1,0 +1,42 @@
+* {
+  box-sizing: border-box;
+}
+html,
+body,
+#root {
+  margin: 0;
+  min-width: 100%;
+  font-family: Arial, sans-serif;
+}
+body {
+  background: #f7f8fc;
+  color: #222;
+}
+a {
+  text-decoration: none;
+  color: #4c87ff;
+}
+button,
+input {
+  font-family: inhetit;
+}
+.page-center {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.error-text {
+  color: #d92929;
+  font-size: 14px;
+  margin: 8px 0 0;
+}
+.success-text {
+  color: #118a32;
+  margin: 8px 0 0;
+}
+.muted-text {
+  color: #6b7280;
+  font-size: 14px;
+}

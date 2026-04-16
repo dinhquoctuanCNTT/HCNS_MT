@@ -1,0 +1,48 @@
+.main-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main-layout__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-sidebar {
+  width: 260px;
+  transition: width 0.25s ease;
+  overflow: hidden;
+}
+
+.admin-sidebar.closed {
+  width: 78px;
+}
+
+.main-topbar {
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+.main-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.main-topbar-menu {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.main-topbar-menu:hover {
+  background: #f3f4f6;
+}
