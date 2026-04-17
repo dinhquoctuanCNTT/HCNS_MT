@@ -1,18 +1,18 @@
-import express from "express";
-import * as userController from "../controllers/user.controller.js";
+import { Router } from "express";
+import {
+  getProfile,
+  updateProfile,
+  changePassword,
+} from "../controllers/user.controller.js";
 import authMiddleware from "../middlewares/auth.middleware.js";
-import { uploadAvatar } from "../config/multer.js";
 
-const router = express.Router();
+const router = Router();
 
-router.get("/", authMiddleware, userController.getUsers);
-router.put("/profile", authMiddleware, userController.updateProfile);
+// Tất cả route đều cần đăng nhập
+router.use(authMiddleware);
 
-router.post(
-  "/avatar",
-  authMiddleware,
-  uploadAvatar.single("avatar"),
-  userController.uploadAvatarController,
-);
+router.get("/profile", getProfile);
+router.put("/profile", updateProfile);
+router.put("/change-password", changePassword);
 
 export default router;

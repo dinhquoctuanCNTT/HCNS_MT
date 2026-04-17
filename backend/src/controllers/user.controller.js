@@ -1,76 +1,114 @@
-import {
-  getAllUsers,
-  updateMyProfile,
-  updateAvatar,
-} from "../services/auth.service.js";
+import bcrypt from "bcryptjs";
+import { getPool, sql } from "../config/db.js";
 
-const getUsers = async (req, res) => {
+// GET /api/users/profile
+export const getProfile = async (req, res) => {
   try {
-    const users = await getAllUsers();
-    return res.status(200).json({ success: true, users });
-  } catch (error) {
-    return res
-      .status(500)
-      .json({ success: false, message: "Lỗi server: " + error.message });
-  }
-};
+    const pool = getPool();
 
-const updateProfile = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const {
-      fullName,
-      phone,
-      dateOfBirth,
-      address,
-      gender,
-      jobTitle,
-      departmentName,
-    } = req.body;
+    const result = await pool.request().input("id", sql.Int, req.user.id)
+      .query(`
+        SELECT id, email, full_name, role, avatar_url, department, phone
+        FROM users
+        WHERE id = @id
+      `);
 
-    if (!fullName) {
-      return res.status(400).json({ message: "Họ tên không được để trống" });
+    const user = result.recordset[0];
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Người dùng không tồn tại" });
     }
 
-    const user = await updateMyProfile({
-      userId,
-      fullName,
-      phone,
-      dateOfBirth,
-      address,
-      gender,
-      jobTitle,
-      departmentName,
-    });
-
-    return res
-      .status(200)
-      .json({ message: "Cập nhật thông tin thành công", user });
+    return res.json({ success: true, user });
   } catch (error) {
-    return res.status(500).json({ message: "Lỗi server: " + error.message });
+    console.error("getProfile error:", error);
+    return res.status(500).json({ success: false, message: "Lỗi server" });
   }
 };
 
-// ✅ Thêm mới
-const uploadAvatarController = async (req, res) => {
+// PUT /api/users/profile
+export const updateProfile = async (req, res) => {
   try {
-    console.log("=== UPLOAD AVATAR ===");
-    console.log("req.user:", req.user);
-    console.log("req.file:", req.file);
-    if (!req.file) {
-      return res.status(400).json({ message: "Không có file ảnh!" });
+    const { full_name, department, phone } = req.body;
+    const pool = getPool();
+
+    await pool
+      .request()
+      .input("id", sql.Int, req.user.id)
+      .input("full_name", sql.NVarChar(255), full_name || null)
+      .input("department", sql.NVarChar(255), department || null)
+      .input("phone", sql.NVarChar(50), phone || null).query(`
+        UPDATE users
+        SET
+          full_name  = COALESCE(@full_name, full_name),
+          department = COALESCE(@department, department),
+          phone      = COALESCE(@phone, phone)
+        WHERE id = @id
+      `);
+
+    // Trả về user đã cập nhật
+    const result = await pool.request().input("id", sql.Int, req.user.id)
+      .query(`
+        SELECT id, email, full_name, role, avatar_url, department, phone
+        FROM users WHERE id = @id
+      `);
+
+    return res.json({
+      success: true,
+      message: "Cập nhật thông tin thành công",
+      user: result.recordset[0],
+    });
+  } catch (error) {
+    console.error("updateProfile error:", error);
+    return res.status(500).json({ success: false, message: "Lỗi server" });
+  }
+};
+
+// PUT /api/users/change-password
+export const changePassword = async (req, res) => {
+  try {
+    const { current_password, new_password } = req.body;
+
+    if (!current_password || !new_password) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Vui lòng điền đầy đủ thông tin" });
     }
 
-    const avatarUrl = `/uploads/avatars/${req.file.filename}`;
-    const updated = await updateAvatar(req.user.id, avatarUrl);
+    const pool = getPool();
 
-    return res.status(200).json({
-      message: "Cập nhật avatar thành công!",
-      avatarUrl: updated.avatar_url,
-    });
+    // Lấy password hiện tại
+    const result = await pool
+      .request()
+      .input("id", sql.Int, req.user.id)
+      .query(`SELECT password FROM users WHERE id = @id`);
+
+    const user = result.recordset[0];
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Người dùng không tồn tại" });
+    }
+
+    const isMatch = await bcrypt.compare(current_password, user.password);
+    if (!isMatch) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Mật khẩu hiện tại không đúng" });
+    }
+
+    const hashed = await bcrypt.hash(new_password, 10);
+
+    await pool
+      .request()
+      .input("id", sql.Int, req.user.id)
+      .input("password", sql.NVarChar(255), hashed)
+      .query(`UPDATE users SET password = @password WHERE id = @id`);
+
+    return res.json({ success: true, message: "Đổi mật khẩu thành công" });
   } catch (error) {
-    return res.status(500).json({ message: "Lỗi server: " + error.message });
+    console.error("changePassword error:", error);
+    return res.status(500).json({ success: false, message: "Lỗi server" });
   }
 };
-
-export { getUsers, updateProfile, uploadAvatarController };
