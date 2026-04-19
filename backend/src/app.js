@@ -16,12 +16,16 @@ app.use(express.json());
 
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
-app.get("/", (req, res) => {
-  res.json({ message: "API project running" });
-});
-
+// ---- API Routes ----
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/workflow", workflowRoutes);
+
+// ---- Serve Frontend ----  ← THÊM ĐOẠN NÀY
+const frontendPath = path.join(__dirname, "../../frontend/dist");
+app.use(express.static(frontendPath));
+app.get("*", (req, res) => {
+  res.sendFile(path.join(frontendPath, "index.html"));
+});
 
 export default app;
