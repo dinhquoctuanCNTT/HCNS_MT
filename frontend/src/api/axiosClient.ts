@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const axiosClient = axios.create({
-  baseURL: "http://183.91.8.233:3001",
+  baseURL: "https://unjustly-paralegal-jellied.ngrok-free.dev",
   headers: {
     "Content-Type": "application/json",
   },
