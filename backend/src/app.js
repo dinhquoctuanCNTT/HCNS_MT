@@ -21,10 +21,13 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/workflow", workflowRoutes);
 
-// ---- Serve Frontend ----  ← THÊM ĐOẠN NÀY
+// ---- Serve Frontend ----
 const frontendPath = path.join(__dirname, "../../frontend/dist");
 app.use(express.static(frontendPath));
-app.get("*", (req, res) => {
+app.get("*", (req, res, next) => {
+  if (req.path.startsWith("/api")) {
+    return next();
+  }
   res.sendFile(path.join(frontendPath, "index.html"));
 });
 
