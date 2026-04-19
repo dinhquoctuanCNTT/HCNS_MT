@@ -22,7 +22,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/workflow", workflowRoutes);
 
 // ---- Serve Frontend ----
-const frontendPath = path.join(__dirname, "../../frontend/dist");
+const frontendPath = path.join(__dirname, "../../frontend");
 app.use(express.static(frontendPath));
 app.get("*", (req, res, next) => {
   if (req.path.startsWith("/api")) {
