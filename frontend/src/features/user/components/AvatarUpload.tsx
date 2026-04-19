@@ -6,9 +6,7 @@ const AvatarUpload = () => {
   const { user, token, setAuth } = useAuthStore();
   const fileRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string>(
-    user?.avatar_url
-      ? `http://localhost:3001${user.avatar_url}`
-      : "/default-avatar.png",
+    user?.avatar_url ? `${user.avatar_url}` : "/default-avatar.png",
   );
   const [uploading, setUploading] = useState(false);
 
@@ -20,7 +18,7 @@ const AvatarUpload = () => {
       setUploading(true);
       const data = await uploadAvatar(file);
       setAuth(token, { ...user!, avatar_url: data.avatarUrl });
-      setPreview(`http://localhost:3001${data.avatarUrl}`); // ✅ cập nhật đúng port
+      setPreview(`${data.avatarUrl}`);
     } catch {
       alert("Upload ảnh thất bại");
     } finally {
