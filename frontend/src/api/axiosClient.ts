@@ -1,10 +1,11 @@
-// frontend/src/api/axiosClient.ts — GIỮ NGUYÊN localStorage
 import axios from "axios";
+import { API_BASE_URL } from "../config/env";
 
 const axiosClient = axios.create({
-  baseURL: "https://unjustly-paralegal-jellied.ngrok-free.dev",
+  baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
+    "ngrok-skip-browser-warning": "true", // ← thêm dòng này
   },
 });
 
