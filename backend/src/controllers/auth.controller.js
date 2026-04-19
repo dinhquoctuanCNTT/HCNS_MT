@@ -1,151 +1,136 @@
-import {
-  createUser,
-  findUserByEmail,
-  findUserByUsername,
-  updateMyProfile,
-} from "../services/auth.service.js";
-import { hashPassword, comparePassword } from "../utils/hashPassword.js";
+import bcrypt from "bcryptjs";
+import { getPool, sql } from "../config/db.js";
 import { generateToken } from "../utils/jwt.js";
 
-// 1. Xử lý Đăng ký
-const register = async (req, res) => {
+// POST /api/auth/register
+export const register = async (req, res) => {
   try {
-    const {
-      fullName,
-      email,
-      phone,
-      password,
-      confirmPassword,
-      dateOfBirth,
-      address,
-      gender,
-      jobTitle,
-      departmentName,
-    } = req.body;
+    const { email, password, full_name, role = "employee", phone } = req.body; // ← bỏ department
 
-    if (!fullName || !email || !phone || !password || !confirmPassword) {
+    if (!email || !password || !full_name) {
       return res
         .status(400)
-        .json({ message: "Vui lòng nhập đầy đủ thông tin" });
+        .json({ success: false, message: "Vui lòng điền đầy đủ thông tin" });
     }
 
-    if (password !== confirmPassword) {
-      return res.status(400).json({ message: "Mật khẩu xác nhận không khớp" });
+    const pool = getPool();
+
+    const existing = await pool
+      .request()
+      .input("email", sql.NVarChar, email)
+      .query(`SELECT id FROM users WHERE email = @email`);
+
+    if (existing.recordset.length > 0) {
+      return res
+        .status(409)
+        .json({ success: false, message: "Email đã được sử dụng" });
     }
 
-    const existingEmail = await findUserByEmail(email);
-    if (existingEmail)
-      return res.status(400).json({ message: "Email đã tồn tại" });
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    const passwordHash = await hashPassword(password);
-    const user = await createUser({
-      fullName,
-      email,
-      phone,
-      passwordHash,
-      dateOfBirth,
-      address,
-      gender,
-      jobTitle,
-      departmentName,
+    const result = await pool
+      .request()
+      .input("email", sql.NVarChar(255), email)
+      .input("password", sql.NVarChar(255), hashedPassword)
+      .input("full_name", sql.NVarChar(255), full_name)
+      .input("role", sql.NVarChar(50), role)
+      .input("phone", sql.NVarChar(50), phone || null).query(`
+        INSERT INTO users (email, password_hash, full_name, role, phone)
+        OUTPUT INSERTED.id, INSERTED.email, INSERTED.full_name, INSERTED.role
+        VALUES (@email, @password, @full_name, @role, @phone)
+      `); // ← bỏ department
+
+    const newUser = result.recordset[0];
+    const token = generateToken(newUser);
+
+    return res.status(201).json({
+      success: true,
+      message: "Đăng ký thành công",
+      token,
+      user: newUser,
     });
-
-    return res.status(201).json({ message: "Đăng ký thành công", user });
   } catch (error) {
-    return res.status(500).json({ message: "Lỗi server: " + error.message });
+    console.error("register error:", error);
+    return res.status(500).json({ success: false, message: "Lỗi server" });
   }
 };
 
-// 2. Đăng nhập bằng số điện thoại
-const login = async (req, res) => {
+// POST /api/auth/login
+export const login = async (req, res) => {
   try {
-    const { phone, password } = req.body; // ✅ đổi username → phone
+    const { phone, password } = req.body;
+    console.log("👉 Body nhận được:", req.body);
+    console.log("👉 Phone:", phone);
 
     if (!phone || !password) {
-      return res
-        .status(400)
-        .json({ message: "Vui lòng nhập số điện thoại và mật khẩu" });
+      return res.status(400).json({
+        success: false,
+        message: "Vui lòng nhập số điện thoại và mật khẩu",
+      });
     }
 
-    const user = await findUserByUsername(phone); // tìm theo phone
+    const pool = getPool();
+
+    const result = await pool.request().input("phone", sql.NVarChar, phone)
+      .query(`
+        SELECT id, email, password_hash, full_name, role, avatar_url, phone
+        FROM users
+        WHERE phone = @phone
+      `); // ← bỏ department
+
+    const user = result.recordset[0];
     if (!user) {
-      return res.status(400).json({ message: "Số điện thoại không tồn tại" });
+      return res.status(401).json({
+        success: false,
+        message: "Số điện thoại hoặc mật khẩu không đúng",
+      });
     }
 
-    if (user.status !== 1) {
-      return res.status(403).json({ message: "Tài khoản đang bị khóa" });
-    }
-
-    const isMatch = await comparePassword(password, user.password_hash);
+    const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
-      return res.status(401).json({ message: "Mật khẩu không đúng" });
+      return res.status(401).json({
+        success: false,
+        message: "Số điện thoại hoặc mật khẩu không đúng",
+      });
     }
 
-    const token = generateToken({
-      id: user.id,
-      phone: user.phone,
-      role: user.role,
-    });
+    const token = generateToken(user);
+    const { password_hash: _, ...userWithoutPassword } = user;
 
-    return res.status(200).json({
+    return res.json({
+      success: true,
       message: "Đăng nhập thành công",
       token,
-      user: {
-        id: user.id,
-        fullName: user.full_name,
-        phone: user.phone,
-        role: user.role,
-        avatar_url: user.avatar_url || null,
-        date_of_birth: user.date_of_birth || null,
-        address: user.address || null,
-        gender: user.gender || null,
-        job_title: user.job_title || null,
-        department_name: user.department_name || null,
-      },
+      user: userWithoutPassword,
     });
   } catch (error) {
-    console.error("❌ Login error:", error);
-    return res.status(500).json({ message: "Lỗi server: " + error.message });
+    console.error("login error:", error);
+    return res.status(500).json({ success: false, message: "Lỗi server" });
   }
 };
 
-// 3. Cập nhật thông tin cá nhân
-const updateProfile = async (req, res) => {
+// GET /api/auth/me
+export const getMe = async (req, res) => {
   try {
-    const userId = req.user.id;
-    const {
-      fullName,
-      phone,
-      dateOfBirth,
-      address,
-      gender,
-      jobTitle,
-      departmentName,
-    } = req.body;
+    const pool = getPool();
 
-    if (!fullName)
-      return res.status(400).json({ message: "Họ tên không được để trống" });
+    const result = await pool.request().input("id", sql.Int, req.user.id)
+      .query(`
+        SELECT id, email, full_name, role, avatar_url, phone
+        FROM users
+        WHERE id = @id
+      `); // ← bỏ department
 
-    const user = await updateMyProfile({
-      userId,
-      fullName,
-      phone,
-      dateOfBirth,
-      address,
-      gender,
-      jobTitle,
-      departmentName,
-    });
+    const user = result.recordset[0];
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Người dùng không tồn tại" });
+    }
 
-    return res.status(200).json({ message: "Cập nhật thành công", user });
+    return res.json({ success: true, user });
   } catch (error) {
-    return res.status(500).json({ message: "Lỗi server: " + error.message });
+    console.error("getMe error:", error);
+    return res.status(500).json({ success: false, message: "Lỗi server" });
   }
 };
-
-// 4. Lấy thông tin User hiện tại
-const me = async (req, res) => {
-  return res.status(200).json({ user: req.user });
-};
-
-export { register, login, me, updateProfile };

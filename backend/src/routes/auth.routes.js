@@ -1,18 +1,11 @@
-import express from "express";
-import {
-  register,
-  login,
-  me,
-  updateProfile,
-} from "../controllers/auth.controller.js";
+import { Router } from "express";
+import { register, login, getMe } from "../controllers/auth.controller.js";
 import authMiddleware from "../middlewares/auth.middleware.js";
 
-const router = express.Router();
+const router = Router();
 
-// ✅ Gọi trực tiếp, không dùng authController.xxx
 router.post("/register", register);
 router.post("/login", login);
-router.get("/me", authMiddleware, me);
-router.put("/me", authMiddleware, updateProfile);
+router.get("/me", authMiddleware, getMe);
 
 export default router;

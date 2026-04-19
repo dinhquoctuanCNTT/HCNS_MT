@@ -1,0 +1,46 @@
+name: Deploy HCNS_MT to IIS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-backend:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: npm install --production
+
+      - name: Stop PM2 backend
+        run: pm2 stop backend || echo "Not running"
+
+      - name: Copy backend to server
+        run: xcopy /E /Y /I /Q backend C:\HCNS_MT\backend
+
+      - name: Start backend with PM2
+        run: |
+          pm2 start C:\HCNS_MT\backend\src\index.js --name backend
+          pm2 save
+
+  deploy-frontend:
+    runs-on: self-hosted
+    needs: deploy-backend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm install
+
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Copy frontend to IIS
+        run: xcopy /E /Y /I /Q frontend\dist C:\HCNS_MT\frontend

@@ -1,7 +1,8 @@
+// frontend/src/api/axiosClient.ts — GIỮ NGUYÊN localStorage
 import axios from "axios";
 
 const axiosClient = axios.create({
-  baseURL: "http://localhost:3001",
+  baseURL: "http://localhost:3001", // ← trả về localhost
   headers: {
     "Content-Type": "application/json",
   },
@@ -10,11 +11,9 @@ const axiosClient = axios.create({
 axiosClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
-
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-
     return config;
   },
   (error) => Promise.reject(error),
