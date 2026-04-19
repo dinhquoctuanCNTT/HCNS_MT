@@ -16,17 +16,22 @@ jobs:
         working-directory: ./backend
         run: npm install --production
 
-      - name: Stop PM2 backend
-        run: pm2 stop backend
-        continue-on-error: true # ← không fail nếu chưa chạy
-
       - name: Copy backend to server
-        run: xcopy /E /Y /I /Q backend C:\HCNS_MT\backend
-
-      - name: Start backend with PM2
         run: |
-          pm2 start C:\HCNS_MT\backend\src\index.js --name backend
+          robocopy backend C:\HCNS_MT\backend /E /XD node_modules .git /XF .env
+          if ($LASTEXITCODE -le 7) { exit 0 }
+        shell: powershell
+
+      - name: Restart backend with PM2
+        run: |
+          $list = pm2 list
+          if ($list -match "backend") {
+            pm2 restart backend
+          } else {
+            pm2 start C:\HCNS_MT\backend\src\index.js --name backend
+          }
           pm2 save
+        shell: powershell
 
   deploy-frontend:
     runs-on: self-hosted
@@ -42,6 +47,13 @@ jobs:
       - name: Build frontend
         working-directory: ./frontend
         run: npm run build
+
+      - name: Clear old frontend
+        run: |
+          if (Test-Path C:\HCNS_MT\frontend) {
+            Remove-Item C:\HCNS_MT\frontend\* -Recurse -Force
+          }
+        shell: powershell
 
       - name: Copy frontend to IIS
         run: xcopy /E /Y /I /Q frontend\dist C:\HCNS_MT\frontend
