@@ -10,14 +10,15 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4 # ← đổi v3 → v4
+        uses: actions/checkout@v4
 
       - name: Install backend dependencies
         working-directory: ./backend
         run: npm install --production
 
       - name: Stop PM2 backend
-        run: pm2 stop backend || echo "Not running"
+        run: pm2 stop backend
+        continue-on-error: true # ← không fail nếu chưa chạy
 
       - name: Copy backend to server
         run: xcopy /E /Y /I /Q backend C:\HCNS_MT\backend
@@ -32,7 +33,7 @@ jobs:
     needs: deploy-backend
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4 # ← đổi v3 → v4
+        uses: actions/checkout@v4
 
       - name: Install frontend dependencies
         working-directory: ./frontend
