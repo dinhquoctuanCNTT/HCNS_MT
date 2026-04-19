@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const axiosClient = axios.create({
-  baseURL: "http://localhost:3001", // ← trả về localhost
+  baseURL: "http://172.16.0.10:3001",
   headers: {
     "Content-Type": "application/json",
   },
