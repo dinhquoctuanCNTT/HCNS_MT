@@ -81,7 +81,7 @@ export default function AdminTopbar({ onToggleSidebar }: AdminTopbarProps) {
             <img
               src={
                 user?.avatar_url
-                  ? `http://localhost:3001${user.avatar_url}`
+                  ? `${user.avatar_url}`
                   : "https://i.pravatar.cc/100?img=12"
               }
               alt="avatar"
