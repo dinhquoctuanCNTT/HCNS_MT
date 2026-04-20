@@ -1,333 +1,245 @@
-import { useState, useRef } from "react";
-import "../../styles/workflow-attachment.css";
+import { useState } from "react";
+import { createPortal } from "react-dom";
 
-export interface Attachment {
-  id: number;
-  file_name: string;
-  file_url: string;
-  file_size: number;
-  mime_type: string;
-  uploaded_by: string;
-  uploaded_at: string;
-}
+export type ResolutionType = "done" | "cancelled" | "wont_do";
 
 interface Props {
-  taskId: number;
-  canEdit?: boolean;
+  taskKey: string;
+  taskTitle: string;
+  onConfirm: (resolution: ResolutionType, note: string) => Promise<void>;
+  onCancel: () => void;
+  submitting?: boolean;
 }
 
-function formatBytes(bytes: number) {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function getFileIcon(mime: string, name: string) {
-  const ext = name.split(".").pop()?.toLowerCase() ?? "";
-  if (mime.startsWith("image/")) {
-    return { icon: "🖼️", bgClass: "wf-attachment__icon--image" };
-  }
-  if (mime === "application/pdf" || ext === "pdf") {
-    return { icon: "📄", bgClass: "wf-attachment__icon--pdf" };
-  }
-  if (mime.includes("word") || ext === "doc" || ext === "docx") {
-    return { icon: "📝", bgClass: "wf-attachment__icon--word" };
-  }
-  if (
-    mime.includes("spreadsheet") ||
-    mime.includes("excel") ||
-    ext === "xls" ||
-    ext === "xlsx"
-  ) {
-    return { icon: "📊", bgClass: "wf-attachment__icon--sheet" };
-  }
-  if (
-    mime.includes("zip") ||
-    mime.includes("rar") ||
-    ext === "zip" ||
-    ext === "rar"
-  ) {
-    return { icon: "🗜️", bgClass: "wf-attachment__icon--zip" };
-  }
-  return { icon: "📎", bgClass: "wf-attachment__icon--default" };
-}
-
-let _mockId = 100;
-
-export default function WorkflowAttachmentSection({
-  taskId,
-  canEdit = true,
+export default function CloseIssueDialog({
+  taskKey,
+  taskTitle,
+  onConfirm,
+  onCancel,
+  submitting = false,
 }: Props) {
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const [uploading, setUploading] = useState(false);
-  const [dragOver, setDragOver] = useState(false);
-  const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [selected, setSelected] = useState<ResolutionType>("done");
 
-  const handleFiles = async (files: FileList | null) => {
-    if (!files || files.length === 0) return;
-    setUploading(true);
-
-    const newItems: Attachment[] = [];
-    for (const file of Array.from(files)) {
-      if (file.size > 20 * 1024 * 1024) {
-        alert(`File "${file.name}" vượt quá 20MB`);
-        continue;
-      }
-
-      const blobUrl = URL.createObjectURL(file);
-      newItems.push({
-        id: ++_mockId,
-        file_name: file.name,
-        file_url: blobUrl,
-        file_size: file.size,
-        mime_type: file.type || "application/octet-stream",
-        uploaded_by: "Bạn",
-        uploaded_at: new Date().toISOString(),
-      });
-    }
-
-    await new Promise((r) => setTimeout(r, 400));
-    setAttachments((prev) => [...prev, ...newItems]);
-    setUploading(false);
-  };
-
-  const handleDelete = (id: number) => {
-    URL.revokeObjectURL(attachments.find((a) => a.id === id)?.file_url ?? "");
-    setAttachments((prev) => prev.filter((a) => a.id !== id));
-    setDeleteConfirm(null);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-    handleFiles(e.dataTransfer.files);
-  };
-
-  return (
-    <div className="wf-attachment">
-      <h4 className="wf-attachment__title">
-        Tài liệu đính kèm
-        {attachments.length > 0 && (
-          <span className="wf-attachment__count">{attachments.length}</span>
-        )}
-      </h4>
-
-      {canEdit && (
+  return createPortal(
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.6)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 9999,
+      }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onCancel();
+      }}
+    >
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: 8,
+          width: 440,
+          maxWidth: "95vw",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.22)",
+          overflow: "hidden",
+        }}
+      >
+        {/* Header */}
         <div
-          className={`wf-attachment__dropzone ${dragOver ? "is-dragover" : ""}`}
-          onDrop={handleDrop}
-          onDragOver={(e) => {
-            e.preventDefault();
-            setDragOver(true);
+          style={{
+            padding: "16px 20px",
+            borderBottom: "1px solid #e5e7eb",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
           }}
-          onDragLeave={() => setDragOver(false)}
-          onClick={() => inputRef.current?.click()}
         >
-          <div className="wf-attachment__dropzone-icon">
-            {uploading ? (
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="none"
-                stroke="#0052cc"
-                strokeWidth="1.8"
-                className="wf-attachment__spinner"
-              >
-                <circle cx="8" cy="8" r="6" strokeDasharray="20 18" />
-              </svg>
-            ) : (
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-              >
-                <path
-                  d="M8 11V5M5 8l3-3 3 3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M2 12.5A2.5 2.5 0 004.5 15h7a2.5 2.5 0 000-5H11a4 4 0 10-7.9.5"
-                  strokeLinecap="round"
-                />
-              </svg>
-            )}
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                color: "#0052cc",
+                background: "#e8f0fe",
+                padding: "2px 6px",
+                borderRadius: 3,
+                letterSpacing: 0.3,
+              }}
+            >
+              {taskKey}
+            </span>
+            <span style={{ fontSize: 14, fontWeight: 500, color: "#111827" }}>
+              Đóng issue
+            </span>
           </div>
-
-          <div>
-            <div className="wf-attachment__dropzone-title">
-              {uploading
-                ? "Đang tải lên..."
-                : dragOver
-                  ? "Thả file vào đây"
-                  : "Đính kèm file"}
-            </div>
-            <div className="wf-attachment__dropzone-subtitle">
-              Kéo thả hoặc click để chọn · Tối đa 20MB/file
-            </div>
-          </div>
-
-          <input
-            ref={inputRef}
-            type="file"
-            multiple
-            className="wf-attachment__input"
-            onChange={(e) => handleFiles(e.target.files)}
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
-      )}
-
-      {attachments.length > 0 && (
-        <div className="wf-attachment__list">
-          {attachments.map((att, idx) => {
-            const { icon, bgClass } = getFileIcon(att.mime_type, att.file_name);
-            const isImage = att.mime_type.startsWith("image/");
-
-            return (
-              <div
-                key={att.id}
-                className={`wf-attachment__item ${
-                  idx < attachments.length - 1 ? "has-border" : ""
-                }`}
-              >
-                <div
-                  className={`wf-attachment__thumb ${
-                    isImage ? "is-image" : bgClass
-                  }`}
-                  onClick={() => isImage && setPreviewUrl(att.file_url)}
-                >
-                  {isImage ? (
-                    <img
-                      src={att.file_url}
-                      alt={att.file_name}
-                      className="wf-attachment__thumb-image"
-                    />
-                  ) : (
-                    <span className="wf-attachment__thumb-emoji">{icon}</span>
-                  )}
-                </div>
-
-                <div className="wf-attachment__info">
-                  <div
-                    className="wf-attachment__filename"
-                    title={att.file_name}
-                  >
-                    {att.file_name}
-                  </div>
-                  <div className="wf-attachment__meta">
-                    {formatBytes(att.file_size)} · {att.uploaded_by} ·{" "}
-                    {formatDate(att.uploaded_at)}
-                  </div>
-                </div>
-
-                <div className="wf-attachment__actions">
-                  <a
-                    href={att.file_url}
-                    download={att.file_name}
-                    title="Tải xuống"
-                    className="wf-attachment__icon-btn"
-                  >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 16 16"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                    >
-                      <path d="M8 3v7M5 7l3 3 3-3" />
-                      <path d="M3 13h10" />
-                    </svg>
-                  </a>
-
-                  {canEdit &&
-                    (deleteConfirm === att.id ? (
-                      <div className="wf-attachment__delete-confirm">
-                        <span className="wf-attachment__delete-text">Xoá?</span>
-                        <button
-                          type="button"
-                          className="wf-attachment__confirm-btn"
-                          onClick={() => handleDelete(att.id)}
-                        >
-                          ✓
-                        </button>
-                        <button
-                          type="button"
-                          className="wf-attachment__cancel-btn"
-                          onClick={() => setDeleteConfirm(null)}
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        title="Xoá file"
-                        className="wf-attachment__icon-btn wf-attachment__icon-btn--danger"
-                        onClick={() => setDeleteConfirm(att.id)}
-                      >
-                        <svg
-                          width="13"
-                          height="13"
-                          viewBox="0 0 16 16"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.8"
-                          strokeLinecap="round"
-                        >
-                          <path d="M3 4h10M6 4V2h4v2M5 4l.5 9h5l.5-9" />
-                        </svg>
-                      </button>
-                    ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {!canEdit && attachments.length === 0 && (
-        <div className="wf-attachment__empty">Không có tài liệu đính kèm</div>
-      )}
-
-      {previewUrl && (
-        <div
-          className="wf-attachment__preview"
-          onClick={() => setPreviewUrl(null)}
-        >
-          <img
-            src={previewUrl}
-            alt=""
-            className="wf-attachment__preview-image"
-            onClick={(e) => e.stopPropagation()}
-          />
           <button
+            onClick={onCancel}
             type="button"
-            onClick={() => setPreviewUrl(null)}
-            className="wf-attachment__preview-close"
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: "#6b7280",
+              padding: 4,
+              display: "flex",
+              alignItems: "center",
+            }}
           >
-            ✕
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <path d="M4 4l8 8M12 4l-8 8" />
+            </svg>
           </button>
         </div>
-      )}
-    </div>
+
+        {/* Body */}
+        <div style={{ padding: "20px" }}>
+          {/* Task title preview */}
+          <p
+            style={{
+              fontSize: 13,
+              color: "#374151",
+              margin: "0 0 16px",
+              padding: "10px 12px",
+              background: "#f9fafb",
+              borderRadius: 6,
+              borderLeft: "3px solid #d1d5db",
+            }}
+          >
+            {taskTitle}
+          </p>
+
+          {/* Resolution options */}
+          <p
+            style={{
+              fontSize: 12,
+              color: "#6b7280",
+              margin: "0 0 10px",
+              fontWeight: 500,
+            }}
+          >
+            Lý do đóng
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {[
+              {
+                value: "done" as ResolutionType,
+                label: "Hoàn thành",
+                color: "#0f6e56",
+                bg: "#f0fdf4",
+              },
+              {
+                value: "cancelled" as ResolutionType,
+                label: "Huỷ bỏ",
+                color: "#92400e",
+                bg: "#fffbeb",
+              },
+              {
+                value: "wont_do" as ResolutionType,
+                label: "Không thực hiện",
+                color: "#991b1b",
+                bg: "#fff1f2",
+              },
+            ].map((r) => (
+              <label
+                key={r.value}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "9px 12px",
+                  border: `1.5px solid ${selected === r.value ? r.color : "#e5e7eb"}`,
+                  borderRadius: 6,
+                  cursor: "pointer",
+                  background: selected === r.value ? r.bg : "#fff",
+                  transition: "all 0.12s",
+                }}
+              >
+                <input
+                  type="radio"
+                  name="resolution"
+                  value={r.value}
+                  checked={selected === r.value}
+                  onChange={() => setSelected(r.value)}
+                  style={{ accentColor: r.color }}
+                />
+                <span
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    background: r.color,
+                    flexShrink: 0,
+                  }}
+                />
+                <span
+                  style={{
+                    fontSize: 13,
+                    fontWeight: selected === r.value ? 500 : 400,
+                    color: "#111827",
+                  }}
+                >
+                  {r.label}
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div
+          style={{
+            padding: "12px 20px",
+            borderTop: "1px solid #e5e7eb",
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: 8,
+            background: "#f9fafb",
+          }}
+        >
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={submitting}
+            style={{
+              padding: "7px 16px",
+              fontSize: 13,
+              borderRadius: 6,
+              border: "1px solid #d1d5db",
+              background: "#fff",
+              cursor: "pointer",
+              color: "#374151",
+            }}
+          >
+            Huỷ
+          </button>
+          <button
+            type="button"
+            onClick={() => onConfirm(selected, "")}
+            disabled={submitting}
+            style={{
+              padding: "7px 16px",
+              fontSize: 13,
+              fontWeight: 500,
+              borderRadius: 6,
+              border: "none",
+              background: submitting ? "#d1d5db" : "#dc2626",
+              color: "#fff",
+              cursor: submitting ? "not-allowed" : "pointer",
+            }}
+          >
+            {submitting ? "Đang đóng..." : "Xác nhận đóng"}
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body,
   );
 }
