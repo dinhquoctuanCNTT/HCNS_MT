@@ -3,6 +3,12 @@ import * as workflowController from "../controllers/workflow.controller.js";
 import * as taskController from "../controllers/task.controller.js";
 import authMiddleware from "../../../middlewares/auth.middleware.js";
 import {
+  getAttachments,
+  uploadAttachment,
+  removeAttachment,
+  upload,
+} from "../controllers/attachment.controller.js";
+import {
   requireRole,
   requirePermission,
 } from "../../../middlewares/role.middleware.js";
@@ -236,6 +242,20 @@ router.get(
   "/projects/:projectId/tasks/completed",
   authMiddleware,
   taskController.getCompletedTasks,
+);
+
+//====================Thêm file ============================
+router.get("/tasks/:taskId/attachments", authMiddleware, getAttachments);
+router.post(
+  "/tasks/:taskId/attachments",
+  authMiddleware,
+  upload.single("file"),
+  uploadAttachment,
+);
+router.delete(
+  "/tasks/:taskId/attachments/:attachmentId",
+  authMiddleware,
+  removeAttachment,
 );
 
 export default router;

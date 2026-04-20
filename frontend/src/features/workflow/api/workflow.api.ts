@@ -116,4 +116,28 @@ export const workflowApi = {
 
   unarchiveTask: (taskId: number) =>
     axiosClient.patch(`/api/workflow/tasks/${taskId}/unarchive`),
+
+  // thêm file vào từng task giao việc
+  getAttachments: (taskId: number) =>
+    axiosClient.get(`/api/workflow/tasks/${taskId}/attachments`),
+
+  uploadAttachment: (
+    taskId: number | undefined,
+    formData: FormData,
+    attachmentType: "assignment" | "report" = "report",
+  ) => {
+    formData.append("attachment_type", attachmentType);
+    return axiosClient.post(
+      `/api/workflow/tasks/${taskId}/attachments`,
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      },
+    );
+  },
+
+  deleteAttachment: (taskId: number | undefined, attachmentId: number) =>
+    axiosClient.delete(
+      `/api/workflow/tasks/${taskId}/attachments/${attachmentId}`,
+    ),
 };

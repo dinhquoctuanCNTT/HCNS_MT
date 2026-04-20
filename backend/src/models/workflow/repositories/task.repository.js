@@ -433,7 +433,61 @@ async function findCompletedTasksByProject(projectId) {
 
   return result.recordset;
 }
-
+async function addAttachment(
+  taskId,
+  {
+    fileName,
+    fileUrl,
+    fileSize,
+    mimeType,
+    uploadedBy,
+    attachmentType = "report",
+  },
+) {
+  const pool = getPool();
+  const result = await pool
+    .request()
+    .input("taskId", sql.BigInt, taskId)
+    .input("fileName", sql.NVarChar(255), fileName)
+    .input("fileUrl", sql.NVarChar(sql.MAX), fileUrl)
+    .input("fileSize", sql.Int, fileSize)
+    .input("mimeType", sql.NVarChar(100), mimeType)
+    .input("uploadedBy", sql.BigInt, uploadedBy)
+    .input("attachmentType", sql.NVarChar(20), attachmentType).query(`
+      INSERT INTO task_attachments (task_id, file_name, file_url, file_size, mime_type, uploaded_by, attachment_type)
+      OUTPUT INSERTED.*
+      VALUES (@taskId, @fileName, @fileUrl, @fileSize, @mimeType, @uploadedBy, @attachmentType)
+    `);
+  return result.recordset[0];
+}
+async function findAttachmentsByTaskId(taskId) {
+  const pool = getPool();
+  const result = await pool.request().input("taskId", sql.BigInt, taskId)
+    .query(`
+      SELECT
+        a.id,
+        a.task_id,
+        a.file_name,
+        a.file_url,
+        a.file_size,
+        a.mime_type,
+        a.attachment_type,
+        a.created_at,
+        u.full_name AS uploaded_by
+      FROM task_attachments a
+      LEFT JOIN users u ON u.id = a.uploaded_by
+      WHERE a.task_id = @taskId
+      ORDER BY a.created_at ASC
+    `);
+  return result.recordset;
+}
+async function deleteAttachment(attachmentId) {
+  const pool = getPool();
+  await pool
+    .request()
+    .input("id", sql.BigInt, attachmentId)
+    .query(`DELETE FROM task_attachments WHERE id = @id`);
+}
 export {
   findTaskById,
   findLabelsByTaskId,
@@ -456,5 +510,9 @@ export {
   findSubTasksByParentId,
   removeLabelFromTask,
   findLastTaskNumberByProject,
+  addAttachment,
+  findAttachmentsByTaskId,
+  deleteAttachment,
   findCompletedTasksByProject,
+  addLabelToTask,
 };

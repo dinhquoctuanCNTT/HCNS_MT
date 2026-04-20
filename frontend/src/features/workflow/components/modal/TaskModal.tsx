@@ -4,9 +4,9 @@ import { UpdateTaskPayload } from "../../hooks/useUpdateTask";
 import WorkflowIssueDetail from "../issue/WorkflowIssueDetail";
 import WorkflowCommentList from "../issue/WorkflowCommentList";
 import WorkflowActivityList from "../issue/WorkflowActivityList";
+import WorkflowAttachmentSection from "../issue/WorkflowAttachmentSection";
 import { workflowApi } from "../../api/workflow.api";
 import "../../styles/workflow-form.css";
-import WorkflowAttachmentSection from "../issue/WorkflowAttachmentSection";
 import CloseIssueDialog, { ResolutionType } from "./CloseIssueDialog";
 
 // ── Searchable Assignee Dropdown ─────────────────────────
@@ -103,7 +103,6 @@ function AssigneeSearch({
               style={{ marginBottom: 0 }}
             />
           </div>
-
           <div style={{ overflowY: "auto", maxHeight: 200 }}>
             <div
               style={{
@@ -129,7 +128,6 @@ function AssigneeSearch({
             >
               Automatic
             </div>
-
             {filtered.length === 0 ? (
               <div style={{ padding: "8px 12px", color: "#aaa", fontSize: 13 }}>
                 Không tìm thấy
@@ -219,13 +217,14 @@ interface TaskModalProps {
   statuses: any[];
   submitting?: boolean;
   onClose: () => void;
-  onCreate?: (payload: any) => Promise<void>;
+  onCreate?: (payload: any) => Promise<any>;
   onUpdateTask?: (payload: UpdateTaskPayload) => Promise<boolean>;
   onUpdateStatus?: (statusId: number) => Promise<boolean>;
   onRefresh?: () => Promise<void> | void;
 }
 
-type TabType = "detail" | "comments" | "activity";
+// ← THÊM "attachments" vào TabType
+type TabType = "detail" | "comments" | "activity" | "attachments";
 
 export default function TaskModal({
   task,
@@ -262,6 +261,7 @@ export default function TaskModal({
   const [labelId, setLabelId] = useState("");
   const [parentId, setParentId] = useState("");
   const [createAnother, setCreateAnother] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
 
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState(task?.title ?? "");
@@ -405,6 +405,7 @@ export default function TaskModal({
     setIssueTypeId("");
     setLabelId("");
     setParentId("");
+    setPendingFiles([]);
   };
 
   const handleCreate = async () => {
@@ -419,7 +420,7 @@ export default function TaskModal({
 
     setErrors({});
 
-    await onCreate?.({
+    const createdTask: any = await onCreate?.({
       title: title.trim(),
       description: description.trim(),
       project_id: projectId,
@@ -431,6 +432,21 @@ export default function TaskModal({
       label_id: labelId ? Number(labelId) : null,
       parent_id: parentId ? Number(parentId) : null,
     });
+
+    // Upload file sau khi tạo task xong
+    if (createdTask?.id && pendingFiles.length > 0) {
+  for (const file of pendingFiles) {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      // ← Truyền "assignment" để đánh dấu là tài liệu giao việc
+      await workflowApi.uploadAttachment(createdTask.id, formData, "assignment");
+    } catch (err) {
+      console.error("Lỗi upload file:", err);
+    }
+  }
+  setPendingFiles([]);
+}
 
     if (createAnother) {
       resetForm();
@@ -448,6 +464,7 @@ export default function TaskModal({
 
   const selectedStatus = statuses.find((s) => s.id === Number(statusId));
 
+  // ← THÊM TAB "Tài liệu" đồng cấp Comments và Activity
   const tabs: { key: TabType; label: string }[] = isCreate
     ? [{ key: "detail", label: "Details" }]
     : [
@@ -457,7 +474,22 @@ export default function TaskModal({
           label: comments.length ? `Comments (${comments.length})` : "Comments",
         },
         { key: "activity", label: "Activity" },
+        { key: "attachments", label: "Tài liệu" },
       ];
+
+  const getFileEmoji = (type: string) => {
+    if (type.startsWith("image/")) return "🖼️";
+    if (type.includes("pdf")) return "📄";
+    if (type.includes("word")) return "📝";
+    if (type.includes("sheet") || type.includes("excel")) return "📊";
+    if (type.includes("zip")) return "🗜️";
+    return "📎";
+  };
+
+  const formatSize = (size: number) =>
+    size < 1024 * 1024
+      ? `${(size / 1024).toFixed(1)} KB`
+      : `${(size / (1024 * 1024)).toFixed(1)} MB`;
 
   return (
     <>
@@ -564,9 +596,8 @@ export default function TaskModal({
                   value={title}
                   onChange={(e) => {
                     setTitle(e.target.value);
-                    if (e.target.value.trim()) {
+                    if (e.target.value.trim())
                       setErrors((p) => ({ ...p, title: undefined }));
-                    }
                   }}
                   autoFocus
                 />
@@ -644,8 +675,204 @@ export default function TaskModal({
                   </div>
                 </div>
 
+                {/* ── Tài liệu đính kèm trong form tạo ── */}
                 <div className="wf-field">
-                  <WorkflowAttachmentSection taskId={0} canEdit />
+                  <label className="wf-field__label">Tài liệu đính kèm</label>
+                  <div
+                    style={{
+                      border: `2px dashed ${pendingFiles.length > 0 ? "#0052cc" : "#d1d5db"}`,
+                      borderRadius: 8,
+                      padding: "14px 16px",
+                      cursor: "pointer",
+                      background:
+                        pendingFiles.length > 0 ? "#f0f4ff" : "#fafafa",
+                      transition: "all 0.15s",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 12,
+                    }}
+                    onClick={() =>
+                      document.getElementById("create-task-file-input")?.click()
+                    }
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const files = Array.from(e.dataTransfer.files);
+                      setPendingFiles((prev) => [...prev, ...files]);
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: 8,
+                        background:
+                          pendingFiles.length > 0 ? "#dbeafe" : "#e5e7eb",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                        stroke={pendingFiles.length > 0 ? "#0052cc" : "#6b7280"}
+                        strokeWidth="1.8"
+                      >
+                        <path
+                          d="M8 11V5M5 8l3-3 3 3"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M2 12.5A2.5 2.5 0 004.5 15h7a2.5 2.5 0 000-5H11a4 4 0 10-7.9.5"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 500,
+                          color:
+                            pendingFiles.length > 0 ? "#0052cc" : "#374151",
+                        }}
+                      >
+                        {pendingFiles.length > 0
+                          ? `${pendingFiles.length} file đã chọn`
+                          : "Đính kèm tài liệu"}
+                      </div>
+                      <div
+                        style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}
+                      >
+                        Kéo thả hoặc click để chọn · Tối đa 20MB/file
+                      </div>
+                    </div>
+                    {pendingFiles.length > 0 && (
+                      <div
+                        style={{
+                          background: "#0052cc",
+                          color: "#fff",
+                          borderRadius: 12,
+                          padding: "2px 8px",
+                          fontSize: 12,
+                          fontWeight: 600,
+                          flexShrink: 0,
+                        }}
+                      >
+                        {pendingFiles.length}
+                      </div>
+                    )}
+                  </div>
+
+                  {pendingFiles.length > 0 && (
+                    <div
+                      style={{
+                        marginTop: 8,
+                        border: "1px solid #e5e7eb",
+                        borderRadius: 6,
+                        overflow: "hidden",
+                      }}
+                    >
+                      {pendingFiles.map((f, i) => (
+                        <div
+                          key={i}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                            padding: "8px 12px",
+                            borderBottom:
+                              i < pendingFiles.length - 1
+                                ? "1px solid #f3f4f6"
+                                : "none",
+                            background: "#fff",
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: 28,
+                              height: 28,
+                              borderRadius: 6,
+                              background: "#f0f4ff",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: 14,
+                              flexShrink: 0,
+                            }}
+                          >
+                            {getFileEmoji(f.type)}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div
+                              style={{
+                                fontSize: 13,
+                                fontWeight: 500,
+                                color: "#111827",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {f.name}
+                            </div>
+                            <div style={{ fontSize: 11, color: "#9ca3af" }}>
+                              {formatSize(f.size)}
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPendingFiles((prev) =>
+                                prev.filter((_, idx) => idx !== i),
+                              );
+                            }}
+                            style={{
+                              background: "none",
+                              border: "none",
+                              cursor: "pointer",
+                              color: "#9ca3af",
+                              padding: 4,
+                              borderRadius: 4,
+                              display: "flex",
+                              alignItems: "center",
+                              flexShrink: 0,
+                            }}
+                          >
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 16 16"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.8"
+                              strokeLinecap="round"
+                            >
+                              <path d="M4 4l8 8M12 4l-8 8" />
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <input
+                    id="create-task-file-input"
+                    type="file"
+                    multiple
+                    style={{ display: "none" }}
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files ?? []);
+                      setPendingFiles((prev) => [...prev, ...files]);
+                      e.target.value = "";
+                    }}
+                  />
                 </div>
 
                 <div className="wf-field">
@@ -696,9 +923,8 @@ export default function TaskModal({
                       value={issueTypeId}
                       onChange={(e) => {
                         setIssueTypeId(e.target.value);
-                        if (e.target.value) {
+                        if (e.target.value)
                           setErrors((p) => ({ ...p, issueTypeId: undefined }));
-                        }
                       }}
                     >
                       <option value="">Select type</option>
@@ -927,6 +1153,10 @@ export default function TaskModal({
                     members={members}
                     priorities={priorities}
                   />
+                )}
+                {/* ← TAB TÀI LIỆU MỚI */}
+                {activeTab === "attachments" && (
+                  <WorkflowAttachmentSection taskId={task.id} canEdit={true} />
                 )}
               </div>
             </>
