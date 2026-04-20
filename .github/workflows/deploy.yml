@@ -46,8 +46,6 @@ jobs:
 
       - name: Build frontend
         working-directory: ./frontend
-        env:
-          VITE_API_URL: https://unjustly-paralegal-jellied.ngrok-free.dev
         run: npm run build
 
       - name: Clear old frontend
