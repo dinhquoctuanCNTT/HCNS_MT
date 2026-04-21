@@ -27,6 +27,7 @@ type Props = {
     statusId: number,
     newPosition: number,
   ) => Promise<void>;
+  onAddTask?: (column: BoardColumn) => void;
 };
 
 export default function WorkflowBoard({
@@ -34,8 +35,11 @@ export default function WorkflowBoard({
   onTaskClick,
   onMoveTask,
   onReorderTask,
+  onAddTask,
 }: Props) {
   const [activeTask, setActiveTask] = useState<BoardTask | null>(null);
+  const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
+  const [selectedColumnId, setSelectedColumnId] = useState<number | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -50,45 +54,43 @@ export default function WorkflowBoard({
     return new Map(allTasks.map((task) => [String(task.id), task]));
   }, [columns]);
 
+  const handleTaskClick = (task: BoardTask) => {
+    setSelectedTaskId(task.id);
+
+    const column = columns.find((col) =>
+      col.tasks.some((t) => t.id === task.id),
+    );
+    setSelectedColumnId(column?.id ?? null);
+
+    onTaskClick(task);
+  };
+
   const handleDragStart = (event: DragStartEvent) => {
-    console.log("handleDragStart", event);
     const activeId = String(event.active.id);
     const task = taskMap.get(activeId) || null;
     setActiveTask(task);
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
-    console.log("handleDragEnd", event);
-
     const { active, over } = event;
     setActiveTask(null);
 
-    if (!over) {
-      console.log("No drop target");
-      return;
-    }
-
-    if (String(active.id) === String(over.id)) {
-      console.log("Dropped on same item");
-      return;
-    }
+    if (!over) return;
+    if (String(active.id) === String(over.id)) return;
 
     const activeTaskData = active.data.current?.task as BoardTask | undefined;
-    console.log("active.data.current", active.data.current);
-    console.log("over.data.current", over.data.current);
-
     if (!activeTaskData) return;
 
     const activeColumnId = Number(active.data.current?.columnId);
     const activeStatusId = Number(active.data.current?.statusId);
 
-    if (!activeColumnId) return;
+    if (!activeColumnId || !activeStatusId) return;
 
     const overType = over.data.current?.type as "column" | "task" | undefined;
     const overColumnId = Number(over.data.current?.columnId);
     const overStatusId = Number(over.data.current?.statusId);
 
-    if (!overColumnId) return;
+    if (!overColumnId || !overStatusId) return;
 
     if (overType === "column") {
       if (activeColumnId === overColumnId) {
@@ -128,6 +130,7 @@ export default function WorkflowBoard({
       );
     }
   };
+
   if (!columns.length) {
     return (
       <div className="wf-empty-board">
@@ -151,10 +154,11 @@ export default function WorkflowBoard({
             column={column}
             isDragOver={false}
             draggingTask={activeTask}
-            onTaskClick={onTaskClick}
-            onDragStart={() => {}}
-            onDragEnter={() => {}}
-            onDrop={() => {}}
+            onTaskClick={handleTaskClick}
+            selectedTaskId={selectedTaskId}
+            isSelectedColumn={selectedColumnId === column.id}
+            hasActiveSelection={selectedColumnId !== null}
+            onAddTask={onAddTask}
           />
         ))}
       </div>
@@ -164,10 +168,9 @@ export default function WorkflowBoard({
           <div className="workflow-drag-overlay">
             <WorkflowTaskCard
               task={activeTask}
-              columnId={0}
-              statusId={activeTask.status_id}
-              index={0}
               onClick={() => {}}
+              isDragging={true}
+              isSelected={false}
             />
           </div>
         ) : null}

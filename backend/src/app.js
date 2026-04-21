@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import workflowRoutes from "./models/workflow/routes/workflow.routes.js";
-
+import notificationRoutes from "./models/workflow/routes/notification.route.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -23,7 +23,7 @@ app.use(
   }),
 );
 app.use(express.json());
-
+app.use("/api/notifications", notificationRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // ---- API Routes ----

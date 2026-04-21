@@ -3,6 +3,12 @@ import * as workflowRepository from "../repositories/workflow.repository.js";
 import { mapTaskRow } from "../mappers/workflow.mapper.js";
 import { validateMoveTaskPayload } from "../validators/workflow.validator.js";
 import { ACTIVITY_ACTION } from "../constants/workflow.constants.js";
+import {
+  notifyTaskAssigned,
+  notifyTaskUpdated,
+  notifyTaskComment,
+  notifyTaskCompleted,
+} from "./notification.service.js";
 
 // ====================== PHÂN QUYỀN ======================
 const ROLE_LEVEL = {
@@ -31,7 +37,6 @@ function assertRole(user, minRole, message) {
 
 // ====================== CREATE ======================
 async function createTask(payload, user) {
-  // Tất cả đã đăng nhập đều tạo được task
   assertRole(user, "employee", "Bạn cần đăng nhập để tạo task");
 
   const project_id = payload.project_id ?? payload.projectId;
@@ -111,6 +116,17 @@ async function createTask(payload, user) {
     newValue: JSON.stringify({ title, status_id, priority_id, assignee_id }),
   });
 
+  // ← Thông báo giao việc
+  if (assignee_id && assignee_id !== Number(user.id)) {
+    await notifyTaskAssigned({
+      assigneeId: assignee_id,
+      reporterName: user.full_name ?? `User #${user.id}`,
+      taskKey: newTask.task_key,
+      taskTitle: title,
+      taskId: newTask.id,
+    });
+  }
+
   return await getTaskDetail(newTask.id);
 }
 
@@ -127,8 +143,6 @@ async function updateTask(taskId, payload, user) {
   const oldTask = await taskRepository.findTaskById(taskId);
   if (!oldTask) throw new Error("Task không tồn tại");
 
-  // employee chỉ sửa task của chính mình
-  // department_head trở lên sửa được tất cả
   if (!hasMinRole(user, "department_head")) {
     if (
       oldTask.reporter_id !== Number(user.id) &&
@@ -173,21 +187,29 @@ async function updateTask(taskId, payload, user) {
     }),
   });
 
+  // ← Thông báo cập nhật
+  await notifyTaskUpdated({
+    assigneeId: oldTask.assignee_id,
+    reporterId: oldTask.reporter_id,
+    updaterName: user.full_name ?? `User #${user.id}`,
+    taskKey: oldTask.task_key,
+    taskTitle: oldTask.title,
+    taskId,
+    fieldName: Object.keys(payload).join(", "),
+  });
+
   return getTaskDetail(taskId);
 }
 
 // ====================== DELETE ======================
 async function deleteTask(taskId, user) {
-  // Chỉ department_head trở lên mới xóa được
   assertRole(
     user,
     "department_head",
     "Chỉ trưởng phòng trở lên mới được xóa task",
   );
-
   const task = await taskRepository.findTaskById(taskId);
   if (!task) throw new Error("Task không tồn tại");
-
   await taskRepository.createActivityLog({
     taskId,
     userId: user.id,
@@ -196,7 +218,6 @@ async function deleteTask(taskId, user) {
     oldValue: task.title,
     newValue: null,
   });
-
   await taskRepository.deleteTask(taskId);
 }
 
@@ -204,11 +225,8 @@ async function deleteTask(taskId, user) {
 async function moveTask(taskId, payload, user) {
   const error = validateMoveTaskPayload(payload);
   if (error.length) throw new Error(error.join(","));
-
   const task = await taskRepository.findTaskById(taskId);
   if (!task) throw new Error("Task không tồn tại");
-
-  // employee chỉ move task của mình
   if (!hasMinRole(user, "department_head")) {
     if (
       task.reporter_id !== Number(user.id) &&
@@ -219,7 +237,6 @@ async function moveTask(taskId, payload, user) {
       throw err;
     }
   }
-
   await taskRepository.shiftTasksForInsert(
     task.project_id,
     task.board_id,
@@ -231,7 +248,6 @@ async function moveTask(taskId, payload, user) {
     toStatusId: payload.toStatusId,
     newPosition: payload.newPosition,
   });
-
   await taskRepository.createActivityLog({
     taskId,
     userId: user.id,
@@ -240,7 +256,6 @@ async function moveTask(taskId, payload, user) {
     oldValue: String(task.status_id),
     newValue: String(payload.toStatusId),
   });
-
   return getTaskDetail(taskId);
 }
 
@@ -248,13 +263,11 @@ async function moveTask(taskId, payload, user) {
 async function reorderTask(taskId, payload, user) {
   const task = await taskRepository.findTaskById(taskId);
   if (!task) throw new Error("Task không tồn tại");
-
   await taskRepository.reorderTask({
     taskId,
     statusId: payload.statusId ?? task.status_id,
     newPosition: payload.newPosition,
   });
-
   await taskRepository.createActivityLog({
     taskId,
     userId: user.id,
@@ -263,22 +276,17 @@ async function reorderTask(taskId, payload, user) {
     oldValue: String(task.position),
     newValue: String(payload.newPosition),
   });
-
   return getTaskDetail(taskId);
 }
 
 // ====================== COMPLETE / UNCOMPLETE ======================
 async function completeTask(taskId, user, { resolution, note } = {}) {
   const VALID = ["done", "cancelled", "wont_do"];
-  if (!resolution || !VALID.includes(resolution)) {
+  if (!resolution || !VALID.includes(resolution))
     throw new Error("Resolution không hợp lệ");
-  }
-
   const task = await taskRepository.findTaskById(taskId);
   if (!task) throw new Error("Task không tồn tại");
   if (task.is_completed) throw new Error("Task đã được hoàn thành trước đó");
-
-  // employee chỉ complete task được assign cho mình
   if (!hasMinRole(user, "department_head")) {
     if (
       task.assignee_id !== Number(user.id) &&
@@ -291,13 +299,11 @@ async function completeTask(taskId, user, { resolution, note } = {}) {
       throw err;
     }
   }
-
   await taskRepository.completeTask(taskId, {
     resolution,
     note,
     closedBy: user.id,
   });
-
   try {
     await taskRepository.createActivityLog({
       taskId,
@@ -311,23 +317,28 @@ async function completeTask(taskId, user, { resolution, note } = {}) {
     console.error("Activity log error (non-critical):", logErr.message);
   }
 
+  // ← Thông báo hoàn thành
+  await notifyTaskCompleted({
+    reporterId: task.reporter_id,
+    completedByName: user.full_name ?? `User #${user.id}`,
+    taskKey: task.task_key,
+    taskTitle: task.title,
+    taskId,
+  });
+
   return getTaskDetail(taskId);
 }
 
 async function uncompleteTask(taskId, user) {
-  // Chỉ department_head trở lên mới reopen task
   assertRole(
     user,
     "department_head",
     "Chỉ trưởng phòng trở lên mới được mở lại task",
   );
-
   const task = await taskRepository.findTaskById(taskId);
   if (!task) throw new Error("Task không tồn tại");
   if (!task.is_completed) throw new Error("Task chưa được đánh dấu hoàn thành");
-
   await taskRepository.uncompleteTask(taskId);
-
   try {
     await taskRepository.createActivityLog({
       taskId,
@@ -340,25 +351,20 @@ async function uncompleteTask(taskId, user) {
   } catch (logErr) {
     console.error("Activity log error (non-critical):", logErr.message);
   }
-
   return getTaskDetail(taskId);
 }
 
 // ====================== ARCHIVE / UNARCHIVE ======================
 async function archiveTask(taskId, user) {
-  // Chỉ department_head trở lên mới archive
   assertRole(
     user,
     "department_head",
     "Chỉ trưởng phòng trở lên mới được archive task",
   );
-
   const task = await taskRepository.findTaskById(taskId);
   if (!task) throw new Error("Task không tồn tại");
   if (task.is_archived) throw new Error("Task đã được archive trước đó");
-
   await taskRepository.archiveTask(taskId);
-
   try {
     await taskRepository.createActivityLog({
       taskId,
@@ -371,7 +377,6 @@ async function archiveTask(taskId, user) {
   } catch (logErr) {
     console.error("Activity log error (non-critical):", logErr.message);
   }
-
   return getTaskDetail(taskId);
 }
 
@@ -381,13 +386,10 @@ async function unarchiveTask(taskId, user) {
     "department_head",
     "Chỉ trưởng phòng trở lên mới được unarchive task",
   );
-
   const task = await taskRepository.findTaskById(taskId);
   if (!task) throw new Error("Task không tồn tại");
   if (!task.is_archived) throw new Error("Task chưa được archive");
-
   await taskRepository.unarchiveTask(taskId);
-
   try {
     await taskRepository.createActivityLog({
       taskId,
@@ -400,7 +402,6 @@ async function unarchiveTask(taskId, user) {
   } catch (logErr) {
     console.error("Activity log error (non-critical):", logErr.message);
   }
-
   return getTaskDetail(taskId);
 }
 
@@ -416,9 +417,7 @@ async function addTaskComment(taskId, payload, user) {
   if (!task) throw new Error("Task không tồn tại");
   if (!payload.content?.trim())
     throw new Error("Nội dung comment không được để trống");
-
   await taskRepository.addTaskComment(taskId, user.id, payload.content.trim());
-
   await taskRepository.createActivityLog({
     taskId,
     userId: user.id,
@@ -426,6 +425,17 @@ async function addTaskComment(taskId, payload, user) {
     fieldName: "comment",
     oldValue: null,
     newValue: payload.content.trim(),
+  });
+
+  // ← Thông báo comment
+  await notifyTaskComment({
+    assigneeId: task.assignee_id,
+    reporterId: task.reporter_id,
+    commenterId: user.id,
+    commenterName: user.full_name ?? `User #${user.id}`,
+    taskKey: task.task_key,
+    taskTitle: task.title,
+    taskId,
   });
 
   return await taskRepository.findTaskComments(taskId);
@@ -440,16 +450,13 @@ async function getTaskActivities(taskId) {
 
 // ====================== ASSIGNEE ======================
 async function updateTaskAssignee(taskId, assigneeId, user) {
-  // Chỉ department_head trở lên mới assign task
   assertRole(
     user,
     "department_head",
     "Chỉ trưởng phòng trở lên mới được phân công task",
   );
-
   const task = await taskRepository.findTaskById(taskId);
   if (!task) throw new Error("Task không tồn tại");
-
   await taskRepository.updateTask(taskId, {
     title: task.title,
     description: task.description,
@@ -461,7 +468,6 @@ async function updateTaskAssignee(taskId, assigneeId, user) {
     start_date: task.start_date,
     due_date: task.due_date,
   });
-
   await taskRepository.createActivityLog({
     taskId,
     userId: user.id,
@@ -470,7 +476,6 @@ async function updateTaskAssignee(taskId, assigneeId, user) {
     oldValue: task.assignee_id ? String(task.assignee_id) : null,
     newValue: assigneeId ? String(assigneeId) : null,
   });
-
   return getTaskDetail(taskId);
 }
 
@@ -478,8 +483,6 @@ async function updateTaskAssignee(taskId, assigneeId, user) {
 async function updateTaskDates(taskId, payload, user) {
   const task = await taskRepository.findTaskById(taskId);
   if (!task) throw new Error("Task không tồn tại");
-
-  // employee chỉ cập nhật dates task của mình
   if (!hasMinRole(user, "department_head")) {
     if (
       task.reporter_id !== Number(user.id) &&
@@ -492,7 +495,6 @@ async function updateTaskDates(taskId, payload, user) {
       throw err;
     }
   }
-
   await taskRepository.updateTask(taskId, {
     title: task.title,
     description: task.description,
@@ -504,7 +506,6 @@ async function updateTaskDates(taskId, payload, user) {
     start_date: payload.startDate ?? task.start_date,
     due_date: payload.dueDate ?? task.due_date,
   });
-
   await taskRepository.createActivityLog({
     taskId,
     userId: user.id,
@@ -519,7 +520,6 @@ async function updateTaskDates(taskId, payload, user) {
       due_date: payload.dueDate ?? task.due_date,
     }),
   });
-
   return getTaskDetail(taskId);
 }
 
@@ -527,10 +527,8 @@ async function updateTaskDates(taskId, payload, user) {
 async function createSubTask(parentTaskId, payload, user) {
   const parentTask = await taskRepository.findTaskById(parentTaskId);
   if (!parentTask) throw new Error("Task cha không tồn tại");
-
   const title = payload.title?.trim();
   if (!title) throw new Error("title là bắt buộc");
-
   const maxPosition = await taskRepository.findMaxTaskPositionByStatus(
     parentTask.project_id,
     parentTask.board_id,
@@ -543,7 +541,6 @@ async function createSubTask(parentTaskId, payload, user) {
     parentTask.project_id,
   );
   const task_key = `${project?.code ?? "TASK"}-${taskCount + 1}`;
-
   const newTask = await taskRepository.createTask({
     project_id: parentTask.project_id,
     board_id: parentTask.board_id,
@@ -559,7 +556,6 @@ async function createSubTask(parentTaskId, payload, user) {
     task_type_id: payload.taskTypeId ?? parentTask.task_type_id,
     task_key,
   });
-
   await taskRepository.updateTask(newTask.id, {
     title: newTask.title,
     description: newTask.description,
@@ -571,7 +567,6 @@ async function createSubTask(parentTaskId, payload, user) {
     start_date: newTask.start_date,
     due_date: newTask.due_date,
   });
-
   await taskRepository.createActivityLog({
     taskId: parentTaskId,
     userId: user.id,
@@ -580,7 +575,6 @@ async function createSubTask(parentTaskId, payload, user) {
     oldValue: null,
     newValue: title,
   });
-
   return await taskRepository.findTaskById(newTask.id);
 }
 
@@ -594,9 +588,7 @@ async function getSubTasks(parentTaskId) {
 async function addLabelToTask(taskId, labelId, user) {
   const task = await taskRepository.findTaskById(taskId);
   if (!task) throw new Error("Task không tồn tại");
-
   await taskRepository.addLabelToTask(taskId, labelId);
-
   await taskRepository.createActivityLog({
     taskId,
     userId: user.id,
@@ -605,16 +597,13 @@ async function addLabelToTask(taskId, labelId, user) {
     oldValue: null,
     newValue: labelId.toString(),
   });
-
   return { taskId, labelId };
 }
 
 async function removeLabelFromTask(taskId, labelId, user) {
   const task = await taskRepository.findTaskById(taskId);
   if (!task) throw new Error("Task không tồn tại");
-
   await taskRepository.removeLabelFromTask(taskId, labelId);
-
   await taskRepository.createActivityLog({
     taskId,
     userId: user.id,
@@ -623,7 +612,6 @@ async function removeLabelFromTask(taskId, labelId, user) {
     oldValue: labelId.toString(),
     newValue: null,
   });
-
   return { taskId, labelId };
 }
 

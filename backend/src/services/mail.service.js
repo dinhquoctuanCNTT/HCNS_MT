@@ -71,10 +71,8 @@ function getDiffDays(dueDate) {
 // ── Email task đến hạn / sắp đến hạn ────────────────────
 export async function sendOverdueEmail({ to, taskTitle, dueDate, roleText }) {
   const diffDays = getDiffDays(dueDate);
-
   const isTomorrow = diffDays >= 1;
   const isToday = diffDays === 0;
-  const isOverdue = diffDays < 0;
 
   const subject = isTomorrow
     ? `[Sắp đến hạn] ${taskTitle}`
@@ -98,70 +96,34 @@ export async function sendOverdueEmail({ to, taskTitle, dueDate, roleText }) {
     to,
     subject,
     html: `
-      <div style="font-family:sans-serif;max-width:560px;margin:auto;
-                  border:1px solid #f0f0f0;border-radius:12px;overflow:hidden;">
-
-        <!-- Header -->
+      <div style="font-family:sans-serif;max-width:560px;margin:auto;border:1px solid #f0f0f0;border-radius:12px;overflow:hidden;">
         <div style="background:${headerColor};padding:24px;text-align:center;">
-          <div style="display:inline-block;background:rgba(255,255,255,0.2);
-                      border-radius:50%;padding:12px;margin-bottom:12px;">
+          <div style="display:inline-block;background:rgba(255,255,255,0.2);border-radius:50%;padding:12px;margin-bottom:12px;">
             ${headerIcon}
           </div>
-          <h2 style="color:#fff;margin:0;font-size:20px;font-weight:600;">
-            ${headerText}
-          </h2>
+          <h2 style="color:#fff;margin:0;font-size:20px;font-weight:600;">${headerText}</h2>
         </div>
-
-        <!-- Body -->
         <div style="padding:28px 24px;">
-
-          <!-- Task title -->
-          <div style="background:${bgColor};border-left:4px solid ${borderColor};
-                      border-radius:4px;padding:16px;margin-bottom:20px;">
-            <p style="margin:0;font-size:16px;font-weight:600;color:#111;">
-              ${taskTitle}
-            </p>
-            <p style="margin:6px 0 0;font-size:13px;color:#666;">
-              Task ${roleText}
-            </p>
+          <div style="background:${bgColor};border-left:4px solid ${borderColor};border-radius:4px;padding:16px;margin-bottom:20px;">
+            <p style="margin:0;font-size:16px;font-weight:600;color:#111;">${taskTitle}</p>
+            <p style="margin:6px 0 0;font-size:13px;color:#666;">Task ${roleText}</p>
           </div>
-
-          <!-- Due date -->
-          <div style="display:flex;align-items:center;gap:8px;
-                      margin-bottom:24px;padding:12px;
-                      background:#fafafa;border-radius:8px;">
-            <span style="display:inline-block;vertical-align:middle;">
-              ${icons.clock}
-            </span>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:24px;padding:12px;background:#fafafa;border-radius:8px;">
+            <span style="display:inline-block;vertical-align:middle;">${icons.clock}</span>
             <span style="font-size:14px;color:${dateColor};font-weight:600;">
-              Hạn: ${new Date(dueDate).toLocaleDateString("vi-VN", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-              })}
+              Hạn: ${new Date(dueDate).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })}
               ${isTomorrow ? " (còn 1 ngày)" : " (hôm nay)"}
             </span>
           </div>
-
-          <!-- CTA Button -->
           <div style="text-align:center;">
             <a href="${process.env.FRONTEND_URL}/admin/workflow"
-              style="display:inline-flex;align-items:center;gap:8px;
-                     background:${headerColor};color:#fff;padding:12px 28px;
-                     border-radius:8px;text-decoration:none;
-                     font-weight:600;font-size:14px;">
-              Xem task ngay
-              ${icons.arrow}
+              style="display:inline-flex;align-items:center;gap:8px;background:${headerColor};color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">
+              Xem task ngay ${icons.arrow}
             </a>
           </div>
         </div>
-
-        <!-- Footer -->
-        <div style="padding:16px 24px;background:#fafafa;
-                    border-top:1px solid #f0f0f0;text-align:center;">
-          <small style="color:#888;font-size:12px;">
-            © Công ty Sơn MT — Hệ thống quản lý công việc
-          </small>
+        <div style="padding:16px 24px;background:#fafafa;border-top:1px solid #f0f0f0;text-align:center;">
+          <small style="color:#888;font-size:12px;">© Công ty Sơn MT — Hệ thống quản lý công việc</small>
         </div>
       </div>
     `,
@@ -183,90 +145,185 @@ export async function sendNewTaskEmail({
     to,
     subject: `[Task mới] ${taskTitle}`,
     html: `
-      <div style="font-family:sans-serif;max-width:560px;margin:auto;
-                  border:1px solid #f0f0f0;border-radius:12px;overflow:hidden;">
-
-        <!-- Header -->
+      <div style="font-family:sans-serif;max-width:560px;margin:auto;border:1px solid #f0f0f0;border-radius:12px;overflow:hidden;">
         <div style="background:#22c55e;padding:24px;text-align:center;">
-          <div style="display:inline-block;background:rgba(255,255,255,0.2);
-                      border-radius:50%;padding:12px;margin-bottom:12px;">
+          <div style="display:inline-block;background:rgba(255,255,255,0.2);border-radius:50%;padding:12px;margin-bottom:12px;">
             ${icons.check}
           </div>
-          <h2 style="color:#fff;margin:0;font-size:20px;font-weight:600;">
-            Task mới được giao
-          </h2>
+          <h2 style="color:#fff;margin:0;font-size:20px;font-weight:600;">Task mới được giao</h2>
         </div>
-
-        <!-- Body -->
         <div style="padding:28px 24px;">
-
-          <!-- Greeting -->
           <p style="font-size:15px;color:#333;margin:0 0 20px;">
-            Xin chào <strong>${assigneeName}</strong>,
-            bạn vừa được giao một task mới.
+            Xin chào <strong>${assigneeName}</strong>, bạn vừa được giao một task mới.
           </p>
-
-          <!-- Task info -->
-          <div style="background:#f0fdf4;border-left:4px solid #22c55e;
-                      border-radius:4px;padding:16px;margin-bottom:20px;">
-            <p style="margin:0;font-size:16px;font-weight:600;color:#111;">
-              ${taskTitle}
-            </p>
+          <div style="background:#f0fdf4;border-left:4px solid #22c55e;border-radius:4px;padding:16px;margin-bottom:20px;">
+            <p style="margin:0;font-size:16px;font-weight:600;color:#111;">${taskTitle}</p>
             ${
               dueDate
-                ? `
-            <div style="display:flex;align-items:center;gap:6px;margin-top:8px;">
-              <span style="display:inline-block;vertical-align:middle;">
-                ${icons.calendar}
-              </span>
+                ? `<div style="display:flex;align-items:center;gap:6px;margin-top:8px;">
+              <span style="display:inline-block;vertical-align:middle;">${icons.calendar}</span>
               <span style="font-size:13px;color:#16a34a;font-weight:500;">
-                Hạn: ${new Date(dueDate).toLocaleDateString("vi-VN", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                })}
+                Hạn: ${new Date(dueDate).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })}
               </span>
             </div>`
                 : ""
             }
           </div>
-
-          <!-- Assignee info -->
-          <div style="display:flex;align-items:center;gap:8px;
-                      margin-bottom:24px;padding:12px;
-                      background:#fafafa;border-radius:8px;">
-            <span style="display:inline-block;vertical-align:middle;">
-              ${icons.user}
-            </span>
-            <span style="font-size:14px;color:#555;">
-              Được giao cho: <strong>${assigneeName}</strong>
-            </span>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:24px;padding:12px;background:#fafafa;border-radius:8px;">
+            <span style="display:inline-block;vertical-align:middle;">${icons.user}</span>
+            <span style="font-size:14px;color:#555;">Được giao cho: <strong>${assigneeName}</strong></span>
           </div>
-
-          <!-- CTA Button -->
           <div style="text-align:center;">
             <a href="${process.env.FRONTEND_URL}/admin/workflow"
-              style="display:inline-flex;align-items:center;gap:8px;
-                     background:#22c55e;color:#fff;padding:12px 28px;
-                     border-radius:8px;text-decoration:none;
-                     font-weight:600;font-size:14px;">
-              Xem task ngay
-              ${icons.arrow}
+              style="display:inline-flex;align-items:center;gap:8px;background:#22c55e;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">
+              Xem task ngay ${icons.arrow}
             </a>
           </div>
         </div>
-
-        <!-- Footer -->
-        <div style="padding:16px 24px;background:#fafafa;
-                    border-top:1px solid #f0f0f0;text-align:center;">
-          <small style="color:#888;font-size:12px;">
-            © Công ty Sơn MT — Hệ thống quản lý công việc
-          </small>
+        <div style="padding:16px 24px;background:#fafafa;border-top:1px solid #f0f0f0;text-align:center;">
+          <small style="color:#888;font-size:12px;">© Công ty Sơn MT — Hệ thống quản lý công việc</small>
         </div>
       </div>
     `,
   });
   console.log(`📧 Gửi email task mới → ${to}`);
-  console.log("MAIL_HOST:", process.env.MAIL_HOST);
-  console.log("MAIL_USER:", process.env.MAIL_USER);
+}
+
+// ── Email giao việc cho assignee ─────────────────────────
+export async function sendTaskAssignedEmail({
+  to,
+  assigneeName,
+  reporterName,
+  taskTitle,
+  taskKey,
+  dueDate,
+}) {
+  await transporter.sendMail({
+    from: '"Công ty Sơn MT" <dinhtuna30@gmail.com>',
+    to,
+    subject: `[Được giao việc] ${taskKey} - ${taskTitle}`,
+    html: `
+      <div style="font-family:sans-serif;max-width:560px;margin:auto;border:1px solid #f0f0f0;border-radius:12px;overflow:hidden;">
+        <div style="background:#0052cc;padding:24px;text-align:center;">
+          <div style="display:inline-block;background:rgba(255,255,255,0.2);border-radius:50%;padding:12px;margin-bottom:12px;">
+            ${icons.check}
+          </div>
+          <h2 style="color:#fff;margin:0;font-size:20px;font-weight:600;">Bạn được giao việc mới</h2>
+        </div>
+        <div style="padding:28px 24px;">
+          <p style="font-size:15px;color:#333;margin:0 0 20px;">
+            Xin chào <strong>${assigneeName}</strong>, <strong>${reporterName}</strong> đã giao task cho bạn.
+          </p>
+          <div style="background:#f0f4ff;border-left:4px solid #0052cc;border-radius:4px;padding:16px;margin-bottom:20px;">
+            <span style="font-size:12px;font-weight:700;color:#0052cc;background:#e8f0fe;padding:2px 6px;border-radius:3px;">${taskKey}</span>
+            <p style="margin:8px 0 0;font-size:16px;font-weight:600;color:#111;">${taskTitle}</p>
+            ${
+              dueDate
+                ? `<div style="margin-top:8px;font-size:13px;color:#0052cc;font-weight:500;">
+              Hạn: ${new Date(dueDate).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })}
+            </div>`
+                : ""
+            }
+          </div>
+          <div style="text-align:center;">
+            <a href="${process.env.FRONTEND_URL}/admin/workflow"
+              style="display:inline-flex;align-items:center;gap:8px;background:#0052cc;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">
+              Xem task ngay ${icons.arrow}
+            </a>
+          </div>
+        </div>
+        <div style="padding:16px 24px;background:#fafafa;border-top:1px solid #f0f0f0;text-align:center;">
+          <small style="color:#888;font-size:12px;">© Công ty Sơn MT — Hệ thống quản lý công việc</small>
+        </div>
+      </div>
+    `,
+  });
+  console.log(`📧 Gửi email giao việc → ${to}`);
+}
+
+// ── Email có comment mới ──────────────────────────────────
+export async function sendTaskCommentEmail({
+  to,
+  userName,
+  commenterName,
+  taskTitle,
+  taskKey,
+  comment,
+}) {
+  await transporter.sendMail({
+    from: '"Công ty Sơn MT" <dinhtuna30@gmail.com>',
+    to,
+    subject: `[Bình luận mới] ${taskKey} - ${taskTitle}`,
+    html: `
+      <div style="font-family:sans-serif;max-width:560px;margin:auto;border:1px solid #f0f0f0;border-radius:12px;overflow:hidden;">
+        <div style="background:#7c3aed;padding:24px;text-align:center;">
+          <h2 style="color:#fff;margin:0;font-size:20px;font-weight:600;">💬 Bình luận mới</h2>
+        </div>
+        <div style="padding:28px 24px;">
+          <p style="font-size:15px;color:#333;margin:0 0 20px;">
+            Xin chào <strong>${userName}</strong>, <strong>${commenterName}</strong> đã bình luận trong task của bạn.
+          </p>
+          <div style="background:#f5f3ff;border-left:4px solid #7c3aed;border-radius:4px;padding:16px;margin-bottom:20px;">
+            <span style="font-size:12px;font-weight:700;color:#7c3aed;background:#ede9fe;padding:2px 6px;border-radius:3px;">${taskKey}</span>
+            <p style="margin:8px 0 0;font-size:15px;font-weight:600;color:#111;">${taskTitle}</p>
+            ${comment ? `<p style="margin:10px 0 0;font-size:13px;color:#555;font-style:italic;">"${comment}"</p>` : ""}
+          </div>
+          <div style="text-align:center;">
+            <a href="${process.env.FRONTEND_URL}/admin/workflow"
+              style="display:inline-flex;align-items:center;gap:8px;background:#7c3aed;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">
+              Xem bình luận ${icons.arrow}
+            </a>
+          </div>
+        </div>
+        <div style="padding:16px 24px;background:#fafafa;border-top:1px solid #f0f0f0;text-align:center;">
+          <small style="color:#888;font-size:12px;">© Công ty Sơn MT — Hệ thống quản lý công việc</small>
+        </div>
+      </div>
+    `,
+  });
+  console.log(`📧 Gửi email comment → ${to}`);
+}
+
+// ── Email task hoàn thành ─────────────────────────────────
+export async function sendTaskCompletedEmail({
+  to,
+  reporterName,
+  completedByName,
+  taskTitle,
+  taskKey,
+}) {
+  await transporter.sendMail({
+    from: '"Công ty Sơn MT" <dinhtuna30@gmail.com>',
+    to,
+    subject: `[Hoàn thành] ${taskKey} - ${taskTitle}`,
+    html: `
+      <div style="font-family:sans-serif;max-width:560px;margin:auto;border:1px solid #f0f0f0;border-radius:12px;overflow:hidden;">
+        <div style="background:#16a34a;padding:24px;text-align:center;">
+          <div style="display:inline-block;background:rgba(255,255,255,0.2);border-radius:50%;padding:12px;margin-bottom:12px;">
+            ${icons.check}
+          </div>
+          <h2 style="color:#fff;margin:0;font-size:20px;font-weight:600;">🎉 Task đã hoàn thành</h2>
+        </div>
+        <div style="padding:28px 24px;">
+          <p style="font-size:15px;color:#333;margin:0 0 20px;">
+            Xin chào <strong>${reporterName}</strong>, <strong>${completedByName}</strong> đã hoàn thành task.
+          </p>
+          <div style="background:#f0fdf4;border-left:4px solid #16a34a;border-radius:4px;padding:16px;margin-bottom:20px;">
+            <span style="font-size:12px;font-weight:700;color:#16a34a;background:#dcfce7;padding:2px 6px;border-radius:3px;">${taskKey}</span>
+            <p style="margin:8px 0 0;font-size:16px;font-weight:600;color:#111;">${taskTitle}</p>
+          </div>
+          <div style="text-align:center;">
+            <a href="${process.env.FRONTEND_URL}/admin/workflow"
+              style="display:inline-flex;align-items:center;gap:8px;background:#16a34a;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">
+              Xem chi tiết ${icons.arrow}
+            </a>
+          </div>
+        </div>
+        <div style="padding:16px 24px;background:#fafafa;border-top:1px solid #f0f0f0;text-align:center;">
+          <small style="color:#888;font-size:12px;">© Công ty Sơn MT — Hệ thống quản lý công việc</small>
+        </div>
+      </div>
+    `,
+  });
+  console.log(`📧 Gửi email hoàn thành → ${to}`);
 }

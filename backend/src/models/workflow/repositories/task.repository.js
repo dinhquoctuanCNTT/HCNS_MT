@@ -551,6 +551,174 @@ async function deleteChecklist(checklistId) {
     .input("id", sql.BigInt, checklistId)
     .query(`DELETE FROM task_checklists WHERE id = @id`);
 }
+
+// Thêm vào cuối task.repository.js (trước export)
+
+async function findAssigneesByTaskId(taskId) {
+  const pool = getPool();
+  const result = await pool.request().input("taskId", sql.BigInt, taskId)
+    .query(`
+      SELECT u.id, u.full_name, u.avatar_url
+      FROM task_assignees ta
+      INNER JOIN users u ON u.id = ta.user_id
+      WHERE ta.task_id = @taskId
+      ORDER BY u.full_name ASC
+    `);
+  return result.recordset;
+}
+
+async function addTaskAssignee(taskId, userId) {
+  const pool = getPool();
+  try {
+    await pool
+      .request()
+      .input("taskId", sql.BigInt, taskId)
+      .input("userId", sql.BigInt, userId).query(`
+        IF NOT EXISTS (SELECT 1 FROM task_assignees WHERE task_id = @taskId AND user_id = @userId)
+          INSERT INTO task_assignees (task_id, user_id) VALUES (@taskId, @userId)
+      `);
+  } catch (err) {
+    // ignore duplicate
+  }
+}
+
+async function removeTaskAssignee(taskId, userId) {
+  const pool = getPool();
+  await pool
+    .request()
+    .input("taskId", sql.BigInt, taskId)
+    .input("userId", sql.BigInt, userId)
+    .query(
+      `DELETE FROM task_assignees WHERE task_id = @taskId AND user_id = @userId`,
+    );
+}
+
+async function findAssigneesByTaskIds(taskIds = []) {
+  if (!taskIds.length) return [];
+  const pool = getPool();
+  const request = pool.request();
+  const paramNames = taskIds.map((_, i) => `taskId${i}`);
+  taskIds.forEach((id, i) => request.input(paramNames[i], sql.BigInt, id));
+  const result = await request.query(`
+    SELECT ta.task_id, u.id, u.full_name, u.avatar_url
+    FROM task_assignees ta
+    INNER JOIN users u ON u.id = ta.user_id
+    WHERE ta.task_id IN (${paramNames.map((n) => `@${n}`).join(", ")})
+    ORDER BY u.full_name ASC
+  `);
+  return result.recordset;
+}
+
+async function findDependenciesByTaskId(taskId) {
+  const pool = getPool();
+  const result = await pool.request().input("taskId", sql.BigInt, taskId)
+    .query(`
+      SELECT
+        td.id,
+        td.depends_on_id,
+        t.task_key,
+        t.title,
+        t.is_completed,
+        s.name AS status_name,
+        s.color AS status_color
+      FROM task_dependencies td
+      INNER JOIN tasks t ON t.id = td.depends_on_id
+      LEFT JOIN statuses s ON s.id = t.status_id
+      WHERE td.task_id = @taskId
+      ORDER BY td.created_at ASC
+    `);
+  return result.recordset;
+}
+
+async function addTaskDependency(taskId, dependsOnId) {
+  const pool = getPool();
+  const result = await pool
+    .request()
+    .input("taskId", sql.BigInt, taskId)
+    .input("dependsOnId", sql.BigInt, dependsOnId).query(`
+      INSERT INTO task_dependencies (task_id, depends_on_id)
+      OUTPUT INSERTED.*
+      VALUES (@taskId, @dependsOnId)
+    `);
+  return result.recordset[0];
+}
+
+async function removeTaskDependency(taskId, dependsOnId) {
+  const pool = getPool();
+  await pool
+    .request()
+    .input("taskId", sql.BigInt, taskId)
+    .input("dependsOnId", sql.BigInt, dependsOnId).query(`
+      DELETE FROM task_dependencies
+      WHERE task_id = @taskId AND depends_on_id = @dependsOnId
+    `);
+}
+async function findLinksByTaskId(taskId, category = null) {
+  const pool = getPool();
+  const request = pool
+    .request()
+    .input("taskId", sql.BigInt, taskId)
+    .input("category", sql.NVarChar(20), category);
+  const result = await request.query(`
+    SELECT id, task_id, title, url, link_type, link_category, created_by, created_at
+    FROM task_links
+    WHERE task_id = @taskId
+      AND (@category IS NULL OR link_category = @category)
+    ORDER BY created_at ASC
+  `);
+  return result.recordset;
+}
+
+async function createTaskLink(
+  taskId,
+  { title, url, link_type = "other", link_category = "report" },
+  createdBy,
+) {
+  const pool = getPool();
+  const result = await pool
+    .request()
+    .input("taskId", sql.BigInt, taskId)
+    .input("title", sql.NVarChar(255), title)
+    .input("url", sql.NVarChar(1000), url)
+    .input("link_type", sql.NVarChar(50), link_type)
+    .input("link_category", sql.NVarChar(20), link_category)
+    .input("createdBy", sql.NVarChar(100), createdBy ?? null).query(`
+      INSERT INTO task_links (task_id, title, url, link_type, link_category, created_by)
+      OUTPUT INSERTED.*
+      VALUES (@taskId, @title, @url, @link_type, @link_category, @createdBy)
+    `);
+  return result.recordset[0];
+}
+
+async function updateTaskLink(
+  id,
+  taskId,
+  { title, url, link_type, link_category },
+) {
+  const pool = getPool();
+  const result = await pool
+    .request()
+    .input("id", sql.BigInt, id)
+    .input("taskId", sql.BigInt, taskId)
+    .input("title", sql.NVarChar(255), title)
+    .input("url", sql.NVarChar(1000), url)
+    .input("link_type", sql.NVarChar(50), link_type)
+    .input("link_category", sql.NVarChar(20), link_category).query(`
+      UPDATE task_links
+      SET title = @title, url = @url, link_type = @link_type, link_category = @link_category
+      OUTPUT INSERTED.*
+      WHERE id = @id AND task_id = @taskId
+    `);
+  return result.recordset[0];
+}
+async function deleteTaskLink(id, taskId) {
+  const pool = getPool();
+  await pool
+    .request()
+    .input("id", sql.BigInt, id)
+    .input("taskId", sql.BigInt, taskId)
+    .query(`DELETE FROM task_links WHERE id = @id AND task_id = @taskId`);
+}
 export {
   findTaskById,
   findLabelsByTaskId,
@@ -583,4 +751,15 @@ export {
   updateChecklist,
   toggleChecklist,
   deleteChecklist,
+  findAssigneesByTaskId,
+  addTaskAssignee,
+  removeTaskAssignee,
+  findAssigneesByTaskIds,
+  findDependenciesByTaskId,
+  addTaskDependency,
+  removeTaskDependency,
+  findLinksByTaskId,
+  createTaskLink,
+  updateTaskLink,
+  deleteTaskLink,
 };

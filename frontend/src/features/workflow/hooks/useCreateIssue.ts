@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { workflowApi } from "../api/workflow.api";
-import { useNotificationStore } from "./useNotificationStore"; // ✅ thêm
+import { useNotificationStore } from "./useNotificationStore";
 
 export function useCreateIssue(projectId?: number, onSuccess?: () => void) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const addNotification = useNotificationStore((s) => s.addNotification); // ✅ thêm
+  const addNotification = useNotificationStore((s) => s.addNotification);
 
   const createIssue = async (data: {
     title: string;
@@ -24,7 +24,7 @@ export function useCreateIssue(projectId?: number, onSuccess?: () => void) {
       setLoading(true);
       setError(null);
 
-      await workflowApi.createTask({
+      const res = await workflowApi.createTask({
         project_id: projectId,
         board_id: data.board_id,
         status_id: data.status_id,
@@ -37,9 +37,8 @@ export function useCreateIssue(projectId?: number, onSuccess?: () => void) {
         parent_id: data.parent_id ?? null,
       });
 
-      // ✅ Thông báo tạo task mới thành công
       addNotification({
-        id: Date.now(), // dùng timestamp làm id tạm vì chưa có task id thật
+        id: Date.now(),
         title: data.title,
         roleText: "bạn tạo",
         dueDate: "",
@@ -48,6 +47,9 @@ export function useCreateIssue(projectId?: number, onSuccess?: () => void) {
       });
 
       onSuccess?.();
+
+      // ✅ FIX: return task để TaskModal dùng upload file
+      return res.data?.data ?? res.data;
     } catch (err: any) {
       const message =
         err?.response?.data?.message || "Không tạo được issue. Thử lại sau.";

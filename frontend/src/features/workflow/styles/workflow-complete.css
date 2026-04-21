@@ -415,14 +415,16 @@
   border: none;
   cursor: pointer;
   color: #5e6c84;
-  font-size: 24px;
-  width: 28px;
-  height: 28px;
-  display: flex;
+  font-size: 14px;
+  min-height: 28px;
+  padding: 0 10px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 999px;
   line-height: 1;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .wf-column__add-btn:hover {
@@ -1744,7 +1746,35 @@
   text-decoration: line-through;
   color: #97a0af;
 }
+/* =====================================================
+   TASK CARD — SELECTED (CLICK ACTIVE)
+   ===================================================== */
 
+/* Card đang được chọn */
+.wf-card--selected {
+  border: 2px solid var(--wf-primary) !important;
+  background: #eff6ff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+/* Hover khi đã selected (đỡ bị override) */
+.wf-card--selected:hover {
+  border-color: var(--wf-primary) !important;
+  background: #e0edff;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.18);
+}
+
+/* Title đậm hơn khi selected */
+.wf-card--selected .wf-card__title {
+  color: #0f172a;
+  font-weight: 500;
+}
+
+/* Badge / text trong card sáng hơn */
+.wf-card--selected .wf-card__key,
+.wf-card--selected .wf-card__due {
+  color: #334155;
+}
 /* =====================================================
    RESPONSIVE bổ sung
    ===================================================== */

@@ -41,7 +41,6 @@ export default function WorkflowHeader({
 
   return (
     <div className="workflow-header">
-      {/* ✅ Top row: tất cả nằm 1 hàng ngang */}
       <div
         style={{
           display: "flex",
@@ -52,7 +51,6 @@ export default function WorkflowHeader({
           borderBottom: "1px solid #f0f0f0",
         }}
       >
-        {/* Trái: breadcrumb + meta */}
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <div>
             <div
@@ -76,7 +74,6 @@ export default function WorkflowHeader({
           </div>
         </div>
 
-        {/* Phải: project switcher + create button — cùng hàng */}
         <div
           style={{
             display: "flex",
@@ -90,17 +87,6 @@ export default function WorkflowHeader({
             value={projectId}
             onChange={onProjectChange}
           />
-
-          {activeTab === "board" && (
-            <button
-              type="button"
-              className="workflow-btn workflow-btn--primary"
-              onClick={onOpenCreate}
-              disabled={!projectId}
-            >
-              + Create issue
-            </button>
-          )}
         </div>
       </div>
     </div>

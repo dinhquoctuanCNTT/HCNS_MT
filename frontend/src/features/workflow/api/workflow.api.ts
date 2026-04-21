@@ -96,7 +96,7 @@ export const workflowApi = {
       `/api/workflow/projects/${projectId}/columns/${columnId}`,
       payload,
     ),
-  // Xem lịch sử công việc
+
   getCompletedTasks: (projectId: number) =>
     axiosClient.get(`/api/workflow/projects/${projectId}/tasks/completed`),
 
@@ -104,10 +104,11 @@ export const workflowApi = {
     axiosClient.delete(
       `/api/workflow/projects/${projectId}/columns/${columnId}`,
     ),
+
   completeTask: (taskId: number, payload: any) => {
-    console.log("API PATH USED:", `/api/workflow/tasks/${taskId}/complete`);
     return axiosClient.patch(`/api/workflow/tasks/${taskId}/complete`, payload);
   },
+
   uncompleteTask: (taskId: number) =>
     axiosClient.patch(`/api/workflow/tasks/${taskId}/uncomplete`),
 
@@ -117,23 +118,23 @@ export const workflowApi = {
   unarchiveTask: (taskId: number) =>
     axiosClient.patch(`/api/workflow/tasks/${taskId}/unarchive`),
 
-  // thêm file vào từng task giao việc
+  // attachments
   getAttachments: (taskId: number) =>
     axiosClient.get(`/api/workflow/tasks/${taskId}/attachments`),
 
+  // ✅ FIX: tạo FormData mới, append type TRƯỚC file để multer đọc đúng thứ tự
   uploadAttachment: (
     taskId: number | undefined,
     formData: FormData,
     attachmentType: "assignment" | "report" = "report",
   ) => {
-    formData.append("attachment_type", attachmentType);
-    return axiosClient.post(
-      `/api/workflow/tasks/${taskId}/attachments`,
-      formData,
-      {
-        headers: { "Content-Type": "multipart/form-data" },
-      },
-    );
+    const fd = new FormData();
+    fd.append("attachment_type", attachmentType); // ← type TRƯỚC
+    const file = formData.get("file");
+    if (file) fd.append("file", file); // ← file SAU
+    return axiosClient.post(`/api/workflow/tasks/${taskId}/attachments`, fd, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
   },
 
   deleteAttachment: (taskId: number | undefined, attachmentId: number) =>
@@ -169,5 +170,29 @@ export const workflowApi = {
   deleteChecklist: (taskId: number, checklistId: number) =>
     axiosClient.delete(
       `/api/workflow/tasks/${taskId}/checklists/${checklistId}`,
+    ),
+
+  // multiple assignees
+  getTaskAssignees: (taskId: number) =>
+    axiosClient.get(`/api/workflow/tasks/${taskId}/assignees`),
+
+  addTaskAssignee: (taskId: number, userId: number) =>
+    axiosClient.post(`/api/workflow/tasks/${taskId}/assignees`, { userId }),
+
+  removeTaskAssignee: (taskId: number, userId: number) =>
+    axiosClient.delete(`/api/workflow/tasks/${taskId}/assignees/${userId}`),
+
+  // dependencies
+  getDependencies: (taskId: number) =>
+    axiosClient.get(`/api/workflow/tasks/${taskId}/dependencies`),
+
+  addDependency: (taskId: number, dependsOnId: number) =>
+    axiosClient.post(`/api/workflow/tasks/${taskId}/dependencies`, {
+      dependsOnId,
+    }),
+
+  removeDependency: (taskId: number, dependsOnId: number) =>
+    axiosClient.delete(
+      `/api/workflow/tasks/${taskId}/dependencies/${dependsOnId}`,
     ),
 };

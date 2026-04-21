@@ -13,6 +13,10 @@ interface WorkflowColumnProps {
   isDragOver: boolean;
   draggingTask: BoardTask | null;
   onTaskClick: (task: BoardTask) => void;
+  selectedTaskId?: number | null;
+  isSelectedColumn?: boolean;
+  hasActiveSelection?: boolean;
+  onAddTask?: (column: BoardColumn) => void;
 }
 
 function SortableTaskCard({
@@ -20,11 +24,13 @@ function SortableTaskCard({
   columnId,
   statusId,
   onClick,
+  isSelected,
 }: {
   task: BoardTask;
   columnId: number;
   statusId: number;
   onClick: () => void;
+  isSelected?: boolean;
 }) {
   const {
     attributes,
@@ -61,7 +67,12 @@ function SortableTaskCard({
       {...attributes}
       {...listeners}
     >
-      <WorkflowTaskCard task={task} onClick={onClick} isDragging={isDragging} />
+      <WorkflowTaskCard
+        task={task}
+        onClick={onClick}
+        isDragging={isDragging}
+        isSelected={isSelected}
+      />
     </div>
   );
 }
@@ -69,6 +80,10 @@ function SortableTaskCard({
 export default function WorkflowColumn({
   column,
   onTaskClick,
+  selectedTaskId,
+  isSelectedColumn = false,
+  hasActiveSelection = false,
+  onAddTask,
 }: WorkflowColumnProps) {
   const statusColor = column.status?.color ?? "#9CA3AF";
 
@@ -84,7 +99,13 @@ export default function WorkflowColumn({
   const taskIds = column.tasks.map((t) => String(t.id));
 
   return (
-    <div className={`wf-column ${isOver ? "wf-column--drag-over" : ""}`}>
+    <div
+      className={`wf-column 
+        ${isOver ? "wf-column--drag-over" : ""}
+        ${isSelectedColumn ? "wf-column--selected" : ""}
+        ${hasActiveSelection && !isSelectedColumn ? "wf-column--dimmed" : ""}
+      `.trim()}
+    >
       <div className="wf-column__header">
         <div className="wf-column__header-left">
           <span
@@ -95,9 +116,25 @@ export default function WorkflowColumn({
           <span className="wf-column__count">{column.tasks.length}</span>
         </div>
 
-        <button type="button" className="wf-column__add-btn" title="Add task">
-          +
-        </button>
+        {column.name?.toLowerCase() === "to do" ? (
+          <button
+            type="button"
+            className="wf-column__add-btn"
+            title="Tạo công việc"
+            onClick={() => onAddTask?.(column)}
+          >
+            + Tạo công việc
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="wf-column__add-btn"
+            title={`Tạo công việc ở cột ${column.name}`}
+            onClick={() => onAddTask?.(column)}
+          >
+            +
+          </button>
+        )}
       </div>
 
       <div className="wf-column__tasks" ref={setNodeRef}>
@@ -114,8 +151,9 @@ export default function WorkflowColumn({
                 key={task.id}
                 task={task}
                 columnId={column.id}
-                statusId={column.status?.id}
+                statusId={Number(column.status?.id ?? 0)}
                 onClick={() => onTaskClick(task)}
+                isSelected={selectedTaskId === task.id}
               />
             ))
           )}

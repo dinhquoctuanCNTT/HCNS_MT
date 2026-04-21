@@ -7,7 +7,6 @@ interface WorkflowHeaderProps {
   projects?: { id: number; name: string; code?: string; key?: string }[];
   projectId?: number;
   totalTasks?: number;
-  onOpenCreate: () => void;
   onProjectChange?: (projectId: number) => void;
   activeTab: WorkflowTab;
   onTabChange: (tab: WorkflowTab) => void;
@@ -18,7 +17,6 @@ export default function WorkflowHeader({
   projects = [],
   projectId,
   totalTasks,
-  onOpenCreate,
   onProjectChange,
   activeTab,
   onTabChange,
@@ -34,7 +32,6 @@ export default function WorkflowHeader({
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          {/* Breadcrumb */}
           <div style={{ fontSize: 13, color: "#888" }}>
             <span>Projects</span>
             <span style={{ margin: "0 4px" }}>/</span>
@@ -83,20 +80,6 @@ export default function WorkflowHeader({
             >
               {totalTasks} tasks
             </span>
-          )}
-
-          {activeTab === "board" && (
-            <button className="wf-btn wf-btn--primary" onClick={onOpenCreate}>
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path
-                  d="M7 1v12M1 7h12"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-              Create issue
-            </button>
           )}
         </div>
       </div>

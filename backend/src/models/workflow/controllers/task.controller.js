@@ -1,5 +1,11 @@
 import { getPool } from "../../../config/db.js";
 import * as taskService from "../services/task.service.js";
+import {
+  findLinksByTaskId,
+  createTaskLink,
+  updateTaskLink,
+  deleteTaskLink,
+} from "../repositories/task.repository.js";
 
 async function createTask(req, res, next) {
   try {
@@ -237,6 +243,59 @@ async function getCompletedTasks(req, res, next) {
   }
 }
 
+// ====================== LINKS ======================
+async function getLinks(req, res, next) {
+  try {
+    const category = req.query.category ?? null;
+    const data = await findLinksByTaskId(Number(req.params.taskId), category);
+    res.json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+}
+async function addLink(req, res, next) {
+  try {
+    const { title, url, link_type } = req.body;
+    if (!title?.trim() || !url?.trim())
+      return res.status(400).json({ message: "Thiếu title hoặc url" });
+    try {
+      new URL(url);
+    } catch {
+      return res.status(400).json({ message: "URL không hợp lệ" });
+    }
+    const createdBy = req.user?.full_name || req.user?.email || null;
+    const data = await createTaskLink(
+      Number(req.params.taskId),
+      { title: title.trim(), url: url.trim(), link_type },
+      createdBy,
+    );
+    res.status(201).json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function editLink(req, res, next) {
+  try {
+    const data = await updateTaskLink(
+      Number(req.params.id),
+      Number(req.params.taskId),
+      req.body,
+    );
+    res.json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function removeLink(req, res, next) {
+  try {
+    await deleteTaskLink(Number(req.params.id), Number(req.params.taskId));
+    res.json({ success: true });
+  } catch (error) {
+    next(error);
+  }
+}
 export {
   createTask,
   getTaskDetail,
@@ -258,4 +317,8 @@ export {
   addLabelToTask,
   removeLabelFromTask,
   getCompletedTasks,
+  getLinks,
+  addLink,
+  editLink,
+  removeLink,
 };

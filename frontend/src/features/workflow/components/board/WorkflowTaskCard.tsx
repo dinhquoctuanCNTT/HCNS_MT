@@ -4,6 +4,7 @@ interface WorkflowTaskCardProps {
   task: BoardTask;
   onClick: () => void;
   isDragging?: boolean;
+  isSelected?: boolean;
 }
 
 const PRIORITY_CONFIG: Record<
@@ -132,6 +133,7 @@ export default function WorkflowTaskCard({
   task,
   onClick,
   isDragging = false,
+  isSelected = false,
 }: WorkflowTaskCardProps) {
   const priority = getPriorityConfig(task.priority?.name);
   const typeConfig = getTaskTypeConfig(task.taskType?.name);
@@ -159,10 +161,11 @@ export default function WorkflowTaskCard({
   return (
     <div
       className={`wf-card 
-        ${isDragging ? "wf-card--dragging" : ""} 
-        ${task.is_completed ? "wf-card--completed" : ""} 
-        ${task.is_archived ? "wf-card--archived" : ""}
-      `.trim()}
+    ${isDragging ? "wf-card--dragging" : ""} 
+    ${task.is_completed ? "wf-card--completed" : ""} 
+    ${task.is_archived ? "wf-card--archived" : ""}
+    ${isSelected ? "wf-card--selected" : ""}
+  `.trim()}
       onClick={onClick}
       title={task.title}
     >

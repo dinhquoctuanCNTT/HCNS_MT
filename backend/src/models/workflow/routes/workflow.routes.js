@@ -2,6 +2,18 @@ import express from "express";
 import * as workflowController from "../controllers/workflow.controller.js";
 import * as taskController from "../controllers/task.controller.js";
 import authMiddleware from "../../../middlewares/auth.middleware.js";
+
+import {
+  getDependencies,
+  addDependency,
+  removeDependency,
+} from "../controllers/task_dependencies.controller.js";
+
+import {
+  getTaskAssignees,
+  addTaskAssignee,
+  removeTaskAssignee,
+} from "../controllers/task_assignees.controller.js";
 import {
   getAttachments,
   uploadAttachment,
@@ -283,4 +295,33 @@ router.delete(
   deleteChecklist,
 );
 
+// ==================== MULTIPLE ASSIGNEES ====================
+router.get("/tasks/:taskId/assignees", authMiddleware, getTaskAssignees);
+router.post("/tasks/:taskId/assignees", authMiddleware, addTaskAssignee);
+router.delete(
+  "/tasks/:taskId/assignees/:userId",
+  authMiddleware,
+  removeTaskAssignee,
+);
+// ==================== DEPENDENCIES ====================
+router.get("/tasks/:taskId/dependencies", authMiddleware, getDependencies);
+router.post("/tasks/:taskId/dependencies", authMiddleware, addDependency);
+router.delete(
+  "/tasks/:taskId/dependencies/:dependsOnId",
+  authMiddleware,
+  removeDependency,
+);
+// ==================== LINKS ====================
+router.get("/tasks/:taskId/links", authMiddleware, taskController.getLinks);
+router.post("/tasks/:taskId/links", authMiddleware, taskController.addLink);
+router.patch(
+  "/tasks/:taskId/links/:id",
+  authMiddleware,
+  taskController.editLink,
+);
+router.delete(
+  "/tasks/:taskId/links/:id",
+  authMiddleware,
+  taskController.removeLink,
+);
 export default router;

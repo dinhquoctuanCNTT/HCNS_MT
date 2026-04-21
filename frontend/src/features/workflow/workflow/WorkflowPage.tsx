@@ -4,7 +4,7 @@ import { useSearchParams } from "react-router-dom";
 
 import WorkflowModule from "../components/common/WorkflowModule";
 import TaskModal from "../components/modal/TaskModal";
-import useWorkflowBoard from "../hooks/useWorkflowBoard";
+import useWorkflowBoard, { BoardColumn } from "../hooks/useWorkflowBoard";
 import useWorkflowMeta from "../hooks/useWorkflowMeta";
 import useProjects from "../hooks/useProjects";
 import { useCreateIssue } from "../hooks/useCreateIssue";
@@ -15,7 +15,10 @@ import { useOverdueNotifier } from "../hooks/useOverdueNotifier";
 export default function WorkflowPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [projectId, setProjectId] = useState<number | undefined>(undefined);
+
+  // Modal create
   const [openCreate, setOpenCreate] = useState(false);
+  const [createColumn, setCreateColumn] = useState<BoardColumn | null>(null);
 
   const { userId } = useAuthStore();
 
@@ -24,7 +27,6 @@ export default function WorkflowPage() {
     tabParam === "history" ? "history" : "board",
   );
 
-  // Đồng bộ tab khi query param thay đổi (ví dụ bấm sidebar)
   useEffect(() => {
     const t = searchParams.get("tab") as WorkflowTab | null;
     if (t === "history" || t === "board") {
@@ -34,7 +36,6 @@ export default function WorkflowPage() {
     }
   }, [searchParams]);
 
-  // Khi user đổi tab trong UI, cập nhật query param
   const handleTabChange = (tab: WorkflowTab) => {
     setActiveTab(tab);
     setSearchParams({ tab });
@@ -92,18 +93,30 @@ export default function WorkflowPage() {
     })),
     userId ?? 0,
   );
+
   const error =
     projectError ||
     boardError ||
     (metaHasError ? "Không lấy được metadata" : null);
+
   const project = metaProject || boardProject;
 
-  if (projectLoading)
+  const handleOpenCreate = (column?: BoardColumn | null) => {
+    setCreateColumn(column ?? null);
+    setOpenCreate(true);
+  };
+
+  if (projectLoading) {
     return <div className="wf-page-loading">Đang tải project...</div>;
-  if (projectError)
+  }
+
+  if (projectError) {
     return <div className="wf-page-error">⚠️ {projectError}</div>;
-  if (!resolvedProjectId)
+  }
+
+  if (!resolvedProjectId) {
     return <div className="wf-page-error">Không tìm thấy project nào</div>;
+  }
 
   return (
     <>
@@ -127,7 +140,8 @@ export default function WorkflowPage() {
         onApplyServerFilter={applyServerFilter}
         onClearFilters={clearFilters}
         onProjectChange={(id) => setProjectId(id)}
-        onCreateTask={() => setOpenCreate(true)}
+        onCreateTask={() => handleOpenCreate(null)}
+        onAddTaskFromColumn={handleOpenCreate}
         onMoveTask={moveTaskToColumn}
         onReorderTask={reorderTasksInColumn}
         onMoveBetweenColumns={moveTaskBetweenColumns}
@@ -140,17 +154,22 @@ export default function WorkflowPage() {
         <TaskModal
           task={null}
           projectId={resolvedProjectId}
-          boardId={board?.id ?? 0}
+          boardId={board?.id}
           members={members}
           labels={labels}
-          statuses={statuses}
           priorities={priorities}
-          onRefresh={fetchBoard}
           issueTypes={issueTypes}
-          onClose={() => setOpenCreate(false)}
-          onCreate={async (data) => {
-            await createIssue({ ...data, board_id: board?.id });
+          statuses={statuses}
+          currentUserId={userId}
+          onClose={() => {
             setOpenCreate(false);
+            setCreateColumn(null);
+          }}
+          onCreate={async (payload) => {
+            return await createIssue({
+              ...payload,
+              status_id: createColumn?.status?.id ?? statuses?.[0]?.id ?? null,
+            });
           }}
         />
       )}

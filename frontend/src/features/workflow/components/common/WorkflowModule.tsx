@@ -34,6 +34,7 @@ interface WorkflowModuleProps {
   onClearFilters: () => void;
   onProjectChange: (projectId: number) => void;
   onCreateTask: () => void;
+  onAddTaskFromColumn?: (column: BoardColumn | null) => void;
   onMoveTask: (
     taskId: number,
     toStatusId: number,
@@ -52,8 +53,8 @@ interface WorkflowModuleProps {
     newPosition: number,
   ) => Promise<void>;
   onRefresh: () => void;
-  activeTab?: WorkflowTab; // ✅ nhận từ cha
-  onTabChange?: (tab: WorkflowTab) => void; // ✅ nhận từ cha
+  activeTab?: WorkflowTab;
+  onTabChange?: (tab: WorkflowTab) => void;
 }
 
 export default function WorkflowModule({
@@ -76,6 +77,7 @@ export default function WorkflowModule({
   onClearFilters,
   onProjectChange,
   onCreateTask,
+  onAddTaskFromColumn,
   onMoveTask,
   onReorderTask,
   onMoveBetweenColumns,
@@ -86,7 +88,6 @@ export default function WorkflowModule({
   const [selectedTask, setSelectedTask] = useState<BoardTask | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // ✅ FIX: dùng props từ cha nếu có, fallback về state nội bộ
   const [internalTab, setInternalTab] = useState<WorkflowTab>("board");
   const activeTab = activeTabProp ?? internalTab;
   const setActiveTab = onTabChangeProp ?? setInternalTab;
@@ -126,7 +127,6 @@ export default function WorkflowModule({
 
   return (
     <div className="wf-module">
-      {/* Header */}
       <WorkflowHeader
         project={project}
         projects={projects}
@@ -137,7 +137,6 @@ export default function WorkflowModule({
         onTabChange={setActiveTab}
       />
 
-      {/* Tab: Board */}
       {activeTab === "board" && (
         <>
           <WorkflowFilters
@@ -171,13 +170,12 @@ export default function WorkflowModule({
               onTaskClick={openTask}
               onMoveTask={onMoveTask}
               onReorderTask={onReorderTask}
-              onMoveBetweenColumns={onMoveBetweenColumns}
+              onAddTask={onAddTaskFromColumn}
             />
           )}
         </>
       )}
 
-      {/* Tab: Lịch sử */}
       {activeTab === "history" && projectId && (
         <WorkflowHistory
           projectId={projectId}
@@ -186,7 +184,6 @@ export default function WorkflowModule({
         />
       )}
 
-      {/* Modal xem/edit task */}
       {isModalOpen && selectedTask && projectId && (
         <TaskModal
           task={selectedTask}
