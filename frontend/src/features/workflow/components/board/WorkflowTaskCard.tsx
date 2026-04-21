@@ -6,7 +6,6 @@ interface WorkflowTaskCardProps {
   isDragging?: boolean;
 }
 
-// Priority config với SVG icon chuẩn Jira
 const PRIORITY_CONFIG: Record<
   string,
   { svg: string; color: string; label: string }
@@ -50,7 +49,6 @@ const PRIORITY_CONFIG: Record<
   },
 };
 
-// Task type icon + màu chuẩn Jira
 const TASK_TYPE_CONFIG: Record<string, { svg: string; color: string }> = {
   bug: {
     color: "#E5493A",
@@ -88,8 +86,8 @@ function getPriorityConfig(name?: string) {
       color: "#9CA3AF",
       label: "None",
       svg: `<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
-        <path d="M3 5.5A.5.5 0 0 1 3.5 5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 3 5.5Zm0 5A.5.5 0 0 1 3.5 10h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5Z"/>
-      </svg>`,
+      <path d="M3 5.5A.5.5 0 0 1 3.5 5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 3 5.5Zm0 5A.5.5 0 0 1 3.5 10h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5Z"/>
+    </svg>`,
     }
   );
 }
@@ -116,10 +114,8 @@ function isOverdue(dateStr?: string | null) {
   return due < new Date();
 }
 
-// Rút ngắn task_key: TASK-1775718042852 → TASK-...852
 function shortenTaskKey(key: string) {
   if (!key) return "";
-  // Nếu đúng format PROJECT-NUMBER và number dài > 8 ký tự → rút ngắn
   const parts = key.split("-");
   if (parts.length === 2 && parts[1].length > 8) {
     return `${parts[0]}-...${parts[1].slice(-4)}`;
@@ -127,14 +123,9 @@ function shortenTaskKey(key: string) {
   return key;
 }
 
-// Tạo màu label dễ đọc — text tối trên nền nhạt
 function getLabelStyle(color?: string) {
   const bg = color ?? "#F59E0B";
-  return {
-    background: bg,
-    color: "#ffffff",
-    borderColor: "transparent",
-  };
+  return { background: bg, color: "#ffffff", borderColor: "transparent" };
 }
 
 export default function WorkflowTaskCard({
@@ -145,9 +136,16 @@ export default function WorkflowTaskCard({
   const priority = getPriorityConfig(task.priority?.name);
   const typeConfig = getTaskTypeConfig(task.taskType?.name);
   const dueDate = formatDate(task.due_date);
+  const startDate = formatDate(task.start_date);
   const overdue = isOverdue(task.due_date);
   const hasLabels = task.labels && task.labels.length > 0;
   const commentCount = task.comments?.length ?? 0;
+
+  // ← Checklist progress
+  const checklistCount = (task as any).checklist_count ?? 0;
+  const checklistDone = (task as any).checklist_done ?? 0;
+  const checklistAll = checklistCount > 0;
+  const checklistComplete = checklistAll && checklistDone === checklistCount;
 
   const avatarInitials = task.assignee?.full_name
     ? task.assignee.full_name
@@ -188,7 +186,8 @@ export default function WorkflowTaskCard({
           )}
         </div>
       )}
-      {/* Labels — giống Jira: pill màu với chữ hoa */}
+
+      {/* Labels */}
       {hasLabels && (
         <div className="wf-card__labels">
           {task.labels.slice(0, 2).map((label) => (
@@ -208,26 +207,61 @@ export default function WorkflowTaskCard({
         </div>
       )}
 
+      {/* ← Checklist progress bar */}
+      {checklistAll && (
+        <div style={{ margin: "6px 0 2px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div
+              style={{
+                flex: 1,
+                height: 4,
+                background: "#e5e7eb",
+                borderRadius: 2,
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  height: "100%",
+                  width: `${Math.round((checklistDone / checklistCount) * 100)}%`,
+                  background: checklistComplete ? "#22c55e" : "#0052cc",
+                  borderRadius: 2,
+                  transition: "width 0.3s ease",
+                }}
+              />
+            </div>
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 600,
+                color: checklistComplete ? "#166534" : "#374151",
+                background: checklistComplete ? "#dcfce7" : "#f3f4f6",
+                borderRadius: 4,
+                padding: "1px 5px",
+                flexShrink: 0,
+              }}
+            >
+              {checklistDone}/{checklistCount}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Footer */}
       <div className="wf-card__footer">
         <div className="wf-card__footer-left">
-          {/* Task type icon — hình vuông màu như Jira */}
           <span
             className="wf-card__type-icon"
             style={{ color: typeConfig.color }}
             title={task.taskType?.name ?? "Task"}
             dangerouslySetInnerHTML={{ __html: typeConfig.svg }}
           />
-
-          {/* Priority icon — mũi tên màu như Jira */}
           <span
             className="wf-card__priority"
             style={{ color: priority.color }}
             title={`Priority: ${task.priority?.name ?? "None"}`}
             dangerouslySetInnerHTML={{ __html: priority.svg }}
           />
-
-          {/* Comment count — chỉ hiện nếu có */}
           {commentCount > 0 && (
             <span
               className="wf-card__comments"
@@ -239,10 +273,28 @@ export default function WorkflowTaskCard({
         </div>
 
         <div className="wf-card__footer-right">
-          {/* Task key — rút ngắn nếu dùng timestamp */}
           {task.task_key && (
             <span className="wf-card__key" title={task.task_key}>
               {shortenTaskKey(task.task_key)}
+            </span>
+          )}
+
+          {/* ← Start date */}
+          {startDate && (
+            <span className="wf-card__due" title="Ngày bắt đầu">
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                style={{ marginRight: 2 }}
+              >
+                <path d="M8 3v7M5 8l3-3 3 3" />
+              </svg>
+              {startDate}
             </span>
           )}
 

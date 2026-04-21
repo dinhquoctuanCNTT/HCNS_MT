@@ -140,4 +140,34 @@ export const workflowApi = {
     axiosClient.delete(
       `/api/workflow/tasks/${taskId}/attachments/${attachmentId}`,
     ),
+
+  // checklist
+  getChecklists: (taskId: number) =>
+    axiosClient.get(`/api/workflow/tasks/${taskId}/checklists`),
+
+  createChecklist: (
+    taskId: number,
+    payload: { title: string; position?: number },
+  ) => axiosClient.post(`/api/workflow/tasks/${taskId}/checklists`, payload),
+
+  updateChecklist: (
+    taskId: number,
+    checklistId: number,
+    payload: { title: string; is_done: boolean },
+  ) =>
+    axiosClient.put(
+      `/api/workflow/tasks/${taskId}/checklists/${checklistId}`,
+      payload,
+    ),
+
+  toggleChecklist: (taskId: number, checklistId: number, is_done: boolean) =>
+    axiosClient.patch(
+      `/api/workflow/tasks/${taskId}/checklists/${checklistId}/toggle`,
+      { is_done },
+    ),
+
+  deleteChecklist: (taskId: number, checklistId: number) =>
+    axiosClient.delete(
+      `/api/workflow/tasks/${taskId}/checklists/${checklistId}`,
+    ),
 };

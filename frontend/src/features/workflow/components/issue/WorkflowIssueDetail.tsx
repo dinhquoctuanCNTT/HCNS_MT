@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { BoardTask } from "../../hooks/useWorkflowBoard";
+import WorkflowChecklist from "./WorkflowChecklist";
 import { UpdateTaskPayload } from "../../hooks/useUpdateTask";
 
 interface WorkflowIssueDetailProps {
@@ -355,6 +356,9 @@ export default function WorkflowIssueDetail({
               </span>
             )}
           </DetailRow>
+        </div>
+        <div className="wf-detail__section">
+          <WorkflowChecklist taskId={task.id} canEdit={canEdit} />
         </div>
       </div>
     </div>

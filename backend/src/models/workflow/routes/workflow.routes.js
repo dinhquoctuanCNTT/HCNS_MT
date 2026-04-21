@@ -12,6 +12,13 @@ import {
   requireRole,
   requirePermission,
 } from "../../../middlewares/role.middleware.js";
+import {
+  getChecklists,
+  createChecklist,
+  updateChecklist,
+  toggleChecklist,
+  deleteChecklist,
+} from "../controllers/checklist.controller.js";
 
 const router = express.Router();
 
@@ -256,6 +263,24 @@ router.delete(
   "/tasks/:taskId/attachments/:attachmentId",
   authMiddleware,
   removeAttachment,
+);
+// ==================== CHECKLISTS ====================
+router.get("/tasks/:taskId/checklists", authMiddleware, getChecklists);
+router.post("/tasks/:taskId/checklists", authMiddleware, createChecklist);
+router.put(
+  "/tasks/:taskId/checklists/:checklistId",
+  authMiddleware,
+  updateChecklist,
+);
+router.patch(
+  "/tasks/:taskId/checklists/:checklistId/toggle",
+  authMiddleware,
+  toggleChecklist,
+);
+router.delete(
+  "/tasks/:taskId/checklists/:checklistId",
+  authMiddleware,
+  deleteChecklist,
 );
 
 export default router;

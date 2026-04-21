@@ -488,6 +488,69 @@ async function deleteAttachment(attachmentId) {
     .input("id", sql.BigInt, attachmentId)
     .query(`DELETE FROM task_attachments WHERE id = @id`);
 }
+
+async function findChecklistsByTaskId(taskId) {
+  const pool = getPool();
+  const result = await pool.request().input("taskId", sql.BigInt, taskId)
+    .query(`
+      SELECT id, task_id, title, is_done, position, created_at
+      FROM task_checklists
+      WHERE task_id = @taskId
+      ORDER BY position ASC, created_at ASC
+    `);
+  return result.recordset;
+}
+
+async function createChecklist(taskId, { title, position = 0 }) {
+  const pool = getPool();
+  const result = await pool
+    .request()
+    .input("taskId", sql.BigInt, taskId)
+    .input("title", sql.NVarChar(255), title)
+    .input("position", sql.Int, position).query(`
+      INSERT INTO task_checklists (task_id, title, is_done, position)
+      OUTPUT INSERTED.*
+      VALUES (@taskId, @title, 0, @position)
+    `);
+  return result.recordset[0];
+}
+
+async function updateChecklist(checklistId, { title, is_done }) {
+  const pool = getPool();
+  const result = await pool
+    .request()
+    .input("id", sql.BigInt, checklistId)
+    .input("title", sql.NVarChar(255), title)
+    .input("isDone", sql.Bit, is_done ? 1 : 0).query(`
+      UPDATE task_checklists
+      SET title = @title, is_done = @isDone
+      OUTPUT INSERTED.*
+      WHERE id = @id
+    `);
+  return result.recordset[0];
+}
+
+async function toggleChecklist(checklistId, isDone) {
+  const pool = getPool();
+  const result = await pool
+    .request()
+    .input("id", sql.BigInt, checklistId)
+    .input("isDone", sql.Bit, isDone ? 1 : 0).query(`
+      UPDATE task_checklists
+      SET is_done = @isDone
+      OUTPUT INSERTED.*
+      WHERE id = @id
+    `);
+  return result.recordset[0];
+}
+
+async function deleteChecklist(checklistId) {
+  const pool = getPool();
+  await pool
+    .request()
+    .input("id", sql.BigInt, checklistId)
+    .query(`DELETE FROM task_checklists WHERE id = @id`);
+}
 export {
   findTaskById,
   findLabelsByTaskId,
@@ -515,4 +578,9 @@ export {
   deleteAttachment,
   findCompletedTasksByProject,
   addLabelToTask,
+  findChecklistsByTaskId,
+  createChecklist,
+  updateChecklist,
+  toggleChecklist,
+  deleteChecklist,
 };

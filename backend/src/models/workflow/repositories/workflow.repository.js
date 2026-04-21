@@ -239,7 +239,9 @@ async function findTasksByBoard(projectId, boardId, filters = {}) {
       tt.icon AS task_type_icon,
       au.full_name AS assignee_name,
       au.avatar_url AS assignee_avatar,
-      ru.full_name AS reporter_name
+      ru.full_name AS reporter_name,
+      (SELECT COUNT(*) FROM task_checklists WHERE task_id = t.id) AS checklist_count,
+      (SELECT COUNT(*) FROM task_checklists WHERE task_id = t.id AND is_done = 1) AS checklist_done
     FROM tasks t
     LEFT JOIN priorities p ON p.id = t.priority_id
     LEFT JOIN task_types tt ON tt.id = t.task_type_id
