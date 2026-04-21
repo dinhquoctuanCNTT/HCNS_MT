@@ -357,9 +357,10 @@ export default function WorkflowIssueDetail({
             )}
           </DetailRow>
         </div>
-        <div className="wf-detail__section">
-          <WorkflowChecklist taskId={task.id} canEdit={canEdit} />
-        </div>
+      </div>
+
+      <div className="wf-detail__section">
+        <WorkflowChecklist taskId={task.id} canEdit={canEdit} />
       </div>
     </div>
   );
