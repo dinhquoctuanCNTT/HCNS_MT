@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { workflowApi } from "../api/workflow.api";
+import TaskModal from "../components/modal/TaskModal";
+import useWorkflowMeta from "../hooks/useWorkflowMeta";
 import "./workflow-complete.css";
 
 interface CompletedTask {
@@ -22,6 +24,15 @@ interface Props {
   members: any[];
   statuses: any[];
 }
+
+type PeriodMode =
+  | ""
+  | "this_week"
+  | "last_week"
+  | "this_month"
+  | "last_month"
+  | "this_year"
+  | "last_year";
 
 const TASK_TYPE_SVG: Record<string, string> = {
   bug: `<svg viewBox="0 0 16 16" width="15" height="15" fill="#E5493A"><circle cx="8" cy="8" r="7"/><path stroke="white" stroke-width="1.5" stroke-linecap="round" d="M5.5 5.5L10.5 10.5M10.5 5.5L5.5 10.5"/></svg>`,
@@ -47,12 +58,77 @@ function getAvatarInitials(name?: string) {
     .toUpperCase();
 }
 
+function toDateOnly(iso?: string): string {
+  if (!iso) return "";
+  return new Date(iso).toISOString().slice(0, 10);
+}
+
+function formatDateVN(iso: string) {
+  if (!iso) return "";
+  const [y, m, d] = iso.split("-");
+  return `${d}/${m}/${y}`;
+}
+
+// Tính from/to dựa theo period
+function getPeriodRange(mode: PeriodMode): { from: string; to: string } {
+  const now = new Date();
+  const fmt = (d: Date) => d.toISOString().slice(0, 10);
+
+  if (mode === "this_week") {
+    const day = now.getDay() === 0 ? 6 : now.getDay() - 1;
+    const mon = new Date(now);
+    mon.setDate(now.getDate() - day);
+    const sun = new Date(mon);
+    sun.setDate(mon.getDate() + 6);
+    return { from: fmt(mon), to: fmt(sun) };
+  }
+  if (mode === "last_week") {
+    const day = now.getDay() === 0 ? 6 : now.getDay() - 1;
+    const mon = new Date(now);
+    mon.setDate(now.getDate() - day - 7);
+    const sun = new Date(mon);
+    sun.setDate(mon.getDate() + 6);
+    return { from: fmt(mon), to: fmt(sun) };
+  }
+  if (mode === "this_month") {
+    const from = new Date(now.getFullYear(), now.getMonth(), 1);
+    const to = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    return { from: fmt(from), to: fmt(to) };
+  }
+  if (mode === "last_month") {
+    const from = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const to = new Date(now.getFullYear(), now.getMonth(), 0);
+    return { from: fmt(from), to: fmt(to) };
+  }
+  if (mode === "this_year") {
+    return {
+      from: `${now.getFullYear()}-01-01`,
+      to: `${now.getFullYear()}-12-31`,
+    };
+  }
+  if (mode === "last_year") {
+    const y = now.getFullYear() - 1;
+    return { from: `${y}-01-01`, to: `${y}-12-31` };
+  }
+  return { from: "", to: "" };
+}
+
 export default function WorkflowHistory({ projectId }: Props) {
   const [tasks, setTasks] = useState<CompletedTask[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 20;
+
+  const [selectedTask, setSelectedTask] = useState<any | null>(null);
+
+  // ── Filter ──
+  const [periodMode, setPeriodMode] = useState<PeriodMode>("this_month");
+  const [filterFrom, setFilterFrom] = useState("");
+  const [filterTo, setFilterTo] = useState("");
+
+  const { members, labels, statuses, priorities, issueTypes } =
+    useWorkflowMeta(projectId);
 
   const fetchCompleted = async () => {
     try {
@@ -66,12 +142,66 @@ export default function WorkflowHistory({ projectId }: Props) {
     }
   };
 
+  // Set default = tháng này khi load
   useEffect(() => {
     fetchCompleted();
     setPage(1);
+    const { from, to } = getPeriodRange("this_month");
+    setFilterFrom(from);
+    setFilterTo(to);
   }, [projectId]);
 
-  const filtered = tasks.filter(
+  const handleRowClick = async (task: CompletedTask) => {
+    try {
+      const res = await workflowApi.getTaskDetail(task.id);
+      setSelectedTask(res.data?.data ?? res.data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handlePeriodChange = (mode: PeriodMode) => {
+    setPeriodMode(mode);
+    setPage(1);
+    if (mode === "") {
+      // manual range — không reset from/to
+      return;
+    }
+    const { from, to } = getPeriodRange(mode);
+    setFilterFrom(from);
+    setFilterTo(to);
+  };
+
+  const handleFromChange = (val: string) => {
+    setFilterFrom(val);
+    setPeriodMode(""); // user tự chọn → bỏ preset
+    setPage(1);
+  };
+
+  const handleToChange = (val: string) => {
+    setFilterTo(val);
+    setPeriodMode("");
+    setPage(1);
+  };
+
+  const handleClear = () => {
+    setPeriodMode("");
+    setFilterFrom("");
+    setFilterTo("");
+    setPage(1);
+  };
+
+  // ── Date filter ──
+  const dateFiltered = tasks.filter((t) => {
+    if (!t.completed_at) return false;
+    const d = toDateOnly(t.completed_at);
+    if (filterFrom && d < filterFrom) return false;
+    if (filterTo && d > filterTo) return false;
+    return true;
+  });
+
+  // ── Keyword filter ──
+  const filtered = dateFiltered.filter(
     (t) =>
       !search ||
       t.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -91,11 +221,26 @@ export default function WorkflowHistory({ projectId }: Props) {
     return arr;
   })();
 
+  const inputStyle: React.CSSProperties = {
+    height: 36,
+    border: "1.5px solid #e5e7eb",
+    borderRadius: 7,
+    padding: "0 10px",
+    fontSize: 13,
+    fontFamily: "inherit",
+    outline: "none",
+    background: "#fff",
+    color: "#374151",
+    cursor: "pointer",
+    minWidth: 130,
+  };
+
   return (
     <div className="wfh">
       {/* ── Toolbar ── */}
-      <div className="wfh__toolbar">
-        <div className="wfh__toolbar-left">
+      <div className="wfh__toolbar" style={{ flexWrap: "wrap", gap: 10 }}>
+        <div className="wfh__toolbar-left" style={{ flexWrap: "wrap", gap: 8 }}>
+          {/* Search */}
           <div className="wfh__search-wrap">
             <svg
               className="wfh__search-icon"
@@ -120,7 +265,130 @@ export default function WorkflowHistory({ projectId }: Props) {
             />
           </div>
 
-          {/* Completed count chip */}
+          {/* ── Date filter group ── */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              background: "#fff",
+              border: "1.5px solid #e5e7eb",
+              borderRadius: 8,
+              padding: "0 10px",
+              height: 36,
+            }}
+          >
+            {/* From */}
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 14 14"
+              fill="none"
+              stroke="#9ca3af"
+              strokeWidth="1.3"
+              strokeLinecap="round"
+            >
+              <rect x="1" y="2" width="12" height="11" rx="2" />
+              <path d="M4 1v2M10 1v2M1 6h12" />
+            </svg>
+            <input
+              type="date"
+              value={filterFrom}
+              onChange={(e) => handleFromChange(e.target.value)}
+              style={{
+                border: "none",
+                outline: "none",
+                fontSize: 13,
+                fontFamily: "inherit",
+                color: filterFrom ? "#374151" : "#9ca3af",
+                background: "transparent",
+                cursor: "pointer",
+                width: 120,
+              }}
+            />
+            <span
+              style={{ color: "#d1d5db", fontSize: 14, userSelect: "none" }}
+            >
+              →
+            </span>
+            <input
+              type="date"
+              value={filterTo}
+              min={filterFrom}
+              onChange={(e) => handleToChange(e.target.value)}
+              style={{
+                border: "none",
+                outline: "none",
+                fontSize: 13,
+                fontFamily: "inherit",
+                color: filterTo ? "#374151" : "#9ca3af",
+                background: "transparent",
+                cursor: "pointer",
+                width: 120,
+              }}
+            />
+            {(filterFrom || filterTo) && (
+              <button
+                onClick={handleClear}
+                title="Xoá bộ lọc"
+                style={{
+                  border: "none",
+                  background: "none",
+                  cursor: "pointer",
+                  color: "#9ca3af",
+                  fontSize: 16,
+                  lineHeight: 1,
+                  padding: "0 2px",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                ×
+              </button>
+            )}
+          </div>
+
+          {/* ── Period dropdown ── */}
+          <div style={{ position: "relative" }}>
+            <select
+              value={periodMode}
+              onChange={(e) => handlePeriodChange(e.target.value as PeriodMode)}
+              style={{
+                ...inputStyle,
+                paddingRight: 28,
+                appearance: "none",
+                WebkitAppearance: "none",
+              }}
+            >
+              <option value="">Tuỳ chọn</option>
+              <option value="this_week">Tuần này</option>
+              <option value="last_week">Tuần trước</option>
+              <option value="this_month">Tháng này</option>
+              <option value="last_month">Tháng trước</option>
+              <option value="this_year">Năm nay</option>
+              <option value="last_year">Năm ngoái</option>
+            </select>
+            <svg
+              style={{
+                position: "absolute",
+                right: 9,
+                top: "50%",
+                transform: "translateY(-50%)",
+                pointerEvents: "none",
+              }}
+              width="12"
+              height="12"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="#6b7280"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+            >
+              <path d="M4 6l4 4 4-4" />
+            </svg>
+          </div>
+
+          {/* Completed chip */}
           <span className="wfh__chip">
             <svg
               viewBox="0 0 16 16"
@@ -168,7 +436,6 @@ export default function WorkflowHistory({ projectId }: Props) {
                   <th className="wfh__th wfh__th--date">Completed</th>
                 </tr>
               </thead>
-
               <tbody>
                 {paginated.length === 0 ? (
                   <tr className="wfh__empty-row">
@@ -192,10 +459,10 @@ export default function WorkflowHistory({ projectId }: Props) {
                           </svg>
                         </div>
                         <div className="wfh__empty-title">
-                          Chưa có task nào hoàn thành
+                          Không có task nào trong khoảng thời gian này
                         </div>
                         <div className="wfh__empty-sub">
-                          Các task được đánh dấu Done sẽ xuất hiện ở đây
+                          Thử thay đổi bộ lọc ngày tháng
                         </div>
                       </div>
                     </td>
@@ -205,8 +472,9 @@ export default function WorkflowHistory({ projectId }: Props) {
                     <tr
                       key={task.id}
                       className={`wfh__row ${i % 2 !== 0 ? "wfh__row--alt" : ""}`}
+                      onClick={() => handleRowClick(task)}
+                      style={{ cursor: "pointer" }}
                     >
-                      {/* Type */}
                       <td className="wfh__td wfh__td--type">
                         <span
                           className="wfh__type-icon"
@@ -216,20 +484,14 @@ export default function WorkflowHistory({ projectId }: Props) {
                           title={task.task_type_name ?? "Task"}
                         />
                       </td>
-
-                      {/* Key */}
                       <td className="wfh__td wfh__td--key">
                         <span className="wfh__key-link">{task.task_key}</span>
                       </td>
-
-                      {/* Summary */}
                       <td className="wfh__td wfh__td--summary">
                         <span className="wfh__summary-text" title={task.title}>
                           {task.title}
                         </span>
                       </td>
-
-                      {/* Assignee */}
                       <td className="wfh__td wfh__td--assignee">
                         {task.assignee_name ? (
                           <div className="wfh__person">
@@ -244,8 +506,6 @@ export default function WorkflowHistory({ projectId }: Props) {
                           <span className="wfh__empty-val">—</span>
                         )}
                       </td>
-
-                      {/* Reporter */}
                       <td className="wfh__td wfh__td--reporter">
                         {task.reporter_name ? (
                           <div className="wfh__person">
@@ -260,8 +520,6 @@ export default function WorkflowHistory({ projectId }: Props) {
                           <span className="wfh__empty-val">—</span>
                         )}
                       </td>
-
-                      {/* Status */}
                       <td className="wfh__td wfh__td--status">
                         {task.status_name ? (
                           <span
@@ -278,8 +536,6 @@ export default function WorkflowHistory({ projectId }: Props) {
                           <span className="wfh__empty-val">—</span>
                         )}
                       </td>
-
-                      {/* Completed date */}
                       <td className="wfh__td wfh__td--date">
                         {task.completed_at ? (
                           <span className="wfh__date">
@@ -317,7 +573,6 @@ export default function WorkflowHistory({ projectId }: Props) {
                 ? "No results"
                 : `Showing ${(page - 1) * PAGE_SIZE + 1}–${Math.min(page * PAGE_SIZE, filtered.length)} of ${filtered.length}`}
             </span>
-
             <div className="wfh__pages">
               <button
                 className="wfh__page-btn"
@@ -326,7 +581,6 @@ export default function WorkflowHistory({ projectId }: Props) {
               >
                 ‹
               </button>
-
               {pageNums.map((p, idx) =>
                 p === "..." ? (
                   <span key={`ellipsis-${idx}`} className="wfh__page-ellipsis">
@@ -342,7 +596,6 @@ export default function WorkflowHistory({ projectId }: Props) {
                   </button>
                 ),
               )}
-
               <button
                 className="wfh__page-btn"
                 disabled={page === totalPages || totalPages === 0}
@@ -353,6 +606,21 @@ export default function WorkflowHistory({ projectId }: Props) {
             </div>
           </div>
         </>
+      )}
+
+      {/* ── Task Detail Modal ── */}
+      {selectedTask && (
+        <TaskModal
+          task={selectedTask}
+          projectId={projectId}
+          members={members}
+          labels={labels}
+          priorities={priorities}
+          issueTypes={issueTypes}
+          statuses={statuses}
+          onClose={() => setSelectedTask(null)}
+          onRefresh={fetchCompleted}
+        />
       )}
     </div>
   );
