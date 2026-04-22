@@ -806,38 +806,36 @@ export default function WorkflowAttachmentSection({
       .finally(() => setLoading(false));
   }, [taskId]);
 
-  const handleFiles = async (files: FileList | null) => {
-    console.log("=== handleFiles called ===", files?.length);
+const handleFiles = async (files: FileList | null) => {
+  console.log("=== handleFiles called ===", files?.length);
 
-    if (!files || files.length === 0) return;
-    setUploading(true);
-    for (const file of Array.from(files)) {
-      if (file.size > 20 * 1024 * 1024) {
-        alert(`File "${file.name}" vượt quá 20MB`);
-        continue;
-      }
-      try {
-        const formData = new FormData();
-        formData.append("file", file);
-        const res: any = await workflowApi.uploadAttachment(
-          taskId,
-          formData,
-          "report",
-        );
-        // Nếu response có data thì thêm trực tiếp, không thì reload lại
-        if (res.data?.data) {
-          setAttachments((prev) => [...prev, res.data.data]);
-        } else {
-          const fresh = await workflowApi.getAttachments(taskId);
-          setAttachments(fresh.data?.data ?? []);
-        }
-      } catch (err) {
-        alert(`Upload "${file.name}" thất bại`);
-      }
+  if (!files || files.length === 0) return;
+  setUploading(true);
+  for (const file of Array.from(files)) {
+    if (file.size > 20 * 1024 * 1024) {
+      alert(`File "${file.name}" vượt quá 20MB`);
+      continue;
     }
-    setUploading(false);
-  };
+    try {
+      // ✅ Truyền File trực tiếp, bỏ FormData trung gian
+      const res: any = await workflowApi.uploadAttachment(
+        taskId,
+        file,
+        "report",
+      );
 
+      if (res.data?.data) {
+        setAttachments((prev) => [...prev, res.data.data]);
+      } else {
+        const fresh = await workflowApi.getAttachments(taskId);
+        setAttachments(fresh.data?.data ?? []);
+      }
+    } catch (err) {
+      alert(`Upload "${file.name}" thất bại`);
+    }
+  }
+  setUploading(false);
+};
   const handleDelete = async (id: number) => {
     try {
       await workflowApi.deleteAttachment(taskId, id);

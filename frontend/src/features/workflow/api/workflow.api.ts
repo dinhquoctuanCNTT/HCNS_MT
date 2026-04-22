@@ -123,15 +123,15 @@ export const workflowApi = {
     axiosClient.get(`/api/workflow/tasks/${taskId}/attachments`),
 
   // ✅ FIX: tạo FormData mới, append type TRƯỚC file để multer đọc đúng thứ tự
+  // SAU
   uploadAttachment: (
     taskId: number | undefined,
-    formData: FormData,
+    file: File,
     attachmentType: "assignment" | "report" = "report",
   ) => {
     const fd = new FormData();
-    fd.append("attachment_type", attachmentType); // ← type TRƯỚC
-    const file = formData.get("file");
-    if (file) fd.append("file", file); // ← file SAU
+    fd.append("attachment_type", attachmentType); // ← TRƯỚC
+    fd.append("file", file); // ← SAU
     return axiosClient.post(`/api/workflow/tasks/${taskId}/attachments`, fd, {
       headers: { "Content-Type": "multipart/form-data" },
     });

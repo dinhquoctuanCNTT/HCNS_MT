@@ -513,20 +513,17 @@ export default function TaskModal({
       reporter_id: currentUserId ?? null,
     });
 
-    // ✅ upload file nếu có
-    if (createdTask?.id && pendingFiles.length > 0) {
-      for (const file of pendingFiles) {
-        try {
-          const fd = new FormData();
-          fd.append("attachment_type", "assignment"); // ✅ type TRƯỚC
-          fd.append("file", file); // ✅ file SAU
-          await workflowApi.uploadAttachment(createdTask.id, fd, "assignment");
-        } catch (err) {
-          console.error("Upload file thất bại:", err);
-        }
+    // ← THÊM 2 DÒNG NÀY
+    console.log("=== createdTask ===", createdTask);
+    console.log("=== pendingFiles ===", pendingFiles);
+    // SAU — truyền File trực tiếp, bỏ FormData trung gian
+    for (const file of pendingFiles) {
+      try {
+        await workflowApi.uploadAttachment(createdTask.id, file, "assignment");
+      } catch (err) {
+        console.error("Upload file thất bại:", err);
       }
     }
-
     if (createAnother) {
       setTitle("");
       setDescription("");
@@ -736,10 +733,10 @@ export default function TaskModal({
                     multiple
                     style={{ display: "none" }}
                     onChange={(e) => {
-                      setPendingFiles((p) => [
-                        ...p,
-                        ...Array.from(e.target.files ?? []),
-                      ]);
+                      console.log("=== files selected ===", e.target.files);
+                      const newFiles = Array.from(e.target.files ?? []);
+                      console.log("=== newFiles ===", newFiles);
+                      setPendingFiles((p) => [...p, ...newFiles]);
                       e.target.value = "";
                     }}
                   />
