@@ -279,21 +279,70 @@ export default function useWorkflowBoard(projectId?: number) {
     toColumnId: number,
     newPosition: number,
   ) => {
-    await workflowApi.moveTask(taskId, { toStatusId, toColumnId, newPosition });
-    await fetchBoard(
-      Object.keys(serverFilters).length ? serverFilters : undefined,
-    );
-  };
+    // ✅ Optimistic update — cập nhật UI trước
+    setBoardData((prev) => {
+      const newColumns = prev.columns.map((col) => ({
+        ...col,
+        tasks: col.tasks.filter((t) => t.id !== taskId),
+      }));
 
+      const targetCol = newColumns.find((c) => c.id === toColumnId);
+      const movedTask = prev.columns
+        .flatMap((c) => c.tasks)
+        .find((t) => t.id === taskId);
+
+      if (targetCol && movedTask) {
+        const updatedTask = {
+          ...movedTask,
+          status_id: toStatusId,
+          position: newPosition,
+        };
+        targetCol.tasks.splice(newPosition, 0, updatedTask);
+      }
+
+      return { ...prev, columns: newColumns };
+    });
+
+    // Gọi API sau, không fetchBoard
+    try {
+      await workflowApi.moveTask(taskId, {
+        toStatusId,
+        toColumnId,
+        newPosition,
+      });
+    } catch (err) {
+      // Nếu lỗi thì fetch lại để đồng bộ
+      await fetchBoard(
+        Object.keys(serverFilters).length ? serverFilters : undefined,
+      );
+    }
+  };
   const reorderTasksInColumn = async (
     taskId: number,
     statusId: number,
     newPosition: number,
   ) => {
-    await workflowApi.reorderTask(taskId, { statusId, newPosition });
-    await fetchBoard(
-      Object.keys(serverFilters).length ? serverFilters : undefined,
-    );
+    // ✅ Optimistic update
+    setBoardData((prev) => {
+      const newColumns = prev.columns.map((col) => {
+        const taskIndex = col.tasks.findIndex((t) => t.id === taskId);
+        if (taskIndex === -1) return col;
+
+        const newTasks = [...col.tasks];
+        const [task] = newTasks.splice(taskIndex, 1);
+        newTasks.splice(newPosition, 0, { ...task, position: newPosition });
+        return { ...col, tasks: newTasks };
+      });
+      return { ...prev, columns: newColumns };
+    });
+
+    try {
+      await workflowApi.reorderTask(taskId, { statusId, newPosition });
+    } catch (err) {
+      await fetchBoard(
+        Object.keys(serverFilters).length ? serverFilters : undefined,
+      );
+    }
   };
 
   const moveTaskBetweenColumns = async (
@@ -305,17 +354,42 @@ export default function useWorkflowBoard(projectId?: number) {
     const toCol = boardData.columns.find((c) => c.id === toColId);
     const toStatusId = toCol?.status?.id ?? 0;
 
-    await workflowApi.moveTask(taskId, {
-      toStatusId,
-      toColumnId: toColId,
-      newPosition,
+    // ✅ Optimistic update
+    setBoardData((prev) => {
+      const movedTask = prev.columns
+        .flatMap((c) => c.tasks)
+        .find((t) => t.id === taskId);
+
+      const newColumns = prev.columns.map((col) => ({
+        ...col,
+        tasks: col.tasks.filter((t) => t.id !== taskId),
+      }));
+
+      const targetCol = newColumns.find((c) => c.id === toColId);
+      if (targetCol && movedTask) {
+        const updatedTask = {
+          ...movedTask,
+          status_id: toStatusId,
+          position: newPosition,
+        };
+        targetCol.tasks.splice(newPosition, 0, updatedTask);
+      }
+
+      return { ...prev, columns: newColumns };
     });
 
-    await fetchBoard(
-      Object.keys(serverFilters).length ? serverFilters : undefined,
-    );
+    try {
+      await workflowApi.moveTask(taskId, {
+        toStatusId,
+        toColumnId: toColId,
+        newPosition,
+      });
+    } catch (err) {
+      await fetchBoard(
+        Object.keys(serverFilters).length ? serverFilters : undefined,
+      );
+    }
   };
-
   return {
     project: boardData?.project ?? null,
     board: boardData?.board ?? null,
