@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import NotificationBell from "../../../../workflow/components/layout/NotificationBell";
 import { useAuthStore } from "../../../../auth/auth.store";
 import AdminTopBarMenu from "../../../../user/components/AdminTopbarMenu";
+import { API_BASE_URL } from "../../../../../config/env";
 
 type AdminTopbarProps = {
   onToggleSidebar: () => void;
@@ -81,7 +82,7 @@ export default function AdminTopbar({ onToggleSidebar }: AdminTopbarProps) {
             <img
               src={
                 user?.avatar_url
-                  ? `${user.avatar_url}`
+                  ? `${API_BASE_URL}${user.avatar_url}`
                   : "https://i.pravatar.cc/100?img=12"
               }
               alt="avatar"

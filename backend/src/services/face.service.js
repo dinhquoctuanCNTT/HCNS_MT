@@ -1,11 +1,11 @@
-// face.service.js — đổi require → import, module.exports → export
 import path from "path";
 import { createRequire } from "module";
 import { fileURLToPath } from "url";
+import sharp from "sharp";
 
 const require = createRequire(import.meta.url);
-const canvas = require("canvas"); // canvas chưa hỗ trợ ESM
-const faceapi = require("face-api.js"); // face-api.js cũng vậy
+const canvas = require("canvas");
+const faceapi = require("face-api.js");
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const { Canvas, Image, ImageData } = canvas;
@@ -25,11 +25,24 @@ export async function loadModels() {
   console.log("[FaceService] Models loaded successfully");
 }
 
+// ✅ Resize + convert sang jpeg để giảm kích thước xử lý
+async function toJpegBuffer(buffer) {
+  try {
+    return await sharp(buffer)
+      .resize(640, 640, { fit: "inside" }) // ← resize về 640px
+      .jpeg({ quality: 85 }) // ← convert sang jpeg
+      .toBuffer();
+  } catch (e) {
+    return buffer; // fallback nếu sharp lỗi
+  }
+}
+
 export async function extractDescriptor(image) {
   await loadModels();
   let img;
   if (Buffer.isBuffer(image)) {
-    img = await canvas.loadImage(image);
+    const jpegBuffer = await toJpegBuffer(image);
+    img = await canvas.loadImage(jpegBuffer);
   } else if (typeof image === "string") {
     img = await canvas.loadImage(image);
   } else {

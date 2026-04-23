@@ -112,3 +112,27 @@ export const changePassword = async (req, res) => {
     return res.status(500).json({ success: false, message: "Lỗi server" });
   }
 };
+// POST /api/users/avatar
+export const uploadAvatar = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Không có file được upload" });
+    }
+
+    const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+    const pool = getPool();
+
+    await pool
+      .request()
+      .input("id", sql.Int, req.user.id)
+      .input("avatar_url", sql.NVarChar(500), avatarUrl)
+      .query(`UPDATE users SET avatar_url = @avatar_url WHERE id = @id`);
+
+    return res.json({ success: true, avatarUrl });
+  } catch (error) {
+    console.error("uploadAvatar error:", error);
+    return res.status(500).json({ success: false, message: "Lỗi server" });
+  }
+};

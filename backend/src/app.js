@@ -6,6 +6,8 @@ import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import workflowRoutes from "./models/workflow/routes/workflow.routes.js";
 import notificationRoutes from "./models/workflow/routes/notification.route.js";
+import { loadModels } from "./services/face.service.js";
+import attendanceRoute from "./routes/attendance.routes.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -22,7 +24,11 @@ app.use(
     ],
   }),
 );
-app.use(express.json());
+app.use(express.json({ limit: "10mb" })); // ← thêm limit
+loadModels()
+  .then(() => console.log("[Server] Face models preloaded"))
+  .catch((err) => console.error("[Server] Face model load error:", err));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.use("/api/notifications", notificationRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
@@ -42,4 +48,6 @@ app.get("*", (req, res, next) => {
   res.sendFile(path.join(frontendPath, "index.html"));
 });
 
+// ==== MOBILE ======
+app.use("/api/attendance", attendanceRoute);
 export default app;

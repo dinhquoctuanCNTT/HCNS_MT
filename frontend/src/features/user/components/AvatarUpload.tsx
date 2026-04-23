@@ -1,12 +1,15 @@
 import { useRef, useState } from "react";
 import { useAuthStore } from "../../auth/auth.store";
 import { uploadAvatar } from "../userService";
+import { API_BASE_URL } from "../../../config/env";
 
 const AvatarUpload = () => {
   const { user, token, setAuth } = useAuthStore();
   const fileRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string>(
-    user?.avatar_url ? `${user.avatar_url}` : "/default-avatar.png",
+    user?.avatar_url
+      ? `${API_BASE_URL}${user.avatar_url}`
+      : "/default-avatar.png",
   );
   const [uploading, setUploading] = useState(false);
 
@@ -18,7 +21,7 @@ const AvatarUpload = () => {
       setUploading(true);
       const data = await uploadAvatar(file);
       setAuth(token, { ...user!, avatar_url: data.avatarUrl });
-      setPreview(`${data.avatarUrl}`);
+      setPreview(`${API_BASE_URL}${data.avatarUrl}`);
     } catch {
       alert("Upload ảnh thất bại");
     } finally {
@@ -34,6 +37,9 @@ const AvatarUpload = () => {
       <img
         src={preview}
         alt="avatar"
+        onError={(e) => {
+          (e.currentTarget as HTMLImageElement).src = "/default-avatar.png";
+        }}
         style={{
           width: 96,
           height: 96,

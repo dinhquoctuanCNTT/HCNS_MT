@@ -90,11 +90,6 @@ const ProfilePage = () => {
             <div className="pf-avatar-area">
               <div className="pf-avatar-wrap">
                 <AvatarUpload />
-                {!user?.avatar_url && (
-                  <div className="pf-avatar-initials">
-                    {getInitials(form.fullName || "User")}
-                  </div>
-                )}
               </div>
               <div className="pf-av-name">
                 {form.fullName || "Chưa cập nhật"}

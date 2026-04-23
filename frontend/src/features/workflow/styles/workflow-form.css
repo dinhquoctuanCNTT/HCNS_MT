@@ -1,9 +1,4 @@
-/* ============================================================
-   WORKFLOW FORM — CREATE ISSUE MODAL
-   File: styles/workflow-form.css
-   ============================================================ */
 
-/* ── Base form variables ── */
 :root {
   --wf-blue:         #0052cc;
   --wf-blue-hover:   #0747a6;
