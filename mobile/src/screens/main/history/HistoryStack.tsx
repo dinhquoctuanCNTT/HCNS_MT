@@ -1,7 +1,7 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { HistoryStackParamList } from "./types";
-import HistoryMainScreen from "./HistoryMainScreen";
+import HistoryMainScreen from "./HistorymainScreen";
 import DayDetailScreen from "./DayDetailScreen";
 import UpdateRequestForm from "./UpdateRequestForm";
 

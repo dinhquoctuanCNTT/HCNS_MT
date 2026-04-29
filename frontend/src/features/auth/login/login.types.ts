@@ -1,4 +1,4 @@
 export type LoginFromValues = {
-  phone: string; // ✅ đổi username → phone
+  phone: string;
   password: string;
 };

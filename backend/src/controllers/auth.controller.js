@@ -41,6 +41,14 @@ export const register = async (req, res) => {
       `);
 
     const newUser = result.recordset[0];
+    await pool
+      .request()
+      .input("user_id", sql.Int, newUser.id)
+      .input("project_id", sql.Int, 5)
+      .input("role", sql.NVarChar(50), "member").query(`
+    INSERT INTO project_members (user_id, project_id, role)
+    VALUES (@user_id, @project_id, @role)
+  `);
     const token = generateToken(newUser);
 
     return res.status(201).json({

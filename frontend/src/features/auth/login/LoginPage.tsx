@@ -23,7 +23,6 @@ const LoginPage = () => {
     e.preventDefault();
     setMessage("");
 
-    // Validate trước khi gửi
     if (!form.phone || !form.password) {
       setMessage("Vui lòng nhập số điện thoại và mật khẩu");
       return;
@@ -58,9 +57,9 @@ const LoginPage = () => {
 
         <form onSubmit={handleSubmit}>
           <Input
-            label="Số điện thoại" // đổi từ "Tài khoản"
-            type="tel" // đổi từ "text"
-            placeholder="VD: 0901234567" // rõ ràng hơn
+            label="Số điện thoại"
+            type="tel"
+            placeholder="VD: 0901234567"
             value={form.phone}
             onChange={(e) =>
               setForm((prev) => ({ ...prev, phone: e.target.value }))
