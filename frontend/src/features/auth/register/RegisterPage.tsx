@@ -25,16 +25,30 @@ const RegisterPage = () => {
     e.preventDefault();
     setMessage("");
 
+    if (!form.fullName || form.email || form.phone || form.password) {
+      setMessage("Vui lòng điền đầy đủ thông tin");
+    }
+    if (form.password !== form.confirmPassword) {
+      setMessage("Mật khẩu xác nhận không khớp");
+      return;
+    }
     try {
       await authService.register(form);
-
       setMessage("Đăng ký thành công");
-
       setTimeout(() => {
         navigate("/login");
       }, 1000);
     } catch (error: any) {
-      setMessage(error?.response?.data?.message || "Đăng ký thất bại");
+      const status = error?.response?.status;
+      const serverMsg = error?.response?.data?.message;
+
+      if (status === 409) {
+        setMessage(
+          "Email này đã được đăng ký. Vui lòng dùng email khác hoặc đăng nhập.",
+        );
+      } else {
+        setMessage(serverMsg || "Đăng ký thất bại, vui lòng thử lại");
+      }
     }
   };
   return (
@@ -68,7 +82,8 @@ const RegisterPage = () => {
           />
           <Input
             label="Mật khẩu"
-            placeholder="password"
+            type="password"
+            placeholder="Nhập mật khẩu"
             value={form.password}
             onChange={(e) =>
               setForm((prev) => ({ ...prev, password: e.target.value }))

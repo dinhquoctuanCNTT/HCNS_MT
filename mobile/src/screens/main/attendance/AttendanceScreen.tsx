@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -6,9 +6,14 @@ import {
   ActivityIndicator,
   Animated,
   Easing,
+  Vibration,
+  Linking,
+  Alert,
+  Platform,
 } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as Location from "expo-location";
+import Svg, { Path, Circle } from "react-native-svg";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
 import { attendanceApi } from "../../../api/attendanceApi";
@@ -19,10 +24,8 @@ type Status = "idle" | "processing" | "success" | "error";
 
 export default function AttendanceScreen({ navigation }: any) {
   const [permission, requestPermission] = useCameraPermissions();
-  const [locationPermission, setLocationPermission] = useState(false);
   const [mode, setMode] = useState<Mode>("check_in");
   const [status, setStatus] = useState<Status>("idle");
-  const [loading, setLoading] = useState(false);
   const [resultTime, setResultTime] = useState("");
   const [resultDate, setResultDate] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
@@ -30,14 +33,16 @@ export default function AttendanceScreen({ navigation }: any) {
   const [clockStr, setClockStr] = useState("");
 
   const cameraRef = useRef<CameraView>(null);
+  const isCapturing = useRef(false);
   const slideAnim = useRef(new Animated.Value(300)).current;
   const scanAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const user = useSelector((state: RootState) => state.auth.user);
 
-  // Đồng hồ realtime
+  // ── Đồng hồ ──────────────────────────────────────────────────────────────────
   useEffect(() => {
-    const timer = setInterval(() => {
+    const t = setInterval(() => {
       setClockStr(
         new Date().toLocaleTimeString("vi-VN", {
           hour: "2-digit",
@@ -46,18 +51,10 @@ export default function AttendanceScreen({ navigation }: any) {
         }),
       );
     }, 1000);
-    return () => clearInterval(timer);
+    return () => clearInterval(t);
   }, []);
 
-  // Xin quyền GPS
-  useEffect(() => {
-    (async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      setLocationPermission(status === "granted");
-    })();
-  }, []);
-
-  // Scan animation
+  // ── Scan animation ────────────────────────────────────────────────────────────
   useEffect(() => {
     if (status === "idle" || status === "processing") {
       Animated.loop(
@@ -81,50 +78,91 @@ export default function AttendanceScreen({ navigation }: any) {
     }
   }, [status]);
 
-  const showResult = (s: "success" | "error") => {
-    setStatus(s);
-    slideAnim.setValue(300);
-    Animated.spring(slideAnim, {
-      toValue: 0,
-      useNativeDriver: true,
-      tension: 65,
-      friction: 10,
-    }).start();
+  // ── Reset khi đổi mode ────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (permission?.granted) {
+      setStatus("idle");
+      setErrorMsg("");
+      setLocation("");
+    }
+  }, [permission?.granted, mode]);
+
+  // ── Mở cài đặt GPS ───────────────────────────────────────────────────────────
+  const openLocationSettings = () => {
+    if (Platform.OS === "ios") {
+      Linking.openURL("app-settings:");
+    } else {
+      Linking.openSettings();
+    }
   };
 
-  const handleCapture = async () => {
-    if (!cameraRef.current || loading) return;
+  // ── Chụp ảnh ──────────────────────────────────────────────────────────────────
+  const handleCapture = useCallback(async () => {
+    if (isCapturing.current || !cameraRef.current) return;
+
+    // ── Lấy tọa độ GPS ───────────────────────────────────────────────────────
+    let latitude: number | undefined;
+    let longitude: number | undefined;
+
     try {
-      setLoading(true);
-      setStatus("processing");
-      setErrorMsg("");
+      await Location.requestForegroundPermissionsAsync();
 
-      // Lấy GPS
-      let latitude: number | undefined;
-      let longitude: number | undefined;
-      if (locationPermission) {
-        try {
-          const loc = await Location.getCurrentPositionAsync({
-            accuracy: Location.Accuracy.High,
-          });
-          latitude = loc.coords.latitude;
-          longitude = loc.coords.longitude;
-        } catch (e) {}
+      // Thử cache trước (nhanh, không cần GPS signal)
+      const cached = await Location.getLastKnownPositionAsync({
+        maxAge: 120000,
+        requiredAccuracy: 1000,
+      }).catch(() => null);
+
+      if (cached) {
+        latitude = cached.coords.latitude;
+        longitude = cached.coords.longitude;
+      } else {
+        // Không có cache → lấy mới
+        const fresh = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Low,
+        });
+        latitude = fresh.coords.latitude;
+        longitude = fresh.coords.longitude;
       }
+    } catch (e) {
+      console.warn("[GPS] error:", e);
+      // Vẫn tiếp tục — backend sẽ báo lỗi no_gps
+    }
 
-      // Chụp ảnh
+    // ── Tiến hành chụp ────────────────────────────────────────────────────────
+    isCapturing.current = true;
+
+    Vibration.vibrate(40);
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 0.88,
+        duration: 80,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 120,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    try {
+      setStatus("processing");
+
       const photo = await cameraRef.current.takePictureAsync({
         base64: true,
         quality: 0.5,
       });
-      const base64 = `data:image/jpg;base64,${photo.base64}`;
+      if (!photo?.base64) throw new Error("Lỗi khi chụp ảnh");
 
-      // Gọi API
+      const base64Full = `data:image/jpg;base64,${photo.base64}`;
+      console.log("[SEND] lat:", latitude, "lng:", longitude);
       const res =
         mode === "check_in"
-          ? await attendanceApi.checkIn(base64, latitude, longitude)
-          : await attendanceApi.checkOut(base64, latitude, longitude);
+          ? await attendanceApi.checkIn(base64Full, latitude, longitude)
+          : await attendanceApi.checkOut(base64Full, latitude, longitude);
 
+      Vibration.vibrate([0, 60, 60, 60]);
       const t = new Date(res.data.time);
       setResultTime(
         t.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }),
@@ -140,20 +178,45 @@ export default function AttendanceScreen({ navigation }: any) {
       setLocation(res.data.location ?? "");
       showResult("success");
     } catch (err: any) {
-      setErrorMsg(err.response?.data?.message || "Lỗi kết nối");
+      Vibration.vibrate(200);
+      const data = err.response?.data;
+      const msg = err.response?.data?.message || err.message || "Lỗi kết nối";
+
+      if (
+        data?.reason === "out_of_range" ||
+        msg.includes("ngoài vùng") ||
+        msg.includes("khu vực")
+      ) {
+        Alert.alert("📍 Chấm công thất bại", msg, [
+          { text: "Đóng", style: "cancel" },
+          { text: "Mở cài đặt GPS", onPress: openLocationSettings },
+        ]);
+      }
+      setErrorMsg(msg);
       showResult("error");
     } finally {
-      setLoading(false);
+      isCapturing.current = false;
     }
+  }, [mode]);
+
+  const showResult = (s: "success" | "error") => {
+    setStatus(s);
+    slideAnim.setValue(300);
+    Animated.spring(slideAnim, {
+      toValue: 0,
+      useNativeDriver: true,
+      tension: 65,
+      friction: 10,
+    }).start();
   };
 
   const handleReset = () => {
-    setStatus("idle");
     setErrorMsg("");
     setLocation("");
+    setStatus("idle");
   };
 
-  // ── Permission screen ─────────────────────────────────────
+  // ── Permission camera ─────────────────────────────────────────────────────────
   if (!permission) return <View />;
   if (!permission.granted) {
     return (
@@ -175,10 +238,17 @@ export default function AttendanceScreen({ navigation }: any) {
     inputRange: [0, 1],
     outputRange: [-80, 80],
   });
+  const isCheckout = mode === "check_out";
+
+  const faceFrameStyle = [
+    styles.faceFrame,
+    status === "processing" && styles.faceFrameScanning,
+    status === "success" && styles.faceFrameSuccess,
+    status === "error" && styles.faceFrameError,
+  ];
 
   return (
     <View style={styles.container}>
-      {/* Camera full screen */}
       <CameraView ref={cameraRef} style={styles.camera} facing="front" />
 
       {/* Top bar */}
@@ -194,10 +264,7 @@ export default function AttendanceScreen({ navigation }: any) {
       <View style={styles.modeSwitch}>
         <TouchableOpacity
           style={[styles.modeBtn, mode === "check_in" && styles.modeBtnActive]}
-          onPress={() => {
-            setMode("check_in");
-            handleReset();
-          }}
+          onPress={() => setMode("check_in")}
         >
           <Text
             style={[
@@ -210,10 +277,7 @@ export default function AttendanceScreen({ navigation }: any) {
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.modeBtn, mode === "check_out" && styles.modeBtnActive]}
-          onPress={() => {
-            setMode("check_out");
-            handleReset();
-          }}
+          onPress={() => setMode("check_out")}
         >
           <Text
             style={[
@@ -228,14 +292,7 @@ export default function AttendanceScreen({ navigation }: any) {
 
       {/* Face frame */}
       <View style={styles.faceFrameWrap} pointerEvents="none">
-        <View
-          style={[
-            styles.faceFrame,
-            status === "processing" && styles.faceFrameScanning,
-            status === "success" && styles.faceFrameSuccess,
-            status === "error" && styles.faceFrameError,
-          ]}
-        />
+        <View style={faceFrameStyle} />
         {(status === "idle" || status === "processing") && (
           <Animated.View
             style={[
@@ -244,21 +301,15 @@ export default function AttendanceScreen({ navigation }: any) {
             ]}
           />
         )}
-        <Text style={styles.faceHint}>
-          {status === "idle"
-            ? "Đặt khuôn mặt vào khung"
-            : status === "processing"
-              ? "Đang xác thực..."
-              : status === "success"
-                ? "✓ Xác thực thành công"
-                : "✗ Xác thực thất bại"}
-        </Text>
+        {status === "idle" && (
+          <Text style={styles.faceHint}>Đặt khuôn mặt vào khung</Text>
+        )}
       </View>
 
       {/* Processing overlay */}
       {status === "processing" && (
         <View style={styles.processingOverlay}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
+          <ActivityIndicator size="large" color="#fff" />
           <Text style={styles.processingText}>Đang nhận diện khuôn mặt...</Text>
           <Text style={styles.processingSubText}>
             Vui lòng giữ nguyên tư thế
@@ -270,25 +321,46 @@ export default function AttendanceScreen({ navigation }: any) {
       {status === "idle" && (
         <View style={styles.bottomBar}>
           <Text style={styles.gpsText}>
-            {locationPermission ? "📍 GPS đã bật" : "⚠️ GPS chưa bật"}
+            📍 Vị trí sẽ được xác định khi chấm công
           </Text>
-          <TouchableOpacity
-            style={[
-              styles.btnCapture,
-              mode === "check_out" && styles.btnCaptureCheckout,
-              loading && { opacity: 0.6 },
-            ]}
-            onPress={handleCapture}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.btnText}>
-                {mode === "check_in" ? "📷  Chấm vào" : "📷  Chấm ra"}
-              </Text>
-            )}
-          </TouchableOpacity>
+
+          <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+            <TouchableOpacity onPress={handleCapture} activeOpacity={0.85}>
+              <View
+                style={[
+                  styles.captureRing,
+                  isCheckout && styles.captureRingCheckout,
+                ]}
+              >
+                <View
+                  style={[
+                    styles.captureBtn,
+                    isCheckout && styles.captureBtnCheckout,
+                  ]}
+                >
+                  <Svg width={28} height={28} viewBox="0 0 24 24" fill="none">
+                    <Path
+                      d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"
+                      stroke={isCheckout ? "#fff" : COLORS.primary}
+                      strokeWidth={1.8}
+                      strokeLinejoin="round"
+                    />
+                    <Circle
+                      cx={12}
+                      cy={13}
+                      r={4}
+                      stroke={isCheckout ? "#fff" : COLORS.primary}
+                      strokeWidth={1.8}
+                    />
+                  </Svg>
+                </View>
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
+
+          <Text style={styles.captureBtnLabel}>
+            {isCheckout ? "Nhấn để chấm ra" : "Nhấn để chấm vào"}
+          </Text>
         </View>
       )}
 
@@ -308,7 +380,6 @@ export default function AttendanceScreen({ navigation }: any) {
                 : styles.resultCardError,
             ]}
           >
-            {/* Thông tin nhân viên */}
             <View style={styles.employeeRow}>
               <View style={styles.employeeAvatar}>
                 <Text style={styles.employeeAvatarText}>
@@ -323,7 +394,6 @@ export default function AttendanceScreen({ navigation }: any) {
               </View>
             </View>
 
-            {/* Status + thời gian */}
             {status === "success" ? (
               <>
                 <View style={styles.statusRow}>
@@ -351,7 +421,28 @@ export default function AttendanceScreen({ navigation }: any) {
                 ) : null}
               </>
             ) : (
-              <Text style={styles.errorMsg}>{errorMsg}</Text>
+              <>
+                <Text style={styles.errorMsg}>{errorMsg}</Text>
+                {(errorMsg.includes("GPS") ||
+                  errorMsg.includes("vị trí") ||
+                  errorMsg.includes("khu vực")) && (
+                  <TouchableOpacity
+                    onPress={openLocationSettings}
+                    style={[
+                      styles.btnRetry,
+                      {
+                        backgroundColor: "#FEF9E7",
+                        borderColor: "#F39C12",
+                        marginTop: 0,
+                      },
+                    ]}
+                  >
+                    <Text style={[styles.btnRetryText, { color: "#F39C12" }]}>
+                      📍 Mở cài đặt vị trí
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </>
             )}
 
             <TouchableOpacity style={styles.btnRetry} onPress={handleReset}>

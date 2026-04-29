@@ -13,15 +13,30 @@ export async function registerFace(req, res) {
 
 export async function checkIn(req, res) {
   try {
-    const { image } = req.body; // base64
+    const { image, latitude, longitude } = req.body; // ← thêm latitude, longitude
     if (!image) return res.status(400).json({ message: "Thiếu ảnh" });
-    const result = await attendanceService.checkIn(req.user.id, image);
+    const result = await attendanceService.checkIn(req.user.id, image, {
+      latitude,
+      longitude,
+    }); // ← thêm
     res.json(result);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 }
-
+export async function checkOut(req, res) {
+  try {
+    const { image, latitude, longitude } = req.body; // ← thêm
+    if (!image) return res.status(400).json({ message: "Thiếu ảnh" });
+    const result = await attendanceService.checkOut(req.user.id, image, {
+      latitude,
+      longitude,
+    }); // ← thêm
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+}
 export async function getHistory(req, res) {
   try {
     const { from, to } = req.query;

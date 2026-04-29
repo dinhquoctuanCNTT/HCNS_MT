@@ -6,6 +6,7 @@ type User = {
   fullName: string;
   phone: string;
   role: string;
+  has_registered_face?: boolean; // ← thêm mới
 };
 
 type AuthState = {
@@ -30,14 +31,12 @@ const authSlice = createSlice({
     setCredentials: (state, action: PayloadAction<SetCredentialsPayload>) => {
       state.token = action.payload.token;
       state.user = action.payload.user;
-      // Lưu vào AsyncStorage
       AsyncStorage.setItem("token", action.payload.token);
       AsyncStorage.setItem("user", JSON.stringify(action.payload.user));
     },
     logout: (state) => {
       state.token = null;
       state.user = null;
-      // Xoá khỏi AsyncStorage
       AsyncStorage.removeItem("token");
       AsyncStorage.removeItem("user");
     },

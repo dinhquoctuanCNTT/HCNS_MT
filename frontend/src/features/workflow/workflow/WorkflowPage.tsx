@@ -4,7 +4,12 @@ import { useSearchParams } from "react-router-dom";
 
 import WorkflowModule from "../components/common/WorkflowModule";
 import TaskModal from "../components/modal/TaskModal";
-import useWorkflowBoard, { BoardColumn } from "../hooks/useWorkflowBoard";
+
+import useWorkflowBoard, {
+  BoardColumn,
+  BoardTask,
+} from "../hooks/useWorkflowBoard";
+
 import useWorkflowMeta from "../hooks/useWorkflowMeta";
 import useProjects from "../hooks/useProjects";
 import { useCreateIssue } from "../hooks/useCreateIssue";
@@ -12,23 +17,32 @@ import { WorkflowTab } from "../components/layout/WorkflowHeader";
 import { useAuthStore } from "../../auth/auth.store";
 import { useOverdueNotifier } from "../hooks/useOverdueNotifier";
 
+import { workflowApi } from "../api/workflow.api";
+
 export default function WorkflowPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [projectId, setProjectId] = useState<number | undefined>(undefined);
 
-  // Modal create
+  // Create modal
   const [openCreate, setOpenCreate] = useState(false);
   const [createColumn, setCreateColumn] = useState<BoardColumn | null>(null);
+
+  // Detail/Edit modal
+  const [selectedTask, setSelectedTask] = useState<BoardTask | null>(null);
+
+  const [openDetail, setOpenDetail] = useState(false);
 
   const { userId } = useAuthStore();
 
   const tabParam = searchParams.get("tab") as WorkflowTab | null;
+
   const [activeTab, setActiveTab] = useState<WorkflowTab>(
     tabParam === "history" ? "history" : "board",
   );
 
   useEffect(() => {
     const t = searchParams.get("tab") as WorkflowTab | null;
+
     if (t === "history" || t === "board") {
       setActiveTab(t);
     } else {
@@ -81,6 +95,7 @@ export default function WorkflowPage() {
 
   const { createIssue } = useCreateIssue(resolvedProjectId, fetchBoard);
 
+  // overdue notify
   useOverdueNotifier(
     tasks.map((t) => ({
       id: t.id,
@@ -140,8 +155,15 @@ export default function WorkflowPage() {
         onApplyServerFilter={applyServerFilter}
         onClearFilters={clearFilters}
         onProjectChange={(id) => setProjectId(id)}
+        // create task
         onCreateTask={() => handleOpenCreate(null)}
         onAddTaskFromColumn={handleOpenCreate}
+        // click task -> open detail
+        onTaskClick={(task) => {
+          setSelectedTask(task);
+          setOpenDetail(true);
+        }}
+        // drag drop
         onMoveTask={moveTaskToColumn}
         onReorderTask={reorderTasksInColumn}
         onMoveBetweenColumns={moveTaskBetweenColumns}
@@ -150,6 +172,7 @@ export default function WorkflowPage() {
         onTabChange={handleTabChange}
       />
 
+      {/* CREATE MODAL */}
       {openCreate && (
         <TaskModal
           task={null}
@@ -170,6 +193,46 @@ export default function WorkflowPage() {
               ...payload,
               status_id: createColumn?.status?.id ?? statuses?.[0]?.id ?? null,
             });
+          }}
+        />
+      )}
+
+      {/* DETAIL / UPDATE MODAL */}
+      {openDetail && selectedTask && (
+        <TaskModal
+          task={selectedTask}
+          projectId={resolvedProjectId}
+          boardId={board?.id}
+          members={members}
+          labels={labels}
+          priorities={priorities}
+          issueTypes={issueTypes}
+          statuses={statuses}
+          currentUserId={userId}
+          onClose={() => {
+            setOpenDetail(false);
+            setSelectedTask(null);
+          }}
+          onUpdate={async (payload) => {
+            const success = await workflowApi.updateTask(
+              selectedTask.id,
+              payload,
+            );
+
+            if (success) {
+              setSelectedTask((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      ...payload,
+                    }
+                  : prev,
+              );
+
+              await fetchBoard();
+            }
+
+            return success;
           }}
         />
       )}

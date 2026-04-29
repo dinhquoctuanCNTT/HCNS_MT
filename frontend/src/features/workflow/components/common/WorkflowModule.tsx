@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import WorkflowHeader from "./WorkflowHeader";
 import WorkflowFilters from "./WorkflowFilters";
 import WorkflowBoard from "../board/WorkflowBoard";
@@ -86,6 +86,12 @@ export default function WorkflowModule({
   onTabChange: onTabChangeProp,
 }: WorkflowModuleProps) {
   const [selectedTask, setSelectedTask] = useState<BoardTask | null>(null);
+  useEffect(() => {
+    if (!selectedTask) return;
+    const allTasks = columns.flatMap((c) => c.tasks);
+    const updated = allTasks.find((t) => t.id === selectedTask.id);
+    if (updated) setSelectedTask(updated);
+  }, [columns]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [internalTab, setInternalTab] = useState<WorkflowTab>("board");

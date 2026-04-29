@@ -10,5 +10,6 @@ router.use(authMiddleware);
 router.post("/register-face", attendanceController.registerFace); // Đăng ký khuôn mặt
 router.post("/check-in", attendanceController.checkIn); // Chấm công
 router.get("/history", attendanceController.getHistory); // Lịch sử
+router.post("/check-out", attendanceController.checkOut); // chấm ra về
 
 export default router;

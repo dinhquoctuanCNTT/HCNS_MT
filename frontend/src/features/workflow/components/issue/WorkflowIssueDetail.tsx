@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { BoardTask } from "../../hooks/useWorkflowBoard";
 import WorkflowChecklist from "./WorkflowChecklist";
 import WorkflowAssignees from "./WorkflowAssignees";
@@ -28,6 +28,187 @@ function toInputDate(dateStr?: string | null) {
   return d.toISOString().slice(0, 10);
 }
 
+// ─── Custom Status Dropdown có màu ────────────────────────────────────────────
+function StatusDropdown({
+  statuses,
+  currentStatusId,
+  canEdit,
+  onSelect,
+}: {
+  statuses: any[];
+  currentStatusId: number;
+  canEdit: boolean;
+  onSelect: (statusId: number) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  const current =
+    statuses.find((s) => Number(s.id) === Number(currentStatusId)) ??
+    statuses[0];
+
+  // Đóng khi click ra ngoài
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  if (!canEdit) {
+    return (
+      <span
+        className="wf-status-pill"
+        style={{
+          background: `${current?.color ?? "#6B7280"}18`,
+          color: current?.color ?? "#6B7280",
+          borderColor: `${current?.color ?? "#6B7280"}33`,
+        }}
+      >
+        {current?.name ?? "—"}
+      </span>
+    );
+  }
+
+  return (
+    <div ref={ref} style={{ position: "relative", display: "inline-block" }}>
+      {/* Trigger button */}
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="wf-status-pill"
+        style={{
+          background: `${current?.color ?? "#6B7280"}18`,
+          color: current?.color ?? "#6B7280",
+          borderColor: `${current?.color ?? "#6B7280"}33`,
+          border: "1.5px solid",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          gap: 5,
+          fontWeight: 600,
+          padding: "4px 10px",
+          borderRadius: 20,
+          fontSize: 12,
+          userSelect: "none",
+        }}
+      >
+        {current?.name ?? "—"}
+        <svg
+          width="10"
+          height="10"
+          viewBox="0 0 16 16"
+          fill="currentColor"
+          style={{ opacity: 0.7 }}
+        >
+          <path
+            d="M4 6l4 4 4-4"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            fill="none"
+          />
+        </svg>
+      </button>
+
+      {/* Dropdown menu */}
+      {open && (
+        <div
+          style={{
+            position: "absolute",
+            top: "calc(100% + 6px)",
+            left: 0,
+            zIndex: 999,
+            background: "#fff",
+            border: "1px solid #e5e7eb",
+            borderRadius: 8,
+            boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
+            minWidth: 160,
+            overflow: "hidden",
+          }}
+        >
+          {statuses.map((s) => {
+            const isActive = Number(s.id) === Number(currentStatusId);
+            return (
+              <button
+                key={s.id}
+                onClick={() => {
+                  onSelect(Number(s.id));
+                  setOpen(false);
+                }}
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "8px 12px",
+                  background: isActive ? `${s.color}12` : "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  fontSize: 13,
+                  fontWeight: isActive ? 600 : 400,
+                  color: "#111827",
+                  transition: "background 0.15s",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.background = `${s.color}18`)
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.background = isActive
+                    ? `${s.color}12`
+                    : "transparent")
+                }
+              >
+                {/* Chấm màu */}
+                <span
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: "50%",
+                    background: s.color ?? "#6B7280",
+                    flexShrink: 0,
+                    boxShadow: isActive ? `0 0 0 2px ${s.color}44` : "none",
+                  }}
+                />
+                <span
+                  style={{
+                    color: s.color ?? "#374151",
+                    fontWeight: isActive ? 700 : 500,
+                  }}
+                >
+                  {s.name}
+                </span>
+                {isActive && (
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 16 16"
+                    fill={s.color}
+                    style={{ marginLeft: "auto" }}
+                  >
+                    <path
+                      d="M3 8l3.5 3.5L13 4"
+                      stroke={s.color}
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      fill="none"
+                    />
+                  </svg>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
 export default function WorkflowIssueDetail({
   task,
   projectId,
@@ -43,19 +224,22 @@ export default function WorkflowIssueDetail({
   const [descDraft, setDescDraft] = useState(task.description ?? "");
   const [savingDesc, setSavingDesc] = useState(false);
 
-  const status =
-    statuses.find((s) => Number(s.id) === Number(task.status_id)) ??
-    statuses.find((s) => Number(s.id) === Number((task as any)?.status?.id)) ??
-    null;
-
   const handleSaveDesc = async () => {
     if (!canEdit) return;
-    setSavingDesc(true);
-    await onUpdateTask!({ description: descDraft });
-    setSavingDesc(false);
-    setEditDesc(false);
-  };
+    try {
+      setSavingDesc(true);
 
+      const success = await onUpdateTask?.({
+        description: descDraft,
+      });
+
+      if (success) {
+        setEditDesc(false);
+      }
+    } finally {
+      setSavingDesc(false);
+    }
+  };
   return (
     <div className="wf-issue-layout">
       <div className="wf-issue-block">
@@ -81,7 +265,6 @@ export default function WorkflowIssueDetail({
 
       <div className="wf-issue-block">
         <div className="wf-issue-block__title">Mô tả</div>
-
         {editDesc ? (
           <div>
             <textarea
@@ -123,7 +306,6 @@ export default function WorkflowIssueDetail({
 
       <div className="wf-issue-block">
         <div className="wf-issue-block__title">Nhân sự</div>
-
         <div className="wf-meta-row">
           <label className="wf-meta-row__label">Phụ trách chính</label>
           <div className="wf-meta-row__content">
@@ -134,7 +316,6 @@ export default function WorkflowIssueDetail({
             />
           </div>
         </div>
-
         <div className="wf-meta-row">
           <label className="wf-meta-row__label">Người phối hợp</label>
           <div className="wf-meta-row__content">
@@ -149,28 +330,21 @@ export default function WorkflowIssueDetail({
 
       <div className="wf-issue-block">
         <div className="wf-issue-block__title">Kế hoạch & phân loại</div>
-
         <div className="wf-meta-grid">
+          {/* ── Trạng thái — custom dropdown có màu ── */}
           <div className="wf-meta-card">
             <div className="wf-meta-card__label">Trạng thái</div>
             <div className="wf-meta-card__value">
-              {status ? (
-                <span
-                  className="wf-status-pill"
-                  style={{
-                    background: `${status.color}18`,
-                    color: status.color,
-                    borderColor: `${status.color}33`,
-                  }}
-                >
-                  {status.name}
-                </span>
-              ) : (
-                "—"
-              )}
+              <StatusDropdown
+                statuses={statuses}
+                currentStatusId={task.status_id}
+                canEdit={canEdit}
+                onSelect={(statusId) => onUpdateTask?.({ status_id: statusId })}
+              />
             </div>
           </div>
 
+          {/* ── Ưu tiên ── */}
           <div className="wf-meta-card">
             <div className="wf-meta-card__label">Ưu tiên</div>
             <div className="wf-meta-card__value">
@@ -199,6 +373,7 @@ export default function WorkflowIssueDetail({
             </div>
           </div>
 
+          {/* ── Loại ── */}
           <div className="wf-meta-card">
             <div className="wf-meta-card__label">Loại</div>
             <div className="wf-meta-card__value">
@@ -227,6 +402,7 @@ export default function WorkflowIssueDetail({
             </div>
           </div>
 
+          {/* ── Bắt đầu ── */}
           <div className="wf-meta-card">
             <div className="wf-meta-card__label">Bắt đầu</div>
             <div className="wf-meta-card__value">
@@ -249,6 +425,7 @@ export default function WorkflowIssueDetail({
             </div>
           </div>
 
+          {/* ── Kết thúc ── */}
           <div className="wf-meta-card">
             <div className="wf-meta-card__label">Kết thúc</div>
             <div className="wf-meta-card__value">

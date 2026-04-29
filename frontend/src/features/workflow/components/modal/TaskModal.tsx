@@ -313,7 +313,10 @@ function MultiAssigneeSearch({
     </div>
   );
 }
-
+const formatDateValue = (date?: string | null) => {
+  if (!date) return "";
+  return new Date(date).toISOString().split("T")[0];
+};
 export default function TaskModal({
   task,
   projectId,
@@ -348,7 +351,6 @@ export default function TaskModal({
   const [closingTask, setClosingTask] = useState(false);
   const titleInputRef = useRef<HTMLInputElement>(null);
 
-  // ✅ FIX: dùng ref thay vì document.getElementById
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [title, setTitle] = useState("");
@@ -359,6 +361,7 @@ export default function TaskModal({
   const [labelId, setLabelId] = useState("");
   const [startDate, setStartDate] = useState("");
   const [dueDate, setDueDate] = useState("");
+
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [createAnother, setCreateAnother] = useState(false);
   const [errors, setErrors] = useState<{
@@ -432,29 +435,47 @@ export default function TaskModal({
   };
 
   const handleUpdateStatus = async (newStatusId: number) => {
-    if (!task?.id || Number(newStatusId) === Number(currentStatusId)) return;
+    if (!task?.id || Number(newStatusId) === Number(currentStatusId)) {
+      return;
+    }
+
     try {
       setUpdatingStatus(true);
-      if (onUpdateStatus) await onUpdateStatus(newStatusId);
-      else await workflowApi.updateTask(task.id, { status_id: newStatusId });
-      setOverrideStatusId(newStatusId);
-      await onRefresh?.();
+
+      const success = onUpdateTask
+        ? await onUpdateTask({
+            status_id: newStatusId,
+          })
+        : await workflowApi.updateTask(task.id, {
+            status_id: newStatusId,
+          });
+
+      if (success) {
+        setOverrideStatusId(newStatusId);
+        await onRefresh?.();
+      }
     } catch (e) {
       console.error(e);
     } finally {
       setUpdatingStatus(false);
     }
   };
-
   const handleTitleSave = async () => {
     const trimmed = titleDraft.trim();
+
     if (!trimmed || trimmed === task?.title) {
       setEditingTitle(false);
       setTitleDraft(task?.title ?? "");
       return;
     }
-    await onUpdateTask?.({ title: trimmed });
-    setEditingTitle(false);
+
+    const success = await onUpdateTask?.({
+      title: trimmed,
+    });
+
+    if (success) {
+      setEditingTitle(false);
+    }
   };
 
   const handleAddComment = async () => {
@@ -512,7 +533,17 @@ export default function TaskModal({
       due_date: dueDate || null,
       reporter_id: currentUserId ?? null,
     });
-
+    if (!createdTask?.id) {
+      console.error("Không tạo được task");
+      return;
+    }
+    for (const file of pendingFiles) {
+      try {
+        await workflowApi.uploadAttachment(createdTask.id, file, "assignment");
+      } catch (err) {
+        console.error(err);
+      }
+    }
     // ← THÊM 2 DÒNG NÀY
     console.log("=== createdTask ===", createdTask);
     console.log("=== pendingFiles ===", pendingFiles);
@@ -687,13 +718,13 @@ export default function TaskModal({
                   </select>
                 </div>
                 <div className="ci-field">
-                  <label className="ci-label">Nhãn</label>
+                  <label className="ci-label">Danh mục</label>
                   <select
                     className="ci-select"
                     value={labelId}
                     onChange={(e) => setLabelId(e.target.value)}
                   >
-                    <option value="">Không có nhãn</option>
+                    <option value="">Không chọn danh mục</option>
                     {labels.map((l) => (
                       <option key={l.id} value={l.id}>
                         {l.name}
@@ -723,7 +754,7 @@ export default function TaskModal({
                     <strong>
                       {pendingFiles.length > 0
                         ? `${pendingFiles.length} file đã chọn`
-                        : "Kéo thả hoặc click để chọn"}
+                        : "Kéo thả hoặc click để chọn file. Vui lòng đặt tên file không dấu"}
                     </strong>
                     <span>Tối đa 20MB/file</span>
                   </div>

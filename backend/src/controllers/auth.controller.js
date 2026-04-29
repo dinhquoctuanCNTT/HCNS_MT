@@ -5,7 +5,7 @@ import { generateToken } from "../utils/jwt.js";
 // POST /api/auth/register
 export const register = async (req, res) => {
   try {
-    const { email, password, full_name, role = "employee", phone } = req.body; // ← bỏ department
+    const { email, password, full_name, role = "employee", phone } = req.body;
 
     if (!email || !password || !full_name) {
       return res
@@ -38,7 +38,7 @@ export const register = async (req, res) => {
         INSERT INTO users (email, password_hash, full_name, role, phone)
         OUTPUT INSERTED.id, INSERTED.email, INSERTED.full_name, INSERTED.role
         VALUES (@email, @password, @full_name, @role, @phone)
-      `); // ← bỏ department
+      `);
 
     const newUser = result.recordset[0];
     const token = generateToken(newUser);
@@ -47,7 +47,7 @@ export const register = async (req, res) => {
       success: true,
       message: "Đăng ký thành công",
       token,
-      user: newUser,
+      user: { ...newUser, has_registered_face: false },
     });
   } catch (error) {
     console.error("register error:", error);
@@ -73,10 +73,11 @@ export const login = async (req, res) => {
 
     const result = await pool.request().input("phone", sql.NVarChar, phone)
       .query(`
-        SELECT id, email, password_hash, full_name, role, avatar_url, phone
+        SELECT id, email, password_hash, full_name, role, avatar_url, phone,
+               CASE WHEN face_descriptor IS NULL THEN 0 ELSE 1 END AS has_registered_face
         FROM users
         WHERE phone = @phone
-      `); // ← bỏ department
+      `);
 
     const user = result.recordset[0];
     if (!user) {
@@ -97,6 +98,10 @@ export const login = async (req, res) => {
     const token = generateToken(user);
     const { password_hash: _, ...userWithoutPassword } = user;
 
+    // has_registered_face: 0/1 từ SQL → chuyển thành boolean
+    userWithoutPassword.has_registered_face =
+      !!userWithoutPassword.has_registered_face;
+
     return res.json({
       success: true,
       message: "Đăng nhập thành công",
@@ -116,10 +121,11 @@ export const getMe = async (req, res) => {
 
     const result = await pool.request().input("id", sql.Int, req.user.id)
       .query(`
-        SELECT id, email, full_name, role, avatar_url, phone
+        SELECT id, email, full_name, role, avatar_url, phone,
+               CASE WHEN face_descriptor IS NULL THEN 0 ELSE 1 END AS has_registered_face
         FROM users
         WHERE id = @id
-      `); // ← bỏ department
+      `);
 
     const user = result.recordset[0];
     if (!user) {
@@ -127,6 +133,8 @@ export const getMe = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Người dùng không tồn tại" });
     }
+
+    user.has_registered_face = !!user.has_registered_face;
 
     return res.json({ success: true, user });
   } catch (error) {

@@ -1,15 +1,27 @@
 import React from "react";
-import AuthStack from "./AuthStack";
-import MainStack from "./MainStack";
-import { RootState } from "../store";
 import { useSelector } from "react-redux";
 import { NavigationContainer } from "@react-navigation/native";
+import { RootState } from "../store";
+import AuthStack from "./AuthStack";
+import MainStack from "./MainStack";
 
 export default function AppNavigator() {
   const token = useSelector((state: RootState) => state.auth.token);
+  const user = useSelector((state: RootState) => state.auth.user);
+
+  // Chưa đăng nhập → AuthStack
+  if (!token)
+    return (
+      <NavigationContainer>
+        <AuthStack />
+      </NavigationContainer>
+    );
+
+  // Đã đăng nhập → MainStack
+  // MainStack tự xử lý redirect sang RegisterFace nếu chưa đăng ký khuôn mặt
   return (
     <NavigationContainer>
-      {token ? <MainStack /> : <AuthStack />}
+      <MainStack />
     </NavigationContainer>
   );
 }

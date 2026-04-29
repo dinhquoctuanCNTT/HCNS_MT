@@ -1,209 +1,277 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
-import Svg, { Path, Rect, Circle } from "react-native-svg";
-import { useDispatch, useSelector } from "react-redux";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  StatusBar,
+  FlatList,
+  Image,
+} from "react-native";
+import Svg, { Path, Circle } from "react-native-svg";
+import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
-import { logout } from "../../../store/slices/authSlice";
 import { attendanceApi } from "../../../api/attendanceApi";
 import styles, { COLORS } from "./HomeScreen.style";
 
-const STATS = [
-  {
-    label: "Ngày công",
-    value: "22",
-    color: COLORS.success,
-    bg: COLORS.successLight,
-    icon: (
-      <Svg width={14} height={14} viewBox="0 0 16 16" fill="none">
-        <Path
-          d="M3 8l3 3 7-6"
-          stroke="#16A34A"
-          strokeWidth={1.8}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </Svg>
-    ),
-  },
-  {
-    label: "Đi muộn",
-    value: "2",
-    color: COLORS.warning,
-    bg: COLORS.warningLight,
-    icon: (
-      <Svg width={14} height={14} viewBox="0 0 16 16" fill="none">
-        <Circle cx={8} cy={8} r={6} stroke="#D97706" strokeWidth={1.8} />
-        <Path
-          d="M8 5v3l2 2"
-          stroke="#D97706"
-          strokeWidth={1.8}
-          strokeLinecap="round"
-        />
-      </Svg>
-    ),
-  },
-  {
-    label: "Nghỉ phép",
-    value: "1.5",
-    color: COLORS.primary,
-    bg: COLORS.primaryLight,
-    icon: (
-      <Svg width={14} height={14} viewBox="0 0 16 16" fill="none">
-        <Rect
-          x={3}
-          y={4}
-          width={10}
-          height={10}
-          rx={1}
-          stroke="#3B82F6"
-          strokeWidth={1.8}
-        />
-        <Path
-          d="M6 4V2h4v2"
-          stroke="#3B82F6"
-          strokeWidth={1.8}
-          strokeLinecap="round"
-        />
-      </Svg>
-    ),
-  },
-  {
-    label: "Tăng ca",
-    value: "4h",
-    color: COLORS.purple,
-    bg: COLORS.purpleLight,
-    icon: (
-      <Svg width={14} height={14} viewBox="0 0 16 16" fill="none">
-        <Rect
-          x={2}
-          y={5}
-          width={12}
-          height={9}
-          rx={1}
-          stroke="#7C3AED"
-          strokeWidth={1.8}
-        />
-        <Path
-          d="M5 5V3a3 3 0 016 0v2"
-          stroke="#7C3AED"
-          strokeWidth={1.8}
-          strokeLinecap="round"
-        />
-      </Svg>
-    ),
-  },
-];
+// ─── FaceID icon ──────────────────────────────────────────────────────────────
+function FaceID({
+  size = 20,
+  color = "#fff",
+}: {
+  size?: number;
+  color?: string;
+}) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 26 26" fill="none">
+      <Path
+        d="M5 9V6a1.5 1.5 0 011.5-1.5H9"
+        stroke={color}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+      />
+      <Path
+        d="M21 9V6a1.5 1.5 0 00-1.5-1.5H17"
+        stroke={color}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+      />
+      <Path
+        d="M5 17v3a1.5 1.5 0 001.5 1.5H9"
+        stroke={color}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+      />
+      <Path
+        d="M21 17v3a1.5 1.5 0 01-1.5 1.5H17"
+        stroke={color}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+      />
+      <Circle cx={9.5} cy={11} r={1.2} fill={color} />
+      <Circle cx={16.5} cy={11} r={1.2} fill={color} />
+      <Path
+        d="M13 12v2"
+        stroke={color}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+      />
+      <Path
+        d="M9.5 17s1.2 1.8 3.5 1.8 3.5-1.8 3.5-1.8"
+        stroke={color}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
 
+// ─── Quick actions (4 icons) ──────────────────────────────────────────────────
 const QUICK = [
   {
-    name: "Lịch sử",
-    sub: "Chấm công",
-    screen: "History",
-    bg: COLORS.primaryLight,
-    icon: (
-      <Svg width={16} height={16} viewBox="0 0 18 18" fill="none">
-        <Rect
-          x={1}
-          y={3}
-          width={16}
-          height={13}
-          rx={1.5}
-          stroke="#3B82F6"
-          strokeWidth={1.5}
-        />
-        <Path
-          d="M5 3V1M13 3V1M1 8h16"
-          stroke="#3B82F6"
-          strokeWidth={1.5}
-          strokeLinecap="round"
-        />
-      </Svg>
-    ),
-  },
-  {
-    name: "Đơn từ",
-    sub: "Xin nghỉ phép",
-    screen: "Leave",
-    bg: COLORS.warningLight,
-    icon: (
-      <Svg width={16} height={16} viewBox="0 0 18 18" fill="none">
-        <Path
-          d="M3 2h12v15H3z"
-          stroke="#D97706"
-          strokeWidth={1.5}
-          strokeLinejoin="round"
-        />
-        <Path
-          d="M6 7h6M6 10h6M6 13h3"
-          stroke="#D97706"
-          strokeWidth={1.5}
-          strokeLinecap="round"
-        />
-      </Svg>
-    ),
-  },
-  {
-    name: "Bảng công",
-    sub: "Tháng này",
+    label: "Bảng công",
     screen: "Schedule",
-    bg: COLORS.successLight,
+    bg: "transparent",
     icon: (
-      <Svg width={16} height={16} viewBox="0 0 18 18" fill="none">
-        <Rect
-          x={1}
-          y={3}
-          width={16}
-          height={13}
-          rx={1.5}
-          stroke="#16A34A"
-          strokeWidth={1.5}
-        />
-        <Path
-          d="M5 3V1M13 3V1M1 8h16M5 12h2M9 12h2"
-          stroke="#16A34A"
-          strokeWidth={1.5}
-          strokeLinecap="round"
-        />
-      </Svg>
+      <Image
+        source={require("../../../../assets/icon/timesheet.png")}
+        style={{ width: 32, height: 32 }}
+        resizeMode="contain"
+      />
     ),
   },
   {
-    name: "Cá nhân",
-    sub: "Tài khoản",
-    screen: "Profile",
-    bg: COLORS.purpleLight,
+    label: "Lịch làm việc",
+    screen: "Schedule",
+    bg: "transparent",
     icon: (
-      <Svg width={16} height={16} viewBox="0 0 18 18" fill="none">
-        <Circle cx={9} cy={6} r={3.5} stroke="#7C3AED" strokeWidth={1.5} />
-        <Path
-          d="M2 16c0-3.5 3.1-6 7-6s7 2.5 7 6"
-          stroke="#7C3AED"
-          strokeWidth={1.5}
-          strokeLinecap="round"
-        />
-      </Svg>
+      <Image
+        source={require("../../../../assets/icon/schedule.png")}
+        style={{ width: 32, height: 32 }}
+        resizeMode="contain"
+      />
+    ),
+  },
+  {
+    label: "Đơn từ",
+    screen: "Leave",
+    bg: "transparent",
+    icon: (
+      <Image
+        source={require("../../../../assets/icon/document.png")}
+        style={{ width: 32, height: 32 }}
+        resizeMode="contain"
+      />
+    ),
+  },
+  {
+    label: "Xem thêm",
+    screen: "Profile",
+    bg: "transparent",
+    icon: (
+      <Image
+        source={require("../../../../assets/icon/options.png")}
+        style={{ width: 32, height: 32 }}
+        resizeMode="contain"
+      />
     ),
   },
 ];
 
-export default function HomeScreen({ navigation }: any) {
-  const dispatch = useDispatch();
-  const user = useSelector((state: RootState) => state.auth.user);
-  const [time, setTime] = useState(new Date());
-  const [todayRecord, setTodayRecord] = useState<any>(null);
+// ─── Services (8 items = 4×2 grid) ───────────────────────────────────────────
+const SERVICES = [
+  {
+    label: "Chuyển & Nhận",
+    screen: "Leave",
+    badge: 0,
+    bg: "transparent",
+    icon: (
+      <Image
+        source={require("../../../../assets/icon/transaction.png")}
+        style={{ width: 32, height: 32 }}
+        resizeMode="contain"
+      />
+    ),
+  },
+  {
+    label: "Phúc lợi",
+    screen: "Leave",
+    badge: 0,
+    bg: "transparent",
+    icon: (
+      <Image
+        source={require("../../../../assets/icon/welfare.png")}
+        style={{ width: 32, height: 32 }}
+        resizeMode="contain"
+      />
+    ),
+  },
+  {
+    label: "Bảo hiểm",
+    screen: "Leave",
+    badge: 0,
+    bg: "transparent",
+    icon: (
+      <Image
+        source={require("../../../../assets/icon/insurance.png")}
+        style={{ width: 32, height: 32 }}
+        resizeMode="contain"
+      />
+    ),
+  },
+  {
+    label: "Thanh toán",
+    screen: "Leave",
+    badge: 3,
+    bg: "transparent",
+    icon: (
+      <Image
+        source={require("../../../../assets/icon/payment.gif")}
+        style={{ width: 32, height: 32 }}
+        resizeMode="contain"
+      />
+    ),
+  },
+  {
+    label: "Hỗ trợ IT",
+    screen: "Leave",
+    badge: 0,
+    bg: "transparent",
+    icon: (
+      <Image
+        source={require("../../../../assets/icon/tech_support.png")}
+        style={{ width: 32, height: 32 }}
+        resizeMode="contain"
+      />
+    ),
+  },
+  {
+    label: "Mở thẻ",
+    screen: "Leave",
+    badge: 0,
+    bg: "transparent",
+    icon: (
+      <Image
+        source={require("../../../../assets/icon/payment.gif")}
+        style={{ width: 32, height: 32 }}
+        resizeMode="contain"
+      />
+    ),
+  },
+  {
+    label: "Kỹ năng",
+    screen: "Leave",
+    badge: 0,
+    bg: "transparent",
+    icon: (
+      <Image
+        source={require("../../../../assets/icon/skills.png")}
+        style={{ width: 32, height: 32 }}
+        resizeMode="contain"
+      />
+    ),
+  },
+  {
+    label: "Định tuyến",
+    screen: "Leave",
+    badge: 0,
+    bg: "transparent",
+    icon: (
+      <Image
+        source={require("../../../../assets/icon/navigation.png")}
+        style={{ width: 32, height: 32 }}
+        resizeMode="contain"
+      />
+    ),
+  },
+];
 
-  useEffect(() => {
-    const t = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(t);
-  }, []);
+// ─── Banners ──────────────────────────────────────────────────────────────────
+const BANNERS = [
+  {
+    key: "1",
+    tag: "VĂN HÓA",
+    title: "10 Phương châm\nToda San",
+    meta: "Hôm nay · 08:00",
+    action: "Đọc ngay →",
+    isNew: false,
+    bg1: "#1e3a8a",
+    bg2: "#2563eb",
+  },
+  {
+    key: "2",
+    tag: "SỰ KIỆN 2025",
+    title: "Giải chạy\nToda San 2025",
+    meta: "Đăng ký trước 30/04",
+    action: "",
+    isNew: true,
+    bg1: "#064e3b",
+    bg2: "#059669",
+  },
+  {
+    key: "3",
+    tag: "TÀI CHÍNH",
+    title: "Bảng lương Q2\nđã cập nhật",
+    meta: "25/04/2026",
+    action: "Xem →",
+    isNew: false,
+    bg1: "#78350f",
+    bg2: "#d97706",
+  },
+];
+
+// ─── Main component ───────────────────────────────────────────────────────────
+export default function HomeScreen({ navigation }: any) {
+  const user = useSelector((state: RootState) => state.auth.user);
+  const [todayRecord, setTodayRecord] = useState<any>(null);
 
   useEffect(() => {
     const today = new Date().toISOString().slice(0, 10);
     attendanceApi
       .getHistory(today, today)
       .then((res) => {
-        const data = Array.isArray(res.data) ? res.data : [];
-        if (data.length > 0) setTodayRecord(data[0]);
+        const d = Array.isArray(res.data) ? res.data : [];
+        if (d.length) setTodayRecord(d[0]);
       })
       .catch(() => {});
   }, []);
@@ -213,218 +281,242 @@ export default function HomeScreen({ navigation }: any) {
       hour: "2-digit",
       minute: "2-digit",
     });
-  const timeStr = time.toLocaleTimeString("vi-VN", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-  const dateStr = time.toLocaleDateString("vi-VN", {
-    weekday: "short",
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
+
+  const checkIn = todayRecord?.check_in ? fmt(todayRecord.check_in) : null;
+  const checkOut = todayRecord?.check_out ? fmt(todayRecord.check_out) : null;
 
   return (
     <View style={styles.container}>
-      {/* ── Header ── */}
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.navy} />
+
+      {/* ══ HEADER ══ */}
       <View style={styles.header}>
+        {/* User row */}
         <View style={styles.headerRow}>
-          <View>
-            <Text style={styles.greeting}>Xin chào 👋</Text>
-            <Text style={styles.userName}>{user?.fullName || "Nhân viên"}</Text>
-          </View>
-          <View style={styles.headerRight}>
-            <View style={styles.timeWrap}>
-              <Text style={styles.timeBig}>{timeStr}</Text>
-              <Text style={styles.timeDate}>{dateStr}</Text>
-            </View>
+          <View style={styles.headerLeft}>
             <TouchableOpacity
               style={styles.avatar}
-              onPress={() => dispatch(logout())}
+              onPress={() => navigation.navigate("Profile")}
             >
               <Text style={styles.avatarText}>
                 {(user?.fullName || "U")[0].toUpperCase()}
               </Text>
             </TouchableOpacity>
+            <View>
+              <Text style={styles.userName}>
+                {user?.fullName || "Nhân viên"}
+              </Text>
+              <Text style={styles.userRole}>Nhân viên kinh doanh</Text>
+            </View>
+          </View>
+          <View style={styles.headerRight}>
+            <TouchableOpacity style={styles.iconBtn}>
+              <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+                <Path
+                  d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"
+                  stroke="white"
+                  strokeWidth={1.8}
+                  strokeLinecap="round"
+                />
+                <Path
+                  d="M13.73 21a2 2 0 01-3.46 0"
+                  stroke="white"
+                  strokeWidth={1.8}
+                  strokeLinecap="round"
+                />
+              </Svg>
+              <View style={styles.notifDot} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.iconBtn}>
+              <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+                <Circle
+                  cx={11}
+                  cy={11}
+                  r={7}
+                  stroke="white"
+                  strokeWidth={1.8}
+                />
+                <Path
+                  d="M16.5 16.5l4 4"
+                  stroke="white"
+                  strokeWidth={1.8}
+                  strokeLinecap="round"
+                />
+              </Svg>
+            </TouchableOpacity>
           </View>
         </View>
 
-        {/* Today strip */}
-        <View style={styles.todayStrip}>
-          <View style={styles.todayBox}>
-            <Text style={styles.todayLabel}>Giờ vào</Text>
-            <Text style={styles.todayVal}>
-              {todayRecord?.check_in ? fmt(todayRecord.check_in) : "--:--"}
-            </Text>
-            <View style={styles.todayBadge}>
-              <Text style={styles.todayBadgeText}>
-                {todayRecord?.check_in ? "Đúng giờ" : "Chưa vào"}
-              </Text>
+        {/* ── SLIM ATTENDANCE BAR ── */}
+        <View style={styles.attendBar}>
+          {/* Left: check-in */}
+          <View style={styles.attendSide}>
+            <TouchableOpacity
+              style={styles.attendFab}
+              onPress={() => navigation.navigate("Attendance")}
+            >
+              <FaceID size={18} color="#fff" />
+            </TouchableOpacity>
+            <View style={{ gap: 1 }}>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 5 }}
+              >
+                <View style={styles.attendStatusDot} />
+                <Text style={styles.attendLabel}>Vào ca:</Text>
+              </View>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 5 }}
+              >
+                <Text
+                  style={checkIn ? styles.attendTime : styles.attendTimeDim}
+                >
+                  {checkIn ?? "--:--"}
+                </Text>
+                {checkIn && (
+                  <View style={styles.attendBadge}>
+                    <Text style={styles.attendBadgeText}>Đúng giờ</Text>
+                  </View>
+                )}
+              </View>
             </View>
           </View>
-          <View style={styles.todayBox}>
-            <Text style={styles.todayLabel}>Giờ ra</Text>
-            <Text
-              style={[
-                styles.todayVal,
-                !todayRecord?.check_out && { opacity: 0.5 },
-              ]}
-            >
-              {todayRecord?.check_out ? fmt(todayRecord.check_out) : "--:--"}
-            </Text>
+
+          {/* Divider */}
+          <View
+            style={{
+              width: 1,
+              height: "60%",
+              backgroundColor: COLORS.borderMid,
+            }}
+          />
+
+          {/* Right: check-out */}
+          <View style={[styles.attendSide, styles.attendSideRight]}>
             <View
-              style={[
-                styles.todayBadge,
-                !todayRecord?.check_out && {
-                  backgroundColor: "rgba(251,191,36,0.25)",
-                },
-              ]}
-            >
-              <Text style={styles.todayBadgeText}>
-                {todayRecord?.check_out ? "Đã ra" : "Chưa ra"}
-              </Text>
+              style={[styles.attendStatusDot, styles.attendStatusDotGray]}
+            />
+            <View style={{ gap: 1 }}>
+              <Text style={styles.attendLabel}>Ra ca:</Text>
+              <Text style={styles.attendTimeDim}>{checkOut ?? "--:--"}</Text>
             </View>
           </View>
-          <View style={styles.todayBox}>
-            <Text style={styles.todayLabel}>Hôm nay</Text>
-            <Text
-              style={[
-                styles.todayVal,
-                { color: todayRecord ? "#86EFAC" : "rgba(255,255,255,0.5)" },
-              ]}
-            >
-              {todayRecord ? "Có mặt" : "Vắng"}
-            </Text>
-            <View
-              style={[
-                styles.todayBadge,
-                {
-                  backgroundColor: todayRecord
-                    ? "rgba(134,239,172,0.2)"
-                    : "rgba(252,165,165,0.2)",
-                },
-              ]}
-            >
-              <Text style={styles.todayBadgeText}>
-                {todayRecord ? "✓" : "✗"}
-              </Text>
-            </View>
+        </View>
+
+        {/* ── QUICK ACTIONS (4 icons) ── */}
+        <View style={styles.quickCard}>
+          <View style={styles.quickGrid}>
+            {QUICK.map((item, i) => (
+              <TouchableOpacity
+                key={i}
+                style={styles.quickItem}
+                onPress={() => navigation.navigate(item.screen)}
+                activeOpacity={0.75}
+              >
+                <View
+                  style={[styles.quickIconBox, { backgroundColor: item.bg }]}
+                >
+                  {item.icon}
+                </View>
+                <Text style={styles.quickLabel}>{item.label}</Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
       </View>
 
-      {/* ── Content ── */}
+      {/* ══ SCROLL BODY ══ */}
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Checkin */}
-        <TouchableOpacity
-          style={styles.checkinCard}
-          onPress={() => navigation.navigate("Attendance")}
-          activeOpacity={0.85}
-        >
-          <View style={styles.checkinLeft}>
-            <View style={styles.checkinIcon}>
-              <Svg width={20} height={20} viewBox="0 0 22 22" fill="none">
-                <Rect
-                  x={2}
-                  y={2}
-                  width={18}
-                  height={18}
-                  rx={4}
-                  stroke="#3B82F6"
-                  strokeWidth={1.6}
-                />
-                <Circle
-                  cx={11}
-                  cy={10}
-                  r={3.5}
-                  stroke="#3B82F6"
-                  strokeWidth={1.6}
-                />
-                <Path
-                  d="M4 20c0-3.5 3.1-5.5 7-5.5s7 2 7 5.5"
-                  stroke="#3B82F6"
-                  strokeWidth={1.6}
-                  strokeLinecap="round"
-                />
-              </Svg>
-            </View>
-            <View>
-              <Text style={styles.checkinTitle}>Chấm công ngay</Text>
-              <Text style={styles.checkinSub}>
-                Nhận diện khuôn mặt · GPS xác minh
-              </Text>
-            </View>
+        {/* DỊCH VỤ — 4 columns × 2 rows */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>DỊCH VỤ</Text>
+            <Text style={styles.cardLink}>Xem tất cả ›</Text>
           </View>
-          <View style={styles.checkinArrow}>
-            <Text style={{ color: "#fff", fontSize: 16, fontWeight: "700" }}>
-              ›
-            </Text>
+          <View style={styles.svcGrid}>
+            {SERVICES.map((item, i) => (
+              <TouchableOpacity
+                key={i}
+                style={styles.svcItem}
+                onPress={() => navigation.navigate(item.screen)}
+                activeOpacity={0.75}
+              >
+                <View style={{ position: "relative" }}>
+                  <View
+                    style={[styles.svcIconBox, { backgroundColor: item.bg }]}
+                  >
+                    {item.icon}
+                  </View>
+                  {item.badge > 0 && (
+                    <View style={styles.badgeWrap}>
+                      <View style={styles.badge}>
+                        <Text style={styles.badgeText}>{item.badge}</Text>
+                      </View>
+                    </View>
+                  )}
+                </View>
+                <Text style={styles.svcLabel}>{item.label}</Text>
+              </TouchableOpacity>
+            ))}
           </View>
-        </TouchableOpacity>
-
-        {/* Stats */}
-        <View style={styles.sectionRow}>
-          <Text style={styles.sectionTitle}>Tổng hợp tháng này</Text>
-          <TouchableOpacity onPress={() => navigation.navigate("History")}>
-            <Text style={styles.sectionLink}>Xem chi tiết</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.statsRow}>
-          {STATS.slice(0, 2).map((s, i) => (
-            <View key={i} style={styles.statCard}>
-              <View style={[styles.statIcon, { backgroundColor: s.bg }]}>
-                {s.icon}
-              </View>
-              <View>
-                <Text style={[styles.statVal, { color: s.color }]}>
-                  {s.value}
-                </Text>
-                <Text style={styles.statLbl}>{s.label}</Text>
-              </View>
-            </View>
-          ))}
-        </View>
-        <View style={styles.statsRow}>
-          {STATS.slice(2).map((s, i) => (
-            <View key={i} style={styles.statCard}>
-              <View style={[styles.statIcon, { backgroundColor: s.bg }]}>
-                {s.icon}
-              </View>
-              <View>
-                <Text style={[styles.statVal, { color: s.color }]}>
-                  {s.value}
-                </Text>
-                <Text style={styles.statLbl}>{s.label}</Text>
-              </View>
-            </View>
-          ))}
         </View>
 
-        {/* Quick */}
-        <Text style={styles.sectionTitle}>Tiện ích</Text>
-        <View style={styles.quickGrid}>
-          {QUICK.map((q, i) => (
-            <TouchableOpacity
-              key={i}
-              style={styles.quickCard}
-              onPress={() => navigation.navigate(q.screen)}
-              activeOpacity={0.8}
-            >
-              <View style={[styles.quickIcon, { backgroundColor: q.bg }]}>
-                {q.icon}
-              </View>
-              <View>
-                <Text style={styles.quickName}>{q.name}</Text>
-                <Text style={styles.quickSub}>{q.sub}</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
+        {/* BẢN TIN NỘI BỘ */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>BẢN TIN NỘI BỘ</Text>
+            <Text style={styles.cardLink}>Xem tất cả ›</Text>
+          </View>
+          <FlatList
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            data={BANNERS}
+            keyExtractor={(b) => b.key}
+            contentContainerStyle={styles.bannerContent}
+            style={styles.bannerScroll}
+            renderItem={({ item }) => (
+              <TouchableOpacity style={styles.bannerCard} activeOpacity={0.85}>
+                <View style={[styles.bannerImg, { backgroundColor: item.bg1 }]}>
+                  <View
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      backgroundColor: item.bg2,
+                      opacity: 0.5,
+                    }}
+                  />
+                  <View style={{ zIndex: 1 }}>
+                    <Text style={styles.bannerTag}>{item.tag}</Text>
+                    <Text style={styles.bannerTitle}>{item.title}</Text>
+                  </View>
+                </View>
+                <View style={styles.bannerFooter}>
+                  <Text style={styles.bannerMeta}>{item.meta}</Text>
+                  {item.isNew ? (
+                    <View style={styles.bannerNew}>
+                      <Text style={styles.bannerNewText}>Mới</Text>
+                    </View>
+                  ) : (
+                    <Text style={styles.bannerLink}>{item.action}</Text>
+                  )}
+                </View>
+              </TouchableOpacity>
+            )}
+          />
+          <View style={styles.dotsRow}>
+            <View style={styles.dotActive} />
+            <View style={styles.dotInactive} />
+            <View style={styles.dotInactive} />
+          </View>
         </View>
       </ScrollView>
+      {/* Bottom nav is in MainStack.tsx — do NOT add it here */}
     </View>
   );
 }

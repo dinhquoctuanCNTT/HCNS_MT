@@ -39,7 +39,6 @@ export interface BoardProject {
   boardName?: string;
 }
 
-// Params cho server-side filter — khớp với backend findTasksByBoard
 export interface BoardFilterParams {
   keyword?: string;
   assigneeId?: number;
@@ -144,10 +143,6 @@ function normalizeBoardData(rawData: any): BoardData {
   const rawBoard = rawData?.board || rawData?.data?.board || null;
   const rawColumns = pickColumns(rawData);
 
-  const normalizedColumns = toArray(rawColumns)
-    .map(normalizeColumn)
-    .sort((a, b) => a.position - b.position);
-
   return {
     project: rawProject
       ? {
@@ -163,8 +158,44 @@ function normalizeBoardData(rawData: any): BoardData {
     board: rawBoard
       ? { id: Number(rawBoard?.id ?? 0), name: rawBoard?.name ?? "" }
       : null,
-    columns: normalizedColumns,
+    columns: toArray(rawColumns)
+      .map(normalizeColumn)
+      .sort((a, b) => a.position - b.position),
   };
+}
+
+export function getRealPosition(
+  realTasks: BoardTask[],
+  filteredTasks: BoardTask[],
+  displayIndex: number,
+): number {
+  if (filteredTasks.length === 0) return 0;
+  if (displayIndex <= 0) {
+    const firstId = filteredTasks[0].id;
+    const idx = realTasks.findIndex((t) => t.id === firstId);
+    return idx >= 0 ? idx : 0;
+  }
+
+  if (displayIndex >= filteredTasks.length) {
+    const lastId = filteredTasks[filteredTasks.length - 1].id;
+    const idx = realTasks.findIndex((t) => t.id === lastId);
+    return idx >= 0 ? idx + 1 : realTasks.length;
+  }
+
+  const prevId = filteredTasks[displayIndex - 1].id;
+  const prevIdx = realTasks.findIndex((t) => t.id === prevId);
+  return prevIdx >= 0 ? prevIdx + 1 : realTasks.length;
+}
+function isTaskVisible(task: BoardTask, keyword: string): boolean {
+  if (task.is_completed || task.is_archived) return false;
+  if (!keyword) return true;
+  const kw = keyword.toLowerCase();
+  return (
+    (task.title ?? "").toLowerCase().includes(kw) ||
+    (task.task_key ?? "").toLowerCase().includes(kw) ||
+    (task.assignee?.full_name ?? "").toLowerCase().includes(kw) ||
+    task.labels.some((l) => (l?.name ?? "").toLowerCase().includes(kw))
+  );
 }
 
 export default function useWorkflowBoard(projectId?: number) {
@@ -173,13 +204,8 @@ export default function useWorkflowBoard(projectId?: number) {
     board: null,
     columns: [],
   });
-
-  // FIX: Tách search thành 2 tầng:
-  // - clientSearch: filter nhanh client-side ngay khi gõ (instant)
-  // - serverFilters: filter nặng gửi lên server (assignee, priority)
   const [clientSearch, setClientSearch] = useState("");
   const [serverFilters, setServerFilters] = useState<BoardFilterParams>({});
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -189,24 +215,17 @@ export default function useWorkflowBoard(projectId?: number) {
         setBoardData({ project: null, board: null, columns: [] });
         return;
       }
-
       try {
         setLoading(true);
         setError(null);
-
-        // Gửi params lên server nếu có filter
-        const params: Record<string, unknown> = {};
+        const params: Record<string, unknown> = { _t: Date.now() };
         if (filters?.keyword) params.keyword = filters.keyword;
         if (filters?.assigneeId) params.assigneeId = filters.assigneeId;
         if (filters?.priorityId) params.priorityId = filters.priorityId;
 
-        const res = await workflowApi.getBoard(projectId, {
-          ...params,
-          _t: Date.now(), // cache-buster
-        });
+        const res = await workflowApi.getBoard(projectId, params);
         const rawData = res.data?.data ?? res.data ?? {};
-        const normalized = normalizeBoardData(rawData);
-        setBoardData(normalized);
+        setBoardData(normalizeBoardData(rawData));
       } catch (err: any) {
         setError(err?.response?.data?.message || "Không lấy được board");
         setBoardData({ project: null, board: null, columns: [] });
@@ -217,54 +236,36 @@ export default function useWorkflowBoard(projectId?: number) {
     [projectId],
   );
 
-  // Fetch lại khi projectId đổi
   useEffect(() => {
     fetchBoard();
   }, [fetchBoard]);
-
-  // Fetch lại khi serverFilters đổi (assignee, priority)
   useEffect(() => {
-    if (Object.keys(serverFilters).length > 0) {
-      fetchBoard(serverFilters);
-    }
+    if (Object.keys(serverFilters).length > 0) fetchBoard(serverFilters);
   }, [serverFilters]);
 
-  const applyServerFilter = useCallback((filters: BoardFilterParams) => {
-    setServerFilters(filters);
-  }, []);
-
+  const applyServerFilter = useCallback(
+    (filters: BoardFilterParams) => setServerFilters(filters),
+    [],
+  );
   const clearFilters = useCallback(() => {
     setServerFilters({});
     setClientSearch("");
     fetchBoard();
   }, [fetchBoard]);
 
-  // Client-side search (instant, không cần gọi API)
+  // filteredColumns — CHỈ dùng để render, KHÔNG dùng index để splice
   const filteredColumns = useMemo<BoardColumn[]>(() => {
-    const columns = boardData?.columns ?? [];
     const keyword = clientSearch.trim().toLowerCase();
-
-    return columns.map((col) => ({
+    return (boardData?.columns ?? []).map((col) => ({
       ...col,
-      tasks: col.tasks
-        .filter((task) => !task.is_completed && !task.is_archived) // ← thêm dòng này
-        .filter((task) =>
-          !keyword
-            ? true
-            : (task.title ?? "").toLowerCase().includes(keyword) ||
-              (task.task_key ?? "").toLowerCase().includes(keyword) ||
-              (task.assignee?.full_name ?? "")
-                .toLowerCase()
-                .includes(keyword) ||
-              task.labels.some((l) =>
-                (l?.name ?? "").toLowerCase().includes(keyword),
-              ),
-        ),
+      tasks: col.tasks.filter((t) => isTaskVisible(t, keyword)),
     }));
   }, [boardData, clientSearch]);
-  const tasks = useMemo<BoardTask[]>(() => {
-    return (boardData?.columns ?? []).flatMap((col) => col?.tasks ?? []);
-  }, [boardData]);
+
+  const tasks = useMemo<BoardTask[]>(
+    () => (boardData?.columns ?? []).flatMap((col) => col?.tasks ?? []),
+    [boardData],
+  );
 
   const createTask = async (payload: Record<string, unknown>) => {
     await workflowApi.createTask(payload);
@@ -273,98 +274,51 @@ export default function useWorkflowBoard(projectId?: number) {
     );
   };
 
-  const moveTaskToColumn = async (
+  const calcNewPosition = (
+    realDestTasks: BoardTask[],
     taskId: number,
-    toStatusId: number,
-    toColumnId: number,
-    newPosition: number,
-  ) => {
-    // ✅ Optimistic update — cập nhật UI trước
-    setBoardData((prev) => {
-      const newColumns = prev.columns.map((col) => ({
-        ...col,
-        tasks: col.tasks.filter((t) => t.id !== taskId),
-      }));
+    displayIndex: number,
+    isCrossColumn = false,
+  ): number => {
+    const keyword = clientSearch.trim().toLowerCase();
+    const realWithout = realDestTasks.filter((t) => t.id !== taskId);
+    const filteredWithout = realWithout.filter((t) =>
+      isTaskVisible(t, keyword),
+    );
 
-      const targetCol = newColumns.find((c) => c.id === toColumnId);
-      const movedTask = prev.columns
-        .flatMap((c) => c.tasks)
-        .find((t) => t.id === taskId);
+    const adjustedIndex =
+      isCrossColumn &&
+      filteredWithout.length > 0 &&
+      displayIndex >= filteredWithout.length - 1
+        ? filteredWithout.length
+        : displayIndex;
 
-      if (targetCol && movedTask) {
-        const updatedTask = {
-          ...movedTask,
-          status_id: toStatusId,
-          position: newPosition,
-        };
-        targetCol.tasks.splice(newPosition, 0, updatedTask);
-      }
-
-      return { ...prev, columns: newColumns };
-    });
-
-    // Gọi API sau, không fetchBoard
-    try {
-      await workflowApi.moveTask(taskId, {
-        toStatusId,
-        toColumnId,
-        newPosition,
-      });
-    } catch (err) {
-      // Nếu lỗi thì fetch lại để đồng bộ
-      await fetchBoard(
-        Object.keys(serverFilters).length ? serverFilters : undefined,
-      );
-    }
+    return getRealPosition(realWithout, filteredWithout, adjustedIndex);
   };
-  const reorderTasksInColumn = async (
-    taskId: number,
-    statusId: number,
-    newPosition: number,
-  ) => {
-    // ✅ Optimistic update
-    setBoardData((prev) => {
-      const newColumns = prev.columns.map((col) => {
-        const taskIndex = col.tasks.findIndex((t) => t.id === taskId);
-        if (taskIndex === -1) return col;
-
-        const newTasks = [...col.tasks];
-        const [task] = newTasks.splice(taskIndex, 1);
-        newTasks.splice(newPosition, 0, { ...task, position: newPosition });
-        return { ...col, tasks: newTasks };
-      });
-      return { ...prev, columns: newColumns };
-    });
-
-    try {
-      await workflowApi.reorderTask(taskId, { statusId, newPosition });
-    } catch (err) {
-      await fetchBoard(
-        Object.keys(serverFilters).length ? serverFilters : undefined,
-      );
-    }
-  };
-
+  // ── moveTaskBetweenColumns ─────────────────────────────────────────────────
   const moveTaskBetweenColumns = async (
     taskId: number,
     fromColId: number,
     toColId: number,
-    newPosition: number,
+    displayIndex: number,
   ) => {
     const toCol = boardData.columns.find((c) => c.id === toColId);
     const toStatusId = toCol?.status?.id ?? 0;
+    const newPosition = calcNewPosition(
+      toCol?.tasks ?? [],
+      taskId,
+      displayIndex,
+      true,
+    );
 
-    // ✅ Optimistic update
     setBoardData((prev) => {
       const movedTask = prev.columns
         .flatMap((c) => c.tasks)
         .find((t) => t.id === taskId);
-
       const newColumns = prev.columns.map((col) => ({
         ...col,
         tasks: col.tasks.filter((t) => t.id !== taskId),
       }));
-
       const targetCol = newColumns.find((c) => c.id === toColId);
       if (targetCol && movedTask) {
         const updatedTask = {
@@ -373,8 +327,11 @@ export default function useWorkflowBoard(projectId?: number) {
           position: newPosition,
         };
         targetCol.tasks.splice(newPosition, 0, updatedTask);
+        targetCol.tasks = targetCol.tasks.map((t, i) => ({
+          ...t,
+          position: i,
+        }));
       }
-
       return { ...prev, columns: newColumns };
     });
 
@@ -384,21 +341,65 @@ export default function useWorkflowBoard(projectId?: number) {
         toColumnId: toColId,
         newPosition,
       });
-    } catch (err) {
+    } catch {
       await fetchBoard(
         Object.keys(serverFilters).length ? serverFilters : undefined,
       );
     }
   };
+
+  // ── reorderTasksInColumn ───────────────────────────────────────────────────
+  const reorderTasksInColumn = async (
+    taskId: number,
+    statusId: number,
+    displayIndex: number,
+  ) => {
+    const col = boardData.columns.find((c) =>
+      c.tasks.some((t) => t.id === taskId),
+    );
+    const newPosition = calcNewPosition(col?.tasks ?? [], taskId, displayIndex);
+
+    setBoardData((prev) => {
+      const newColumns = prev.columns.map((c) => {
+        const idx = c.tasks.findIndex((t) => t.id === taskId);
+        if (idx === -1) return c;
+        const arr = [...c.tasks];
+        const [task] = arr.splice(idx, 1);
+        arr.splice(newPosition, 0, { ...task, position: newPosition });
+        return { ...c, tasks: arr.map((t, i) => ({ ...t, position: i })) };
+      });
+      return { ...prev, columns: newColumns };
+    });
+
+    try {
+      await workflowApi.reorderTask(taskId, { statusId, newPosition });
+    } catch {
+      await fetchBoard(
+        Object.keys(serverFilters).length ? serverFilters : undefined,
+      );
+    }
+  };
+
+  // ── moveTaskToColumn (backward compat) ────────────────────────────────────
+  const moveTaskToColumn = async (
+    taskId: number,
+    toStatusId: number,
+    toColumnId: number,
+    displayIndex: number,
+  ) => {
+    const fromColId =
+      boardData.columns.find((c) => c.tasks.some((t) => t.id === taskId))?.id ??
+      -1;
+    return moveTaskBetweenColumns(taskId, fromColId, toColumnId, displayIndex);
+  };
+
   return {
     project: boardData?.project ?? null,
     board: boardData?.board ?? null,
     columns: filteredColumns,
     tasks,
-    // Client search
     clientSearch,
     setClientSearch,
-    // Server filter
     serverFilters,
     applyServerFilter,
     clearFilters,
@@ -409,5 +410,6 @@ export default function useWorkflowBoard(projectId?: number) {
     moveTaskToColumn,
     reorderTasksInColumn,
     moveTaskBetweenColumns,
+    getRealPosition,
   };
 }

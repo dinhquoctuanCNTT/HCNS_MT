@@ -9,8 +9,15 @@ export const authService = {
     return res.data;
   },
 
+  // auth.service.ts
   async register(payload: RegisterFormValues) {
-    const res = await api.post<RegisterResponse>("/api/auth/register", payload);
+    const res = await api.post<RegisterResponse>("/api/auth/register", {
+      full_name: payload.fullName,
+      email: payload.email,
+      phone: payload.phone,
+      password: payload.password,
+      confirmPassword: payload.confirmPassword,
+    });
     return res.data;
   },
 

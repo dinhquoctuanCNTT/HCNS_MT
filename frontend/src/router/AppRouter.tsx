@@ -57,7 +57,6 @@ const AppRouter = () => {
             <Route path="widgets" element={<WidgetsPage />} />
             <Route path="icons" element={<IconsPage />} />
             <Route path="workflow" element={<WorkflowPage />} />
-            {/* ✅ FIX: projectId nằm trong URL để WorkflowHistoryPage đọc được */}
 
             <Route path="profile" element={<ProfilePage />} />
             <Route

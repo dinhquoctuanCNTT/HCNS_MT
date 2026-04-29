@@ -17,14 +17,13 @@ let modelsLoaded = false;
 export async function loadModels() {
   if (modelsLoaded) return;
   await Promise.all([
-    faceapi.nets.ssdMobilenetv1.loadFromDisk(MODELS_PATH),
-    faceapi.nets.faceLandmark68Net.loadFromDisk(MODELS_PATH),
-    faceapi.nets.faceRecognitionNet.loadFromDisk(MODELS_PATH),
+    faceapi.nets.tinyFaceDetector.loadFromDisk(MODELS_PATH), // đổi: nhẹ hơn 5x
+    faceapi.nets.faceLandmark68TinyNet.loadFromDisk(MODELS_PATH), // đổi: tiny version
+    faceapi.nets.faceRecognitionNet.loadFromDisk(MODELS_PATH), // giữ nguyên
   ]);
   modelsLoaded = true;
   console.log("[FaceService] Models loaded successfully");
 }
-
 // ✅ Resize + convert sang jpeg để giảm kích thước xử lý
 async function toJpegBuffer(buffer) {
   try {
@@ -51,9 +50,9 @@ export async function extractDescriptor(image) {
   const detection = await faceapi
     .detectSingleFace(
       img,
-      new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }),
+      new faceapi.TinyFaceDetectorOptions({ inputSize: 320 }),
     )
-    .withFaceLandmarks()
+    .withFaceLandmarks(true)
     .withFaceDescriptor();
   if (!detection) throw new Error("Không phát hiện được khuôn mặt trong ảnh");
   return detection.descriptor;

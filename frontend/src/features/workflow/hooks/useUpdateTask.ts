@@ -14,10 +14,6 @@ export interface UpdateTaskPayload {
   status_id?: number | null;
 }
 
-/**
- * Hook nhẹ chỉ xử lý updateTask — dùng trong TaskModal / WorkflowIssueDetail
- * Không fetch lại task tự động, gọi onSuccess để parent quyết định refetch gì
- */
 export default function useUpdateTask(taskId?: number, onSuccess?: () => void) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);

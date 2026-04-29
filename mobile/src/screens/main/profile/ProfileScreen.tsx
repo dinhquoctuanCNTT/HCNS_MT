@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  Platform,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../store";
@@ -13,6 +14,8 @@ import { logout } from "../../../store/slices/authSlice";
 const COLORS = {
   primary: "#4A90D9",
   primaryLight: "#EBF4FF",
+  success: "#27AE60",
+  successLight: "#E8F8F0",
   bg: "#F0F4FA",
   white: "#FFFFFF",
   textDark: "#1A2340",
@@ -21,6 +24,8 @@ const COLORS = {
   border: "#DDE5F0",
   danger: "#E74C3C",
   dangerLight: "#FDEDEC",
+  warning: "#F39C12",
+  warningLight: "#FEF9E7",
 };
 
 const INFO_ITEMS = [
@@ -32,6 +37,7 @@ const INFO_ITEMS = [
 export default function ProfileScreen({ navigation }: any) {
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.auth.user);
+  const hasFace = !!(user as any)?.has_registered_face;
 
   return (
     <View style={s.container}>
@@ -52,10 +58,39 @@ export default function ProfileScreen({ navigation }: any) {
             </Text>
           </View>
           <Text style={s.userName}>{user?.fullName || "Nhân viên"}</Text>
-          <Text style={s.userRole}>{user?.role || "Nhân viên"}</Text>
+          <Text style={s.userRole}>{(user as any)?.role || "Nhân viên"}</Text>
+
+          {/* Badge trạng thái khuôn mặt */}
+          <View
+            style={[s.faceBadge, hasFace ? s.faceBadgeOk : s.faceBadgeWarn]}
+          >
+            <Text
+              style={[
+                s.faceBadgeText,
+                hasFace ? s.faceBadgeTextOk : s.faceBadgeTextWarn,
+              ]}
+            >
+              {hasFace ? "✓ Đã đăng ký khuôn mặt" : "⚠ Chưa đăng ký khuôn mặt"}
+            </Text>
+          </View>
         </View>
 
-        {/* Thông tin */}
+        {/* Nút đăng ký / cập nhật khuôn mặt */}
+        <TouchableOpacity
+          style={[s.btnFace, hasFace && s.btnFaceUpdate]}
+          onPress={() => navigation.navigate("RegisterFace")}
+        >
+          <Text style={[s.btnFaceText, hasFace && s.btnFaceTextUpdate]}>
+            {hasFace ? "🔄 Cập nhật khuôn mặt" : "📷 Đăng ký khuôn mặt"}
+          </Text>
+          <Text style={[s.btnFaceSub, hasFace && { color: COLORS.primary }]}>
+            {hasFace
+              ? "Chụp lại để cập nhật dữ liệu khuôn mặt"
+              : "Bắt buộc để sử dụng tính năng chấm công"}
+          </Text>
+        </TouchableOpacity>
+
+        {/* Thông tin cá nhân */}
         <View style={s.card}>
           <Text style={s.cardTitle}>Thông tin cá nhân</Text>
           {INFO_ITEMS.map((item, i) => (
@@ -93,7 +128,7 @@ const s = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingTop: 52,
+    paddingTop: Platform.OS === "ios" ? 52 : 36,
     paddingBottom: 16,
     backgroundColor: COLORS.white,
     borderBottomWidth: 1,
@@ -101,7 +136,8 @@ const s = StyleSheet.create({
   },
   back: { color: COLORS.primary, fontSize: 14, fontWeight: "600" },
   headerTitle: { color: COLORS.textDark, fontSize: 17, fontWeight: "700" },
-  avatarSection: { alignItems: "center", paddingVertical: 24 },
+
+  avatarSection: { alignItems: "center", paddingVertical: 24, gap: 6 },
   avatar: {
     width: 80,
     height: 80,
@@ -109,16 +145,50 @@ const s = StyleSheet.create({
     backgroundColor: COLORS.primary,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 8,
   },
   avatarText: { fontSize: 36, fontWeight: "700", color: "#fff" },
-  userName: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: COLORS.textDark,
-    marginBottom: 4,
-  },
+  userName: { fontSize: 20, fontWeight: "800", color: COLORS.textDark },
   userRole: { fontSize: 13, color: COLORS.textLight, fontWeight: "500" },
+
+  // Badge khuôn mặt
+  faceBadge: {
+    marginTop: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  faceBadgeOk: {
+    backgroundColor: COLORS.successLight,
+    borderColor: COLORS.success,
+  },
+  faceBadgeWarn: {
+    backgroundColor: COLORS.warningLight,
+    borderColor: COLORS.warning,
+  },
+  faceBadgeText: { fontSize: 12, fontWeight: "600" },
+  faceBadgeTextOk: { color: COLORS.success },
+  faceBadgeTextWarn: { color: COLORS.warning },
+
+  // Nút đăng ký khuôn mặt
+  btnFace: {
+    backgroundColor: COLORS.warning,
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1.5,
+    borderColor: COLORS.warning,
+    gap: 4,
+  },
+  btnFaceUpdate: {
+    backgroundColor: COLORS.primaryLight,
+    borderColor: COLORS.primary,
+  },
+  btnFaceText: { fontSize: 15, fontWeight: "700", color: "#fff" },
+  btnFaceTextUpdate: { color: COLORS.primary },
+  btnFaceSub: { fontSize: 12, color: "rgba(255,255,255,0.8)" },
+
+  // Card thông tin
   card: {
     backgroundColor: COLORS.white,
     borderRadius: 16,
@@ -151,6 +221,7 @@ const s = StyleSheet.create({
     fontWeight: "500",
   },
   infoValue: { fontSize: 15, fontWeight: "600", color: COLORS.textDark },
+
   btnLogout: {
     backgroundColor: COLORS.dangerLight,
     borderRadius: 14,

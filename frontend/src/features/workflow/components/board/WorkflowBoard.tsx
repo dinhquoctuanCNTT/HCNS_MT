@@ -60,8 +60,8 @@ export default function WorkflowBoard({
     const column = columns.find((col) =>
       col.tasks.some((t) => t.id === task.id),
     );
-    setSelectedColumnId(column?.id ?? null);
 
+    setSelectedColumnId(column?.id ?? null);
     onTaskClick(task);
   };
 
@@ -79,6 +79,7 @@ export default function WorkflowBoard({
     if (String(active.id) === String(over.id)) return;
 
     const activeTaskData = active.data.current?.task as BoardTask | undefined;
+
     if (!activeTaskData) return;
 
     const activeColumnId = Number(active.data.current?.columnId);
@@ -87,24 +88,27 @@ export default function WorkflowBoard({
     if (!activeColumnId || !activeStatusId) return;
 
     const overType = over.data.current?.type as "column" | "task" | undefined;
+
     const overColumnId = Number(over.data.current?.columnId);
     const overStatusId = Number(over.data.current?.statusId);
 
     if (!overColumnId || !overStatusId) return;
 
     if (overType === "column") {
+      const targetTasks =
+        columns.find((c) => c.id === overColumnId)?.tasks ?? [];
       if (activeColumnId === overColumnId) {
         await onReorderTask(
           activeTaskData.id,
           activeStatusId,
-          columns.find((c) => c.id === activeColumnId)?.tasks.length ?? 0,
+          targetTasks.length,
         );
       } else {
         await onMoveTask(
           activeTaskData.id,
           overStatusId,
           overColumnId,
-          columns.find((c) => c.id === overColumnId)?.tasks.length ?? 0,
+          targetTasks.length,
         );
       }
       return;
@@ -114,13 +118,20 @@ export default function WorkflowBoard({
     if (!overTask) return;
 
     const targetColumn = columns.find((c) => c.id === overColumnId);
+
     if (!targetColumn) return;
 
     const overIndex = targetColumn.tasks.findIndex((t) => t.id === overTask.id);
+
     const safeIndex = overIndex >= 0 ? overIndex : targetColumn.tasks.length;
 
     if (activeColumnId === overColumnId) {
-      await onReorderTask(activeTaskData.id, overStatusId, safeIndex);
+      // Reorder — nếu kéo xuống thì +1
+      const activeIndex = targetColumn.tasks.findIndex(
+        (t) => t.id === activeTaskData.id,
+      );
+      const insertIndex = activeIndex < overIndex ? overIndex : overIndex;
+      await onReorderTask(activeTaskData.id, overStatusId, insertIndex);
     } else {
       await onMoveTask(
         activeTaskData.id,

@@ -23,22 +23,34 @@ const LoginPage = () => {
     e.preventDefault();
     setMessage("");
 
+    // Validate trước khi gửi
+    if (!form.phone || !form.password) {
+      setMessage("Vui lòng nhập số điện thoại và mật khẩu");
+      return;
+    }
+
     try {
       const data = await authService.login(form);
       setAuth(data.token, data.user);
       navigate("/admin/dashboard");
     } catch (error: any) {
       const res = error?.response?.data;
+      const status = error?.response?.status;
 
       if (res?.needOtp && res?.email) {
         navigate(`/verify-otp?email=${encodeURIComponent(res.email)}`);
         return;
       }
 
-      setMessage(res?.message || "Đăng nhập thất bại");
+      if (status === 401) {
+        setMessage(
+          "Số điện thoại hoặc mật khẩu không đúng. Vui lòng kiểm tra lại.",
+        );
+      } else {
+        setMessage(res?.message || "Đăng nhập thất bại, vui lòng thử lại");
+      }
     }
   };
-
   return (
     <AuthLayout>
       <AuthCard>
@@ -46,9 +58,9 @@ const LoginPage = () => {
 
         <form onSubmit={handleSubmit}>
           <Input
-            label="Tài khoản"
-            type="text"
-            placeholder="Nhập số điện thoại đăng nhập"
+            label="Số điện thoại" // đổi từ "Tài khoản"
+            type="tel" // đổi từ "text"
+            placeholder="VD: 0901234567" // rõ ràng hơn
             value={form.phone}
             onChange={(e) =>
               setForm((prev) => ({ ...prev, phone: e.target.value }))

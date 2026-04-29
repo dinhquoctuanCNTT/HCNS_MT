@@ -1,197 +1,232 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import Svg, { Path, Rect, Circle } from "react-native-svg";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Platform,
+} from "react-native";
+import Svg, { Path, Rect, Circle, Line } from "react-native-svg";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { useSelector } from "react-redux";
+import { RootState } from "../store";
+
 import HomeScreen from "../screens/main/home/HomeScreen";
 import AttendanceScreen from "../screens/main/attendance/AttendanceScreen";
-import HistoryScreen from "../screens/main/history/HistoryScreen";
+import HistoryStack from "../screens/main/history/HistoryStack"; // ✅ HistoryStack
 import LeaveScreen from "../screens/main/leave/LeaveScreen";
-import ScheduleScreen from "../screens/main/schedule/ScheduleScreen";
 import ProfileScreen from "../screens/main/profile/ProfileScreen";
+import RegisterFaceScreen from "../screens/auth/RegisterScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
-const PRIMARY = "#3B82F6";
-const INACTIVE = "#8A9BB5";
-const BG = "#FFFFFF";
-const BORDER = "#DDE5F0";
-const DANGER = "#DC2626";
 
-function TabIcon({
-  name,
-  active,
-  badge,
+const NAVY = "#1e3a8a";
+const BLUE = "#1d4ed8";
+const GRAY = "#94a3b8";
+const WHITE = "#ffffff";
+const BORDER = "#e8ecf2";
+const BG = "#f0f2f7";
+const BAR_H = Platform.OS === "ios" ? 78 : 64;
+const PB = Platform.OS === "ios" ? 22 : 10;
+
+// ─── Face-ID icon ─────────────────────────────────────────────────────────────
+function FaceIDIcon({
+  color = WHITE,
+  size = 25,
 }: {
-  name: string;
-  active: boolean;
-  badge?: boolean;
+  color?: string;
+  size?: number;
 }) {
-  const c = active ? PRIMARY : INACTIVE;
-  const icons: Record<string, JSX.Element> = {
-    Home: (
-      <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
-        <Rect
-          x={2}
-          y={2}
-          width={6}
-          height={6}
-          rx={1.5}
-          stroke={c}
-          strokeWidth={1.5}
-        />
-        <Rect
-          x={12}
-          y={2}
-          width={6}
-          height={6}
-          rx={1.5}
-          stroke={c}
-          strokeWidth={1.5}
-        />
-        <Rect
-          x={2}
-          y={12}
-          width={6}
-          height={6}
-          rx={1.5}
-          stroke={c}
-          strokeWidth={1.5}
-        />
-        <Rect
-          x={12}
-          y={12}
-          width={6}
-          height={6}
-          rx={1.5}
-          stroke={c}
-          strokeWidth={1.5}
-        />
-      </Svg>
-    ),
-    Leave: (
-      <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
-        <Path
-          d="M4 3h12v16H4z"
-          stroke={c}
-          strokeWidth={1.5}
-          strokeLinejoin="round"
-        />
-        <Path
-          d="M7 8h6M7 11h6M7 14h4"
-          stroke={c}
-          strokeWidth={1.5}
-          strokeLinecap="round"
-        />
-      </Svg>
-    ),
-    Schedule: (
-      <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
-        <Rect
-          x={2}
-          y={3}
-          width={16}
-          height={14}
-          rx={1.5}
-          stroke={c}
-          strokeWidth={1.5}
-        />
-        <Path
-          d="M6 3V1M14 3V1M2 8h16"
-          stroke={c}
-          strokeWidth={1.5}
-          strokeLinecap="round"
-        />
-      </Svg>
-    ),
-    Profile: (
-      <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
-        <Circle cx={10} cy={7} r={3.5} stroke={c} strokeWidth={1.5} />
-        <Path
-          d="M3 18c0-3.5 3.1-6 7-6s7 2.5 7 6"
-          stroke={c}
-          strokeWidth={1.5}
-          strokeLinecap="round"
-        />
-      </Svg>
-    ),
-  };
   return (
-    <View style={{ alignItems: "center" }}>
-      <View style={{ position: "relative" }}>
-        {icons[name]}
-        {badge && <View style={s.badge} />}
-      </View>
+    <Svg width={size} height={size} viewBox="0 0 26 26" fill="none">
+      <Path
+        d="M5 9V6a1.5 1.5 0 011.5-1.5H9"
+        stroke={color}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+      />
+      <Path
+        d="M21 9V6a1.5 1.5 0 00-1.5-1.5H17"
+        stroke={color}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+      />
+      <Path
+        d="M5 17v3a1.5 1.5 0 001.5 1.5H9"
+        stroke={color}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+      />
+      <Path
+        d="M21 17v3a1.5 1.5 0 01-1.5 1.5H17"
+        stroke={color}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+      />
+      <Circle cx={9.5} cy={11} r={1.3} fill={color} />
+      <Circle cx={16.5} cy={11} r={1.3} fill={color} />
+      <Line
+        x1={13}
+        y1={12}
+        x2={13}
+        y2={14.5}
+        stroke={color}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+      />
+      <Path
+        d="M9.5 17.5s1.2 2 3.5 2 3.5-2 3.5-2"
+        stroke={color}
+        strokeWidth={1.6}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+
+// ─── Nav icons ────────────────────────────────────────────────────────────────
+function NavHome({ active }: { active: boolean }) {
+  const c = active ? NAVY : GRAY;
+  return (
+    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z"
+        fill={active ? NAVY : "none"}
+        stroke={c}
+        strokeWidth={1.7}
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M9 21V13h6v8"
+        stroke={active ? WHITE : c}
+        strokeWidth={1.6}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function NavCalendar({ active }: { active: boolean }) {
+  const c = active ? NAVY : GRAY;
+  return (
+    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+      <Rect
+        x={3}
+        y={4}
+        width={18}
+        height={17}
+        rx={2}
+        stroke={c}
+        strokeWidth={1.7}
+      />
+      <Path
+        d="M16 2v4M8 2v4M3 10h18"
+        stroke={c}
+        strokeWidth={1.7}
+        strokeLinecap="round"
+      />
+      <Path
+        d="M7 14h4M7 17h6"
+        stroke={c}
+        strokeWidth={1.7}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+
+function NavBell({ active }: { active: boolean }) {
+  const c = active ? NAVY : GRAY;
+  return (
+    <View style={{ position: "relative" }}>
+      <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+        <Path
+          d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"
+          stroke={c}
+          strokeWidth={1.7}
+          strokeLinecap="round"
+        />
+        <Path
+          d="M13.73 21a2 2 0 01-3.46 0"
+          stroke={c}
+          strokeWidth={1.7}
+          strokeLinecap="round"
+        />
+      </Svg>
+      <View style={s.notifDot} />
     </View>
   );
 }
 
-function CenterIcon() {
+function NavMore({ active }: { active: boolean }) {
+  const c = active ? NAVY : GRAY;
   return (
-    <View style={s.centerBtn}>
-      <Svg width={22} height={22} viewBox="0 0 22 22" fill="none">
-        <Rect
-          x={3}
-          y={3}
-          width={16}
-          height={16}
-          rx={3}
-          stroke="white"
-          strokeWidth={1.8}
-        />
-        <Circle cx={11} cy={10} r={3} stroke="white" strokeWidth={1.8} />
-        <Path
-          d="M5 19c0-3 2.7-5 6-5s6 2 6 5"
-          stroke="white"
-          strokeWidth={1.8}
-          strokeLinecap="round"
-        />
-      </Svg>
-    </View>
+    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+      <Circle cx={5} cy={12} r={1.5} fill={c} />
+      <Circle cx={12} cy={12} r={1.5} fill={c} />
+      <Circle cx={19} cy={12} r={1.5} fill={c} />
+    </Svg>
   );
 }
 
+// ─── Tab meta ─────────────────────────────────────────────────────────────────
+const TAB_META: Record<
+  string,
+  { label: string; Icon: (p: { active: boolean }) => JSX.Element }
+> = {
+  Home: { label: "Trang chủ", Icon: NavHome },
+  Schedule: { label: "Lịch sử", Icon: NavCalendar },
+  Attendance: { label: "", Icon: () => <></> }, // FAB slot
+  Leave: { label: "Thông báo", Icon: NavBell },
+  Profile: { label: "Xem thêm", Icon: NavMore },
+};
+
+// ─── Custom tab bar ───────────────────────────────────────────────────────────
 function CustomTabBar({ state, navigation }: any) {
-  const labels: Record<string, string> = {
-    Home: "Tổng quan",
-    Leave: "Đơn từ",
-    Attendance: "Chấm công",
-    Schedule: "Bảng công",
-    Profile: "Cá nhân",
-  };
-
   return (
-    <View style={s.tabBar}>
+    <View style={s.bar}>
       {state.routes.map((route: any, index: number) => {
-        const isFocused = state.index === index;
+        const focused = state.index === index;
         const isCenter = route.name === "Attendance";
         const onPress = () => {
-          if (!isFocused) navigation.navigate(route.name);
+          if (!focused) navigation.navigate(route.name);
         };
+        const meta = TAB_META[route.name];
+
+        if (isCenter) {
+          return (
+            <TouchableOpacity
+              key={route.key}
+              style={s.fabSlot}
+              onPress={onPress}
+              activeOpacity={0.85}
+            >
+              <View style={s.fab}>
+                <FaceIDIcon size={25} color={WHITE} />
+              </View>
+            </TouchableOpacity>
+          );
+        }
+
+        if (!meta) return <View key={route.key} style={s.tab} />;
+        const { label, Icon } = meta;
 
         return (
           <TouchableOpacity
             key={route.key}
-            style={[s.tabItem, isCenter && s.tabItemCenter]}
+            style={s.tab}
             onPress={onPress}
             activeOpacity={0.75}
           >
-            {isCenter ? (
-              <>
-                <CenterIcon />
-                <Text style={[s.tabLabel, { marginTop: 4 }]}>Chấm công</Text>
-              </>
+            <Icon active={focused} />
+            <Text style={[s.label, focused && s.labelActive]}>{label}</Text>
+            {focused ? (
+              <View style={s.underline} />
             ) : (
-              <>
-                <TabIcon
-                  name={route.name}
-                  active={isFocused}
-                  badge={route.name === "Leave"}
-                />
-                <Text style={[s.tabLabel, isFocused && s.tabLabelActive]}>
-                  {labels[route.name]}
-                </Text>
-              </>
+              <View style={s.underlineGap} />
             )}
           </TouchableOpacity>
         );
@@ -200,6 +235,7 @@ function CustomTabBar({ state, navigation }: any) {
   );
 }
 
+// ─── Tab Navigator ────────────────────────────────────────────────────────────
 function TabNavigator() {
   return (
     <Tab.Navigator
@@ -207,63 +243,98 @@ function TabNavigator() {
       screenOptions={{ headerShown: false }}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Leave" component={LeaveScreen} />
+      <Tab.Screen name="Schedule" component={HistoryStack} />
       <Tab.Screen name="Attendance" component={AttendanceScreen} />
-      <Tab.Screen name="Schedule" component={ScheduleScreen} />
+      <Tab.Screen name="Leave" component={LeaveScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );
 }
 
+// ─── Root Stack ───────────────────────────────────────────────────────────────
 export default function MainStack() {
+  const user = useSelector((state: RootState) => state.auth.user);
+  const initialRoute =
+    user?.has_registered_face === false ? "RegisterFace" : "Tabs";
+
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      initialRouteName={initialRoute}
+      screenOptions={{ headerShown: false }}
+    >
       <Stack.Screen name="Tabs" component={TabNavigator} />
-      <Stack.Screen name="History" component={HistoryScreen} />
+      <Stack.Screen
+        name="RegisterFace"
+        component={RegisterFaceScreen}
+        options={{ gestureEnabled: !!user?.has_registered_face }}
+      />
     </Stack.Navigator>
   );
 }
 
+// ─── Styles ───────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
-  tabBar: {
+  bar: {
     flexDirection: "row",
-    height: 64,
-    backgroundColor: BG,
-    borderTopWidth: 0.5,
+    height: BAR_H,
+    backgroundColor: WHITE,
+    borderTopWidth: 1.5,
     borderTopColor: BORDER,
-    alignItems: "center",
-    paddingBottom: 4,
+    alignItems: "flex-end",
   },
-  tabItem: {
+  tab: {
+    flex: 1,
+    alignItems: "center",
+    paddingBottom: PB,
+    gap: 2,
+  },
+  label: { fontSize: 9, color: GRAY, fontWeight: "600" },
+  labelActive: { fontSize: 9, color: NAVY, fontWeight: "800" },
+  underline: {
+    width: 18,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: NAVY,
+    marginTop: 1,
+  },
+  underlineGap: { width: 4, height: 3, marginTop: 1 },
+
+  fabSlot: {
     flex: 1,
     alignItems: "center",
     justifyContent: "flex-end",
-    paddingBottom: 6,
-    gap: 3,
+    paddingBottom: PB - 8,
   },
-  tabItemCenter: { justifyContent: "flex-end", marginBottom: 2 },
-  tabLabel: { fontSize: 9, color: INACTIVE, fontWeight: "500" },
-  tabLabelActive: { color: PRIMARY },
-  centerBtn: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: PRIMARY,
+  fab: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: NAVY,
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 3,
+    marginBottom: 6,
+    borderWidth: 4,
     borderColor: BG,
-    marginBottom: -8,
+    ...Platform.select({
+      ios: {
+        shadowColor: NAVY,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.35,
+        shadowRadius: 10,
+      },
+      android: { elevation: 10 },
+    }),
   },
-  badge: {
+
+  notifDot: {
     position: "absolute",
-    top: -2,
-    right: -2,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: DANGER,
+    top: 0,
+    right: 0,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: "#ef4444",
     borderWidth: 1.5,
-    borderColor: BG,
+    borderColor: WHITE,
   },
 });

@@ -1,4 +1,4 @@
-import { StyleSheet, Dimensions } from "react-native";
+import { StyleSheet, Dimensions, Platform } from "react-native";
 
 const { width, height } = Dimensions.get("window");
 
@@ -21,18 +21,17 @@ export const COLORS = {
   overlayDark: "rgba(0,0,0,0.65)",
 };
 
+// Kích thước nút chụp tròn
+const CAPTURE_BTN = 76;
+const CAPTURE_RING = 96;
+
 export default StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#000",
-  },
+  container: { flex: 1, backgroundColor: "#000" },
 
-  // ── Camera full screen ────────────────────────────────────
-  camera: {
-    flex: 1,
-  },
+  // ── Camera full screen ─────────────────────────────────────────────────────
+  camera: { flex: 1 },
 
-  // ── Top bar (trên camera) ─────────────────────────────────
+  // ── Top bar ────────────────────────────────────────────────────────────────
   topBar: {
     position: "absolute",
     top: 0,
@@ -42,31 +41,18 @@ export default StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingTop: 52,
+    paddingTop: Platform.OS === "ios" ? 52 : 36,
     paddingBottom: 16,
     backgroundColor: "rgba(0,0,0,0.35)",
   },
-  back: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  topTitle: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  topTime: {
-    color: "#fff",
-    fontSize: 13,
-    fontWeight: "500",
-    opacity: 0.85,
-  },
+  back: { color: "#fff", fontSize: 14, fontWeight: "600" },
+  topTitle: { color: "#fff", fontSize: 16, fontWeight: "700" },
+  topTime: { color: "#fff", fontSize: 13, fontWeight: "500", opacity: 0.85 },
 
-  // ── Mode switch (trên camera) ─────────────────────────────
+  // ── Mode switch ────────────────────────────────────────────────────────────
   modeSwitch: {
     position: "absolute",
-    top: 110,
+    top: Platform.OS === "ios" ? 118 : 102,
     alignSelf: "center",
     flexDirection: "row",
     backgroundColor: "rgba(0,0,0,0.4)",
@@ -75,24 +61,16 @@ export default StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.2)",
   },
-  modeBtn: {
-    paddingVertical: 7,
-    paddingHorizontal: 20,
-    borderRadius: 17,
-  },
-  modeBtnActive: {
-    backgroundColor: COLORS.primary,
-  },
+  modeBtn: { paddingVertical: 7, paddingHorizontal: 20, borderRadius: 17 },
+  modeBtnActive: { backgroundColor: COLORS.primary },
   modeBtnText: {
     color: "rgba(255,255,255,0.6)",
     fontSize: 13,
     fontWeight: "600",
   },
-  modeBtnTextActive: {
-    color: "#fff",
-  },
+  modeBtnTextActive: { color: "#fff" },
 
-  // ── Face frame (giữa camera) ──────────────────────────────
+  // ── Face frame ─────────────────────────────────────────────────────────────
   faceFrameWrap: {
     position: "absolute",
     top: 0,
@@ -107,7 +85,8 @@ export default StyleSheet.create({
     height: width * 0.75,
     borderRadius: width * 0.38,
     borderWidth: 3,
-    borderColor: COLORS.primary,
+    // ← mặc định trắng mờ (không gây cảm giác lỗi)
+    borderColor: "rgba(255,255,255,0.7)",
     borderStyle: "dashed",
   },
   faceFrameScanning: {
@@ -133,7 +112,7 @@ export default StyleSheet.create({
   },
   faceHint: {
     marginTop: 20,
-    color: "rgba(255,255,255,0.8)",
+    color: "rgba(255,255,255,0.85)",
     fontSize: 13,
     fontWeight: "500",
     textAlign: "center",
@@ -143,7 +122,7 @@ export default StyleSheet.create({
     borderRadius: 12,
   },
 
-  // ── Processing overlay ────────────────────────────────────
+  // ── Processing overlay ─────────────────────────────────────────────────────
   processingOverlay: {
     position: "absolute",
     top: 0,
@@ -161,73 +140,73 @@ export default StyleSheet.create({
     fontWeight: "600",
     letterSpacing: 0.3,
   },
-  processingSubText: {
-    color: "rgba(255,255,255,0.65)",
-    fontSize: 12,
-  },
+  processingSubText: { color: "rgba(255,255,255,0.65)", fontSize: 12 },
 
-  // ── Bottom bar (nút chụp) ─────────────────────────────────
+  // ── Bottom bar ─────────────────────────────────────────────────────────────
   bottomBar: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
     paddingHorizontal: 24,
-    paddingBottom: 40,
+    paddingBottom: Platform.OS === "ios" ? 44 : 32,
     paddingTop: 20,
     backgroundColor: "rgba(0,0,0,0.45)",
     alignItems: "center",
-    gap: 12,
+    gap: 16,
   },
-  gpsText: {
-    color: "rgba(255,255,255,0.6)",
-    fontSize: 12,
-  },
-  btnCapture: {
-    width: width - 48,
-    backgroundColor: COLORS.primary,
-    borderRadius: 16,
-    paddingVertical: 17,
+  gpsText: { color: "rgba(255,255,255,0.6)", fontSize: 12 },
+
+  // ── Nút chụp tròn (Camera-style) ──────────────────────────────────────────
+  captureRing: {
+    width: CAPTURE_RING,
+    height: CAPTURE_RING,
+    borderRadius: CAPTURE_RING / 2,
+    borderWidth: 3,
+    borderColor: "rgba(255,255,255,0.85)",
+    justifyContent: "center",
     alignItems: "center",
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 14,
-    elevation: 10,
   },
-  btnCaptureCheckout: {
-    backgroundColor: "#E74C3C",
-    shadowColor: "#E74C3C",
+  captureRingCheckout: {
+    borderColor: "rgba(231,76,60,0.85)",
   },
-  btnText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
-    letterSpacing: 0.3,
+  captureBtn: {
+    width: CAPTURE_BTN,
+    height: CAPTURE_BTN,
+    borderRadius: CAPTURE_BTN / 2,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  captureBtnCheckout: {
+    backgroundColor: COLORS.danger,
+  },
+  captureBtnLabel: {
+    marginTop: 10,
+    color: "rgba(255,255,255,0.85)",
+    fontSize: 13,
+    fontWeight: "600",
+    letterSpacing: 0.2,
   },
 
-  // ── Result card (sau khi xác thực) ───────────────────────
+  // ── Result card ────────────────────────────────────────────────────────────
   resultOverlay: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
     backgroundColor: "rgba(0,0,0,0.55)",
-    paddingBottom: 40,
+    paddingBottom: Platform.OS === "ios" ? 40 : 28,
   },
   resultCard: {
     margin: 16,
     borderRadius: 20,
     overflow: "hidden",
-  },
-  resultCardSuccess: {
     backgroundColor: "#fff",
   },
-  resultCardError: {
-    backgroundColor: "#fff",
-  },
+  resultCardSuccess: { backgroundColor: "#fff" },
+  resultCardError: { backgroundColor: "#fff" },
 
-  // Thông tin nhân viên sau xác thực
   employeeRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -251,23 +230,9 @@ export default StyleSheet.create({
     fontWeight: "700",
     color: COLORS.primary,
   },
-  employeeName: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: COLORS.textDark,
-  },
-  employeeCode: {
-    fontSize: 12,
-    color: COLORS.textLight,
-    marginTop: 2,
-  },
-  employeeRole: {
-    fontSize: 12,
-    color: COLORS.textMid,
-    marginTop: 1,
-  },
+  employeeName: { fontSize: 16, fontWeight: "700", color: COLORS.textDark },
+  employeeCode: { fontSize: 12, color: COLORS.textLight, marginTop: 2 },
 
-  // Status row
   statusRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -283,27 +248,13 @@ export default StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 20,
   },
-  statusBadgeSuccess: {
-    backgroundColor: COLORS.successLight,
-  },
-  statusBadgeError: {
-    backgroundColor: COLORS.dangerLight,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  statusText: {
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  statusTextSuccess: {
-    color: COLORS.success,
-  },
-  statusTextError: {
-    color: COLORS.danger,
-  },
+  statusBadgeSuccess: { backgroundColor: COLORS.successLight },
+  statusBadgeError: { backgroundColor: COLORS.dangerLight },
+  statusDot: { width: 8, height: 8, borderRadius: 4 },
+  statusText: { fontSize: 13, fontWeight: "700" },
+  statusTextSuccess: { color: COLORS.success },
+  statusTextError: { color: COLORS.danger },
+
   checkinTime: {
     fontSize: 26,
     fontWeight: "800",
@@ -316,6 +267,7 @@ export default StyleSheet.create({
     textAlign: "right",
     marginTop: 1,
   },
+
   locationRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -323,12 +275,8 @@ export default StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 14,
   },
-  locationText: {
-    fontSize: 12,
-    color: COLORS.textMid,
-  },
+  locationText: { fontSize: 12, color: COLORS.textMid },
 
-  // Retry button
   btnRetry: {
     marginHorizontal: 16,
     marginBottom: 16,
@@ -339,11 +287,7 @@ export default StyleSheet.create({
     alignItems: "center",
     backgroundColor: COLORS.bg,
   },
-  btnRetryText: {
-    color: COLORS.textMid,
-    fontSize: 13,
-    fontWeight: "600",
-  },
+  btnRetryText: { color: COLORS.textMid, fontSize: 13, fontWeight: "600" },
   errorMsg: {
     fontSize: 13,
     color: COLORS.danger,
@@ -353,7 +297,7 @@ export default StyleSheet.create({
     lineHeight: 20,
   },
 
-  // Permission screen
+  // ── Permission screen ──────────────────────────────────────────────────────
   permissionContainer: {
     flex: 1,
     backgroundColor: COLORS.bg,
@@ -387,9 +331,5 @@ export default StyleSheet.create({
     shadowRadius: 12,
     elevation: 8,
   },
-  btnAllowText: {
-    color: "#fff",
-    fontSize: 15,
-    fontWeight: "700",
-  },
+  btnAllowText: { color: "#fff", fontSize: 15, fontWeight: "700" },
 });

@@ -4,12 +4,12 @@ import { Platform } from "react-native";
 
 const BASE_URL =
   Platform.OS === "web"
-    ? "http://localhost:3001/api" // ← web browser
-    : "http://192.168.68.23:3001/api"; // ← điện thoại thật
+    ? "http://localhost:3001/api" // web browser
+    : "http://192.168.68.26:3001/api"; // điện thoại thật (WiFi hotspot)
 
 const axiosClient = axios.create({
   baseURL: BASE_URL,
-  timeout: 10000,
+  timeout: 15000,
   headers: {
     "Content-Type": "application/json",
     "ngrok-skip-browser-warning": "true",

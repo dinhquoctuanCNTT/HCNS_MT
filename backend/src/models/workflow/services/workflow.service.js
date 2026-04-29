@@ -117,20 +117,10 @@ async function createProject(userId, payload) {
   });
 
   const defaultStatuses = [
-    { name: "To do", category: "TODO", position: 1, color: "#6B7280" },
-    {
-      name: "In Progress",
-      category: "IN_PROGRESS",
-      position: 2,
-      color: "#3B82F6",
-    },
-    {
-      name: "Code Review",
-      category: "IN_PROGRESS",
-      position: 3,
-      color: "#F59E0B",
-    },
-    { name: "Done", category: "DONE", position: 4, color: "#10B981" },
+    { name: "To do",      category: "TODO",        position: 1, color: "#6366F1" }, // Tím Indigo — nổi bật, dễ nhận
+    { name: "In Progress",category: "IN_PROGRESS", position: 2, color: "#0EA5E9" }, // Xanh Sky — sáng, rõ ràng
+    { name: "Code Review",category: "IN_PROGRESS", position: 3, color: "#F59E0B" }, // Cam vàng — giữ nguyên
+    { name: "Done",       category: "DONE",        position: 4, color: "#22C55E" }, // Xanh lá tươi
   ];
 
   for (const item of defaultStatuses) {

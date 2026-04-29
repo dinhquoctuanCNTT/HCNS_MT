@@ -13,7 +13,7 @@ const FIELD_LABELS: Record<string, string> = {
   priority_id: "độ ưu tiên",
   status_id: "trạng thái",
   dates: "ngày",
-  label: "nhãn",
+  label: "Danh mục",
   sub_task: "sub-task",
   comment: "bình luận",
   position: "vị trí",
@@ -177,7 +177,7 @@ function renderActivity(
         return (
           <span className="wf-activity__action">
             {" "}
-            đã thêm nhãn <strong>{newVal}</strong>
+            Đã thêm danh mục <strong>{newVal}</strong>
           </span>
         );
       }
@@ -185,7 +185,7 @@ function renderActivity(
         return (
           <span className="wf-activity__action">
             {" "}
-            đã xóa nhãn <strong>{oldVal}</strong>
+            Đã xóa danh mục <strong>{oldVal}</strong>
           </span>
         );
       }

@@ -5,6 +5,9 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
 } from "react-native";
 import { useDispatch } from "react-redux";
 import AppInput from "../../components/common/AppInput";
@@ -44,40 +47,57 @@ export default function LoginScreen({ navigation }: any) {
   };
 
   return (
-    <View style={styles.container}>
-      <Logo small />
-      <View style={styles.card}>
-        <Text style={styles.title}>Login</Text>
-        <Text style={styles.subtitle}>Enter your phone and password</Text>
-        <AppInput
-          label="Số điện thoại"
-          placeholder="0911957620"
-          value={phone}
-          onChangeText={setPhone}
-          keyboardType="phone-pad"
-        />
-        <AppInput
-          label="Password"
-          placeholder="••••••••"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
-        <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
-          <Text style={styles.forgot}>Forgot password?</Text>
-        </TouchableOpacity>
-        {loading ? (
-          <ActivityIndicator size="large" color="#534ab7" />
-        ) : (
-          <AppButton title="Log in" onPress={onLogin} />
-        )}
-        <View style={styles.footerRow}>
-          <Text style={styles.footerText}>Don't have an account? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-            <Text style={styles.link}>Sign up</Text>
-          </TouchableOpacity>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.container}>
+          <Logo small />
+          <View style={styles.card}>
+            <Text style={styles.title}>Login</Text>
+            <Text style={styles.subtitle}>Enter your phone and password</Text>
+
+            <AppInput
+              label="Số điện thoại"
+              placeholder="0911957620"
+              value={phone}
+              onChangeText={setPhone}
+              keyboardType="phone-pad"
+            />
+            <AppInput
+              label="Password"
+              placeholder="••••••••"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
+
+            <TouchableOpacity
+              onPress={() => navigation.navigate("ForgotPassword")}
+            >
+              <Text style={styles.forgot}>Forgot password?</Text>
+            </TouchableOpacity>
+
+            {loading ? (
+              <ActivityIndicator size="large" color="#534ab7" />
+            ) : (
+              <AppButton title="Log in" onPress={onLogin} />
+            )}
+
+            <View style={styles.footerRow}>
+              <Text style={styles.footerText}>Don't have an account? </Text>
+              <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+                <Text style={styles.link}>Sign up</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
-      </View>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
