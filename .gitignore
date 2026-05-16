@@ -1,2 +1,7 @@
 node_modules/
 .env
+mobile/android/
+mobile/ios/
+mobile/.expo/
+mobile/.gradle/
+mobile/.kotlin/
