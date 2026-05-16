@@ -6,8 +6,6 @@ import { store } from "./src/store";
 import AppNavigator from "./src/navigation/AppNavigator";
 import { restoreSession } from "./src/store/slices/authSlice";
 
-import { setStore } from "./src/api/axiosClient";
-
 function AppContent() {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(true);

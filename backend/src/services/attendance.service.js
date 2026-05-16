@@ -49,13 +49,10 @@ async function checkGpsFence(latitude, longitude) {
   let nearestDist = Infinity;
   for (const loc of result.recordset) {
     const dist = getDistance(latitude, longitude, loc.latitude, loc.longitude);
-
-    // ← THÊM 2 DÒNG NÀY
     if (dist < nearestDist) {
       nearestDist = dist;
       nearest = loc;
     }
-
     if (dist <= loc.radius) {
       return {
         allowed: true,
@@ -67,8 +64,6 @@ async function checkGpsFence(latitude, longitude) {
       };
     }
   }
-
-  // ← SỬA return này
   return {
     allowed: false,
     location: nearest?.name ?? null,
@@ -109,28 +104,13 @@ async function checkLiveness(base64Image) {
   }
 }
 
-/**
- * Kiểm tra đồng phục theo CẢ 2 nguồn:
- *   1. required_uniform của nhân viên (users.required_uniform)
- *   2. required_uniform của văn phòng (office_locations.required_uniform)
- *
- * Logic:
- *   - Nếu cả 2 đều là "all" → bỏ qua
- *   - Nếu clothing_type = "unknown" → bỏ qua (không phạt khi không nhận diện được)
- *   - Kiểm tra user trước, sau đó kiểm tra office
- *   - Bất kỳ 1 nguồn nào không khớp → throw Error
- */
 function checkUniform(
   userRequiredUniform,
   officeRequiredUniform,
   clothingType,
 ) {
-  // Không nhận diện được → bỏ qua toàn bộ
   if (!clothingType || clothingType === "unknown") return;
-
   const label = (code) => UNIFORM_LABELS[code] || code;
-
-  // Kiểm tra theo nhân viên
   if (userRequiredUniform && userRequiredUniform !== "all") {
     if (clothingType !== userRequiredUniform) {
       throw new Error(
@@ -139,8 +119,6 @@ function checkUniform(
       );
     }
   }
-
-  // Kiểm tra theo văn phòng
   if (officeRequiredUniform && officeRequiredUniform !== "all") {
     if (clothingType !== officeRequiredUniform) {
       throw new Error(
@@ -187,7 +165,6 @@ export async function checkIn(
 ) {
   const pool = getPool();
 
-  // Lấy thông tin user (face_descriptor + required_uniform cá nhân)
   const [liveness, newDescriptor, userResult, gpsCheck] = await Promise.all([
     checkLiveness(base64Image),
     extractDescriptorFromBase64(base64Image),
@@ -213,20 +190,33 @@ export async function checkIn(
     );
   }
 
-  // 3. Đồng phục — kiểm tra cả user lẫn office
+  // 3. Đồng phục
   const user = userResult.recordset[0];
   checkUniform(
-    user?.required_uniform ?? "all", // từ bảng users
-    gpsCheck.requiredUniform ?? "all", // từ bảng office_locations
+    user?.required_uniform ?? "all",
+    gpsCheck.requiredUniform ?? "all",
     liveness.clothing_type,
   );
 
-  // 4. Khuôn mặt
-  if (!user?.face_descriptor) throw new Error("Bạn chưa đăng ký khuôn mặt");
-  const stored = new Float32Array(JSON.parse(user.face_descriptor));
-  const faceResult = compareFaces(stored, newDescriptor);
-  if (!faceResult.isSamePerson)
-    throw new Error(`Khuôn mặt không khớp (${faceResult.confidence}%)`);
+  // 4. Khuôn mặt — tự đăng ký lần đầu nếu chưa có
+  let faceConfidence = 100;
+  let isFirstRegister = false;
+  if (!user?.face_descriptor) {
+    // Lần đầu chấm công: tự lưu descriptor làm dữ liệu gốc
+    await pool
+      .request()
+      .input("userId", sql.Int, userId)
+      .input("faceDescriptor", sql.NVarChar(sql.MAX), JSON.stringify(Array.from(newDescriptor)))
+      .query(`UPDATE Users SET face_descriptor = @faceDescriptor WHERE id = @userId`);
+    isFirstRegister = true;
+    console.log(`[Face] Auto-registered face for user ${userId} on first check-in`);
+  } else {
+    const stored = new Float32Array(JSON.parse(user.face_descriptor));
+    const faceResult = compareFaces(stored, newDescriptor);
+    if (!faceResult.isSamePerson)
+      throw new Error(`Khuôn mặt không khớp (${faceResult.confidence}%)`);
+    faceConfidence = faceResult.confidence;
+  }
 
   // 5. Đã chấm công chưa
   const today = new Date().toISOString().slice(0, 10);
@@ -239,46 +229,63 @@ export async function checkIn(
     );
   if (existing.recordset[0]) throw new Error("Bạn đã chấm công hôm nay rồi");
 
-  // 6. Upload ảnh
-  let imageUrl = null;
-  try {
-    imageUrl = await uploadAttendanceImage(
-      base64Image,
-      "attendance/checkin",
-      makePublicId(userId, "checkin"),
-    );
-  } catch (err) {
-    console.warn(`[Cloudinary] Upload failed:`, err.message);
-  }
-
-  // 7. INSERT
-  const now = new Date();
-  await pool
+  // 6. INSERT vào DB ngay — không chờ upload ảnh
+  const insertResult = await pool
     .request()
     .input("userId", sql.Int, userId)
     .input("date", sql.Date, today)
-    .input("checkIn", sql.DateTime, now)
     .input("lat", sql.Float, latitude ?? null)
     .input("lng", sql.Float, longitude ?? null)
     .input("locationVerified", sql.Bit, 1)
     .input("antiSpoofScore", sql.Float, liveness.confidence ?? 0)
-    .input("imageUrl", sql.NVarChar(500), imageUrl).query(`
+    .query(`
       INSERT INTO Attendance (
         user_id, date, check_in, latitude, longitude,
-        location_verified, face_verified, anti_spoof_score, check_in_image_url
+        location_verified, face_verified, anti_spoof_score
       )
+      OUTPUT INSERTED.check_in AS time
       VALUES (
-        @userId, @date, @checkIn, @lat, @lng,
-        @locationVerified, 1, @antiSpoofScore, @imageUrl
+        @userId, @date, GETDATE(), @lat, @lng,
+        @locationVerified, 1, @antiSpoofScore
       )
     `);
 
+  const checkInTime = insertResult.recordset[0]?.time;
+  const checkInVN = new Date(
+    checkInTime.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }),
+  );
+  const checkInTotalMins = checkInVN.getHours() * 60 + checkInVN.getMinutes();
+  const lateMins = Math.max(0, checkInTotalMins - (8 * 60 + 5));
+  if (lateMins > 0) {
+    await pool
+      .request()
+      .input("userId", sql.Int, userId)
+      .input("date", sql.Date, today)
+      .input("lateMins", sql.Int, lateMins)
+      .query(
+        `UPDATE Attendance SET late_minutes = @lateMins WHERE user_id = @userId AND date = @date`,
+      );
+  }
+
+  // 7. Upload ảnh bất đồng bộ — không block response
+  uploadAttendanceImage(base64Image, "attendance/checkin", makePublicId(userId, "checkin"))
+    .then((imageUrl) => {
+      if (!imageUrl) return;
+      pool.request()
+        .input("userId", sql.Int, userId)
+        .input("date", sql.Date, today)
+        .input("imageUrl", sql.NVarChar(500), imageUrl)
+        .query(`UPDATE Attendance SET check_in_image_url = @imageUrl WHERE user_id = @userId AND date = @date`)
+        .catch((e) => console.warn("[Cloudinary] DB update failed:", e.message));
+    })
+    .catch((err) => console.warn(`[Cloudinary] Upload failed:`, err.message));
+
   return {
     action: "check_in",
-    time: now,
-    confidence: faceResult.confidence,
+    time: checkInTime,
+    confidence: faceConfidence,
     location: gpsCheck.location,
-    image_url: imageUrl,
+    first_register: isFirstRegister,
     clothing_type: liveness.clothing_type,
     clothing_confidence: liveness.clothing_confidence,
   };
@@ -340,34 +347,56 @@ export async function checkOut(
   if (!record) throw new Error("Bạn chưa chấm công vào hôm nay");
   if (record.check_out) throw new Error("Bạn đã chấm ra hôm nay rồi");
 
-  let imageUrl = null;
-  try {
-    imageUrl = await uploadAttendanceImage(
-      base64Image,
-      "attendance/checkout",
-      makePublicId(userId, "checkout"),
-    );
-  } catch (err) {
-    console.warn(`[Cloudinary] Upload failed:`, err.message);
-  }
-
-  const now = new Date();
-  await pool
+  // UPDATE check_out ngay — không chờ upload ảnh
+  const updateResult = await pool
     .request()
     .input("userId", sql.Int, userId)
     .input("date", sql.Date, today)
-    .input("checkOut", sql.DateTime, now)
-    .input("imageUrl", sql.NVarChar(500), imageUrl).query(`
+    .query(`
       UPDATE Attendance
-      SET check_out = @checkOut, check_out_image_url = @imageUrl
+      SET check_out = GETDATE()
+      OUTPUT INSERTED.check_out AS time
       WHERE user_id = @userId AND date = @date
     `);
 
+  // Upload ảnh bất đồng bộ — không block response
+  uploadAttendanceImage(base64Image, "attendance/checkout", makePublicId(userId, "checkout"))
+    .then((imageUrl) => {
+      if (!imageUrl) return;
+      pool.request()
+        .input("userId", sql.Int, userId)
+        .input("date", sql.Date, today)
+        .input("imageUrl", sql.NVarChar(500), imageUrl)
+        .query(`UPDATE Attendance SET check_out_image_url = @imageUrl WHERE user_id = @userId AND date = @date`)
+        .catch((e) => console.warn("[Cloudinary] DB update failed:", e.message));
+    })
+    .catch((err) => console.warn(`[Cloudinary] Upload failed:`, err.message));
+
+  const checkOutTime = updateResult.recordset[0]?.time;
+
+  const checkOutVN = new Date(
+    checkOutTime.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }),
+  );
+  const checkOutTotalMins =
+    checkOutVN.getHours() * 60 + checkOutVN.getMinutes();
+  const endMins = 17 * 60 + 30;
+  const earlyMins = Math.max(0, endMins - checkOutTotalMins);
+
+  // Lưu early_minutes nếu có về sớm với giờ làm việc
+  if (earlyMins > 0) {
+    await pool
+      .request()
+      .input("userId", sql.Int, userId)
+      .input("date", sql.Date, today)
+      .input("earlyMins", sql.Int, earlyMins)
+      .query(
+        `UPDATE Attendance SET early_minutes = @earlyMins WHERE user_id = @userId AND date = @date`,
+      );
+  }
   return {
     action: "check_out",
-    time: now,
+    time: checkOutTime,
     confidence: faceResult.confidence,
-    image_url: imageUrl,
     clothing_type: liveness.clothing_type,
     clothing_confidence: liveness.clothing_confidence,
   };
@@ -383,15 +412,22 @@ export async function getAttendanceHistory(userId, fromDate, toDate) {
     .input("to", sql.Date, toDate).query(`
       SELECT id, date, check_in, check_out, face_verified, note,
              anti_spoof_score, location_verified, latitude, longitude,
-             check_in_image_url, check_out_image_url
+             check_in_image_url, check_out_image_url,
+             late_minutes, early_minutes
       FROM Attendance
       WHERE user_id = @userId AND date BETWEEN @from AND @to
       ORDER BY date DESC
     `);
-  return result.recordset;
-}
 
-// ── Office Locations ──────────────────────────────────────────────────────────
+  return result.recordset.map((row) => ({
+    ...row,
+    check_in: row.check_in ? row.check_in.toISOString().replace("Z", "") : null,
+    check_out: row.check_out
+      ? row.check_out.toISOString().replace("Z", "")
+      : null,
+    date: row.date ? row.date.toISOString().replace("Z", "") : null,
+  }));
+}
 export async function getOfficeLocations() {
   const pool = getPool();
   return (
@@ -533,12 +569,143 @@ export async function getAttendanceDashboard() {
   const pool = getPool();
   const today = new Date().toISOString().slice(0, 10);
   const r = await pool.request().input("today", sql.Date, today).query(`
-    SELECT
-      (SELECT COUNT(*) FROM Attendance WHERE date=@today)                                AS total_checkin_today,
-      (SELECT COUNT(*) FROM Attendance WHERE date=@today AND check_out IS NOT NULL)      AS total_checkout_today,
-      (SELECT COUNT(*) FROM leave_requests WHERE status='pending')                       AS pending_leaves,
-      (SELECT COUNT(*) FROM leave_requests WHERE from_date=@today AND status='approved') AS on_leave_today,
-      (SELECT COUNT(*) FROM users WHERE is_active=1)                                     AS total_employees
-  `);
+      SELECT
+        (SELECT COUNT(*) FROM Attendance WHERE date=@today)                                AS total_checkin_today,
+        (SELECT COUNT(*) FROM Attendance WHERE date=@today AND check_out IS NOT NULL)      AS total_checkout_today,
+        (SELECT COUNT(*) FROM leave_requests WHERE status='pending')                       AS pending_leaves,
+        (SELECT COUNT(*) FROM leave_requests WHERE from_date=@today AND status='approved') AS on_leave_today,
+        (SELECT COUNT(*) FROM users WHERE is_active=1)                                     AS total_employees
+    `);
   return r.recordset[0];
+}
+// ================== ADMIN FUNCTIONS ==================
+export async function getAttendanceHistoryAdmin({
+  employeeId,
+  month,
+  cursor,
+  limit = 20,
+}) {
+  const pool = getPool();
+
+  // Parse month: "2026-05"
+  const [y, m] = month.split("-");
+  const fromDate = `${y}-${m}-01`;
+  const last = new Date(parseInt(y), parseInt(m), 0).getDate();
+  const toDate = `${y}-${m}-${last}`;
+
+  let query = `
+    SELECT TOP (${limit + 1})
+      a.id, a.date, a.check_in, a.check_out,
+      a.face_verified, a.location_verified,
+      a.late_minutes, a.early_minutes,
+      a.check_in_image_url, a.check_out_image_url,
+      u.full_name, u.employee_code
+    FROM Attendance a
+    JOIN users u ON u.id = a.user_id
+    WHERE a.date BETWEEN @from AND @to
+  `;
+
+  const req = pool
+    .request()
+    .input("from", sql.Date, fromDate)
+    .input("to", sql.Date, toDate);
+
+  if (employeeId) {
+    query += ` AND a.user_id = @employeeId`;
+    req.input("employeeId", sql.Int, employeeId);
+  }
+
+  if (cursor) {
+    query += ` AND a.id < @cursor`;
+    req.input("cursor", sql.Int, cursor);
+  }
+
+  query += ` ORDER BY a.id DESC`;
+
+  const result = await req.query(query);
+  const rows = result.recordset;
+
+  const hasMore = rows.length > limit;
+  const data = hasMore ? rows.slice(0, limit) : rows;
+  const nextCursor = hasMore ? data[data.length - 1].id : null;
+
+  return {
+    data: data.map((row) => ({
+      ...row,
+      check_in: row.check_in
+        ? row.check_in.toISOString().replace("Z", "")
+        : null,
+      check_out: row.check_out
+        ? row.check_out.toISOString().replace("Z", "")
+        : null,
+      date: row.date ? row.date.toISOString().replace("Z", "") : null,
+    })),
+    nextCursor,
+    hasMore,
+  };
+}
+//===================== API thống kê chấm công cá nhân =======================
+export async function getAttendanceStats(userId, month) {
+  const pool = getPool();
+  const [y, m] = month.split("-");
+  const fromDate = `${y}-${m}-01`;
+  const last = new Date(parseInt(y), parseInt(m), 0).getDate();
+  const toDate = `${y}-${m}-${last}`;
+
+  const result = await pool
+    .request()
+    .input("userId", sql.Int, userId)
+    .input("from", sql.Date, fromDate)
+    .input("to", sql.Date, toDate).query(`
+      SELECT
+        COUNT(*) AS total_present,
+        SUM(CASE WHEN late_minutes > 0 THEN 1 ELSE 0 END) AS total_late,
+        SUM(ISNULL(late_minutes, 0)) AS total_late_minutes,
+        SUM(ISNULL(early_minutes, 0)) AS total_early_minutes,
+        SUM(
+          CASE WHEN check_in IS NOT NULL AND check_out IS NOT NULL
+          THEN DATEDIFF(MINUTE, check_in, check_out)
+          ELSE 0 END
+        ) AS total_work_minutes
+      FROM Attendance
+      WHERE user_id = @userId AND date BETWEEN @from AND @to
+    `);
+
+  const row = result.recordset[0];
+  const today = new Date();
+  const todayStr = today.toISOString().slice(0, 10);
+
+  const workDaysResult = await pool
+    .request()
+    .input("from", sql.Date, fromDate)
+    .input("to", sql.Date, todayStr < toDate ? todayStr : toDate).query(`
+      WITH dates AS (
+        SELECT DATEADD(DAY, number, @from) AS d
+        FROM master..spt_values
+        WHERE type = 'P'
+        AND DATEADD(DAY, number, @from) <= @to
+      )
+      SELECT COUNT(*) AS work_days
+      FROM dates
+      WHERE DATEPART(WEEKDAY, d) NOT IN (1)
+    `);
+
+  const workDays = workDaysResult.recordset[0]?.work_days ?? 0;
+  const totalPresent = row.total_present ?? 0;
+  const totalWorkMins = row.total_work_minutes ?? 0;
+  const overtime = Math.max(0, totalWorkMins - totalPresent * (9 * 60 + 25));
+
+  return {
+    month,
+    work_days_total: workDays,
+    total_present: totalPresent,
+    total_absent: workDays - totalPresent,
+    total_late: row.total_late ?? 0,
+    total_late_minutes: row.total_late_minutes ?? 0,
+    total_early_minutes: row.total_early_minutes ?? 0,
+    total_work_hours: Math.round((totalWorkMins / 60) * 10) / 10,
+    overtime_minutes: overtime,
+    attendance_rate:
+      workDays > 0 ? Math.round((totalPresent / workDays) * 100) : 0,
+  };
 }

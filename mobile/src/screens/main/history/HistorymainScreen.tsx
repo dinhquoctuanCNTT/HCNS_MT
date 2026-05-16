@@ -5,12 +5,16 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
-  Platform,
-  SafeAreaView,
+  Modal,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { attendanceApi } from "../../../api/attendanceApi";
-import styles, { COLORS, H_PAD, CELL_W } from "./HistoryScreen.style";
+import styles, {
+  COLORS,
+  H_PAD,
+  CELL_W,
+} from "./HistoryScreen/HistoryScreen.style";
 import { HistoryStackParamList, Tab, DayDetail } from "./types";
 import {
   DOW_LABELS,
@@ -26,6 +30,46 @@ import {
 import BackButton from "./BackButton";
 
 type Props = NativeStackScreenProps<HistoryStackParamList, "HistoryMain">;
+const PAGE_SIZE = 10;
+
+function getWeeksOfMonth(year: number, month: number) {
+  const weeks: { label: string; start: number; end: number }[] = [];
+  const last = new Date(year, month + 1, 0).getDate();
+  let wn = 1,
+    start = 1;
+  while (start <= last) {
+    let end = start;
+    while (end <= last && new Date(year, month, end).getDay() !== 0) end++;
+    if (end > last) end = last;
+    weeks.push({ label: `Tuần ${wn}`, start, end });
+    start = end + 1;
+    wn++;
+  }
+  return weeks;
+}
+
+function getRecordDate(isoStr: string): number {
+  const s = isoStr.endsWith("Z") ? isoStr : isoStr + "Z";
+  return new Date(s).getUTCDate();
+}
+
+function isCheckInLate(rec: any): boolean {
+  if (!rec?.check_in) return false;
+  const t = rec.check_in.includes("T")
+    ? rec.check_in.split("T")[1]
+    : rec.check_in;
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m > 8 * 60 + 5;
+}
+
+function isCheckOutEarly(rec: any): boolean {
+  if (!rec?.check_out) return false;
+  const t = rec.check_out.includes("T")
+    ? rec.check_out.split("T")[1]
+    : rec.check_out;
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m < 17 * 60 + 30;
+}
 
 export default function HistoryMainScreen({ navigation }: Props) {
   const today = useMemo(() => new Date(), []);
@@ -34,6 +78,14 @@ export default function HistoryMainScreen({ navigation }: Props) {
   const [records, setRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState<Tab>("calendar");
+  const [page, setPage] = useState(1);
+  const [showMonthPicker, setShowMonthPicker] = useState(false);
+  const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
+
+  useEffect(() => {
+    setPage(1);
+    setSelectedWeek(null);
+  }, [year, month]);
 
   useEffect(() => {
     (async () => {
@@ -54,10 +106,11 @@ export default function HistoryMainScreen({ navigation }: Props) {
 
   const recMap = useMemo(() => {
     const m = new Map<number, any>();
-    records.forEach((r) => m.set(new Date(r.date).getDate(), r));
+    records.forEach((r) => m.set(getRecordDate(r.date), r));
     return m;
   }, [records]);
 
+  const weeks = useMemo(() => getWeeksOfMonth(year, month), [year, month]);
   const calWeeks = useMemo(() => buildGrid(year, month), [year, month]);
   const totalPresent = records.filter((r) => r.check_in).length;
   const totalLate = records.filter(isLate).length;
@@ -68,8 +121,7 @@ export default function HistoryMainScreen({ navigation }: Props) {
     for (let d = 1; d <= last; d++) {
       const date = new Date(year, month, d);
       if (date > today) break;
-      const dow = date.getDay();
-      if (dow === 0 || dow === 6) continue;
+      if (date.getDay() === 0) continue;
       if (!recMap.has(d)) n++;
     }
     return n;
@@ -81,7 +133,7 @@ export default function HistoryMainScreen({ navigation }: Props) {
     for (let d = 1; d <= last; d++) {
       const date = new Date(year, month, d);
       if (date > today) break;
-      if (date.getDay() !== 0 && date.getDay() !== 6) n++;
+      if (date.getDay() !== 0) n++;
     }
     return n;
   }, [year, month, today]);
@@ -93,7 +145,7 @@ export default function HistoryMainScreen({ navigation }: Props) {
       const date = new Date(year, month, d);
       if (date > today) break;
       const status = getDayStatus(d, year, month, recMap, today);
-      if (status === "absent" || status === "late") {
+      if (status === "absent" || status === "late")
         list.push({
           day: d,
           record: recMap.get(d) ?? null,
@@ -101,13 +153,54 @@ export default function HistoryMainScreen({ navigation }: Props) {
           dayOfWeek: DOW_FULL[dowIdx(date)],
           dateStr: fmtDate(date),
         });
-      }
     }
     return list.reverse();
   }, [recMap, year, month, today]);
 
-  const prevYear = () => setYear((y) => y - 1);
-  const nextYear = () => setYear((y) => y + 1);
+  const sortedRecords = useMemo(
+    () =>
+      [...records].sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+      ),
+    [records],
+  );
+
+  const filteredRecords = useMemo(() => {
+    if (selectedWeek === null) return sortedRecords;
+    const w = weeks[selectedWeek];
+    if (!w) return sortedRecords;
+    return sortedRecords.filter((r) => {
+      const d = getRecordDate(r.date);
+      return d >= w.start && d <= w.end;
+    });
+  }, [sortedRecords, selectedWeek, weeks]);
+
+  const pagedRecords = useMemo(
+    () => filteredRecords.slice(0, page * PAGE_SIZE),
+    [filteredRecords, page],
+  );
+  const hasMore = pagedRecords.length < filteredRecords.length;
+  const filteredPresent = useMemo(
+    () => filteredRecords.filter((r) => r.check_in).length,
+    [filteredRecords],
+  );
+  const filteredLate = useMemo(
+    () => filteredRecords.filter(isLate).length,
+    [filteredRecords],
+  );
+  const filteredWorkDays = useMemo(() => {
+    if (selectedWeek === null) return workDaysTotal;
+    const w = weeks[selectedWeek];
+    if (!w) return workDaysTotal;
+    let n = 0;
+    for (let d = w.start; d <= w.end; d++) {
+      const date = new Date(year, month, d);
+      if (date > today) break;
+      if (date.getDay() !== 0) n++;
+    }
+    return n;
+  }, [selectedWeek, weeks, year, month, today, workDaysTotal]);
+
   const prevMonth = () => {
     if (month === 0) {
       setYear((y) => y - 1);
@@ -121,96 +214,144 @@ export default function HistoryMainScreen({ navigation }: Props) {
     } else setMonth((m) => m + 1);
   };
 
-  // ── Navigate to DayDetail ──────────────────────────────────────────────────
   const goToDetail = useCallback(
     (day: number) => {
       const status = getDayStatus(day, year, month, recMap, today);
       if (status === "future" || status === "weekend") return;
       const date = new Date(year, month, day);
-      const detail: DayDetail = {
-        day,
-        record: recMap.get(day) ?? null,
-        status,
-        dayOfWeek: DOW_FULL[dowIdx(date)],
-        dateStr: fmtDate(date),
-      };
-      navigation.navigate("DayDetail", { detail });
+      navigation.navigate("DayDetail", {
+        detail: {
+          day,
+          record: recMap.get(day) ?? null,
+          status,
+          dayOfWeek: DOW_FULL[dowIdx(date)],
+          dateStr: fmtDate(date),
+        },
+      });
     },
     [year, month, recMap, today, navigation],
   );
 
-  // ── Calendar cell ──────────────────────────────────────────────────────────
+  // ── Cell: số trên, 2 badge dưới ──────────────────────────────────────────────
   const renderCell = (day: number | null, ci: number, wi: number) => {
     const key = `${wi}-${ci}`;
     if (day === null)
-      return <View key={key} style={{ width: CELL_W, height: 36 }} />;
+      return <View key={key} style={[styles.calCell, { height: 62 }]} />;
 
     const status = getDayStatus(day, year, month, recMap, today);
     const dow = new Date(year, month, day).getDay();
     const isSun = dow === 0;
-    const isWknd = dow === 0 || dow === 6;
-    const isToday = status === "today";
+    const isFuture = status === "future";
+    const isPast = !isFuture && status !== "weekend";
     const rec = recMap.get(day);
-    const late = isLate(rec);
 
+    // Màu số ngày
     let numStyle = styles.dayNumDefault;
     if (isSun) numStyle = styles.dayNumRed;
-    else if (status === "late") numStyle = styles.dayNumAmber;
-    else if (status === "future") numStyle = styles.dayNumFuture;
-    else if (isWknd) numStyle = styles.dayNumMuted;
+    else if (isFuture) numStyle = styles.dayNumFuture;
+    else if (status === "today") numStyle = styles.dayNumToday;
 
-    const numEl = isToday ? (
-      <View style={styles.todayCircle}>
-        <Text style={styles.todayNum}>{day}</Text>
+    // Tính badge vào ca và ra ca
+    // Chỉ hiện badge khi ngày đã qua (không phải future, không phải CN)
+    const showBadges = isPast && !isSun;
+
+    let inBadgeStyle = styles.badgeGray; // xám = chưa có
+    let outBadgeStyle = styles.badgeGray;
+    let inSign = "–";
+    let outSign = "–";
+
+    if (rec) {
+      if (rec.check_in) {
+        inBadgeStyle = isCheckInLate(rec)
+          ? styles.badgeAmber
+          : styles.badgeGreen;
+        inSign = isCheckInLate(rec) ? "–" : "+";
+      }
+      if (rec.check_out) {
+        outBadgeStyle = isCheckOutEarly(rec)
+          ? styles.badgeAmber
+          : styles.badgeGreen;
+        outSign = isCheckOutEarly(rec) ? "–" : "+";
+      }
+    }
+
+    const isClickable = !isFuture && !isSun;
+
+    const inner = (
+      <View style={styles.dayCellOuter}>
+        <Text style={numStyle}>{day}</Text>
+
+        {!isSun && (
+          <View style={styles.badgesContainer}>
+            {/* ← bao ngoài */}
+            <View style={styles.badgesRow}>
+              {/* Ô vào ca */}
+              <View
+                style={[
+                  styles.badge,
+                  isFuture
+                    ? styles.badgeEmpty
+                    : rec?.check_in
+                      ? isCheckInLate(rec)
+                        ? styles.badgeAmber
+                        : styles.badgeGreen
+                      : styles.badgeGray,
+                ]}
+              >
+                {!isFuture && (
+                  <Text style={styles.badgeText}>
+                    {rec?.check_in ? (isCheckInLate(rec) ? "-" : "+") : "--"}
+                  </Text>
+                )}
+              </View>
+
+              {/* Ô ra ca */}
+              <View
+                style={[
+                  styles.badge,
+                  isFuture
+                    ? styles.badgeEmpty
+                    : rec?.check_out
+                      ? isCheckOutEarly(rec)
+                        ? styles.badgeAmber
+                        : styles.badgeGreen
+                      : styles.badgeGray,
+                ]}
+              >
+                {!isFuture && (
+                  <Text style={styles.badgeText}>
+                    {rec?.check_out ? (isCheckOutEarly(rec) ? "-" : "+") : "--"}
+                  </Text>
+                )}
+              </View>
+            </View>
+          </View>
+        )}
       </View>
-    ) : (
-      <Text style={numStyle}>{day}</Text>
     );
 
-    let dotColor: string | null = null;
-    if (status === "present") dotColor = COLORS.green;
-    else if (status === "late") dotColor = COLORS.warning;
-    else if (status === "absent") dotColor = COLORS.danger;
-    else if (isToday && rec && !late) dotColor = COLORS.green;
-    else if (isToday && rec && late) dotColor = COLORS.warning;
-
-    const cell = (
-      <View style={styles.dayCellWrap}>
-        <View style={{ position: "relative" }}>
-          {numEl}
-          {dotColor && (
-            <View style={[styles.cornerDot, { backgroundColor: dotColor }]} />
-          )}
-        </View>
-      </View>
-    );
-
-    if (isWknd || status === "future")
+    if (!isClickable)
       return (
         <View key={key} style={styles.calCell}>
-          {cell}
+          {inner}
         </View>
       );
-
     return (
       <TouchableOpacity
         key={key}
         style={styles.calCell}
         onPress={() => goToDetail(day)}
-        activeOpacity={0.7}
+        activeOpacity={0.75}
       >
-        {cell}
+        {inner}
       </TouchableOpacity>
     );
   };
 
-  // ── Log card ───────────────────────────────────────────────────────────────
   const renderLogCard = (record: any, idx: number) => {
-    const date = new Date(record.date);
-    const dayNum = date.getDate();
+    const dayNum = getRecordDate(record.date);
     const late = isLate(record);
     const miss = record.check_in && !record.check_out;
-    const ok = !late && !miss && record.check_in;
     const dayColor = late
       ? COLORS.warning
       : miss
@@ -231,13 +372,13 @@ export default function HistoryMainScreen({ navigation }: Props) {
         <View style={[styles.logLeft, { backgroundColor: leftBg }]}>
           <Text style={[styles.logDay, { color: dayColor }]}>{dayNum}</Text>
           <Text style={[styles.logDow, { color: dayColor }]}>
-            {DOW_FULL[dowIdx(date)].slice(0, 5)}
+            {DOW_FULL[dowIdx(new Date(year, month, dayNum))].slice(0, 5)}
           </Text>
         </View>
         <View style={styles.logRight}>
           <View style={styles.logTimeRow}>
             <View style={styles.logTimeItem}>
-              <Text style={styles.logTimeLabel}>Vào</Text>
+              <Text style={styles.logTimeLabel}>VÀO CA</Text>
               <Text
                 style={record.check_in ? styles.logTimeIn : styles.logTimeDash}
               >
@@ -246,7 +387,7 @@ export default function HistoryMainScreen({ navigation }: Props) {
             </View>
             <View style={styles.logDivider} />
             <View style={styles.logTimeItem}>
-              <Text style={styles.logTimeLabel}>Ra</Text>
+              <Text style={styles.logTimeLabel}>RA CA</Text>
               <Text
                 style={
                   record.check_out ? styles.logTimeOut : styles.logTimeDash
@@ -257,7 +398,7 @@ export default function HistoryMainScreen({ navigation }: Props) {
             </View>
           </View>
           <View style={styles.logTagRow}>
-            {ok && (
+            {!late && !miss && record.check_in && (
               <View
                 style={[
                   styles.logTag,
@@ -296,15 +437,12 @@ export default function HistoryMainScreen({ navigation }: Props) {
     );
   };
 
-  // ── Explain card ───────────────────────────────────────────────────────────
   const renderExplainCard = (detail: DayDetail, idx: number) => {
     const isAbsent = detail.status === "absent";
-    const color = isAbsent ? COLORS.danger : COLORS.warning;
-    const bg = isAbsent ? COLORS.dangerLight : COLORS.warningLight;
-    const label = isAbsent ? "Nghỉ không phép" : "Đi muộn";
-    const timeText = detail.record
-      ? `Vào: ${fmtTime(detail.record.check_in)}${detail.record.check_out ? ` · Ra: ${fmtTime(detail.record.check_out)}` : " · Chưa ra"}`
-      : "Không có dữ liệu chấm công";
+    const color = isAbsent ? "#ef4444" : "#f59e0b";
+    const bg = isAbsent ? "#fee2e2" : "#fef3c7";
+    const icon = isAbsent ? "📄" : "⏱️";
+
     return (
       <TouchableOpacity
         key={idx}
@@ -315,38 +453,134 @@ export default function HistoryMainScreen({ navigation }: Props) {
         <View style={[styles.explainDateBox, { backgroundColor: bg }]}>
           <Text style={[styles.explainDateNum, { color }]}>{detail.day}</Text>
           <Text style={[styles.explainDateDow, { color }]}>
-            {detail.dayOfWeek.slice(0, 5)}
+            {detail.dayOfWeek}
           </Text>
         </View>
         <View style={styles.explainInfo}>
-          <Text style={styles.explainReason}>
-            {label} · {detail.dateStr}
-          </Text>
-          <Text style={styles.explainTime}>{timeText}</Text>
-        </View>
-        <View style={styles.explainBtn}>
-          <Text style={styles.explainBtnText}>Giải trình</Text>
+          <View style={styles.explainHeader}>
+            <Text style={styles.explainIcon}>{icon}</Text>
+            <Text style={styles.explainReason} numberOfLines={1}>
+              {isAbsent ? "Nghỉ không phép" : "Đi muộn"} - {detail.dateStr}
+            </Text>
+          </View>
+          <View style={styles.explainBody}>
+            <Text style={styles.explainTime}>
+              {detail.record
+                ? `Vào: ${fmtTime(detail.record.check_in)}${detail.record.check_out ? ` · Ra: ${fmtTime(detail.record.check_out)}` : " · Chưa ra"}`
+                : "Không có dữ liệu"}
+            </Text>
+            <View style={styles.explainBtn}>
+              <Text style={styles.explainBtnText}>Giải trình ›</Text>
+            </View>
+          </View>
         </View>
       </TouchableOpacity>
     );
   };
 
-  const sortedRecords = useMemo(
-    () =>
-      [...records].sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-      ),
-    [records],
-  );
-
-  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <View style={styles.container}>
-      {/* ── Header ── */}
+      <Modal
+        visible={showMonthPicker}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowMonthPicker(false)}
+      >
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.4)",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+          activeOpacity={1}
+          onPress={() => setShowMonthPicker(false)}
+        >
+          <View
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: 16,
+              padding: 20,
+              width: "80%",
+              maxHeight: "70%",
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: "700",
+                color: "#111827",
+                marginBottom: 16,
+                textAlign: "center",
+              }}
+            >
+              Chọn tháng
+            </Text>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {[today.getFullYear() - 1, today.getFullYear()].map((y) => (
+                <View key={y}>
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      fontWeight: "700",
+                      color: "#94a3b8",
+                      marginVertical: 8,
+                    }}
+                  >
+                    {y}
+                  </Text>
+                  <View
+                    style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}
+                  >
+                    {MONTH_PILLS.map((label, mi) => {
+                      const isActive = y === year && mi === month;
+                      const isFut =
+                        y > today.getFullYear() ||
+                        (y === today.getFullYear() && mi > today.getMonth());
+                      return (
+                        <TouchableOpacity
+                          key={mi}
+                          style={{
+                            width: "22%",
+                            paddingVertical: 8,
+                            borderRadius: 8,
+                            alignItems: "center",
+                            backgroundColor: isActive
+                              ? COLORS.primary
+                              : "#f5f5f5",
+                            opacity: isFut ? 0.4 : 1,
+                          }}
+                          onPress={() => {
+                            if (isFut) return;
+                            setYear(y);
+                            setMonth(mi);
+                            setShowMonthPicker(false);
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontSize: 12,
+                              fontWeight: isActive ? "700" : "500",
+                              color: isActive ? "#fff" : "#111827",
+                            }}
+                          >
+                            {label}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
       <View style={styles.header}>
         <SafeAreaView>
           <View style={styles.headerTop}>
-            <BackButton onPress={() => navigation.goBack()} />
+            <BackButton onPress={() => navigation.navigate("Home" as any)} />
             <Text style={styles.headerTitle}>Bảng công</Text>
             <View style={{ width: 40 }} />
           </View>
@@ -384,26 +618,99 @@ export default function HistoryMainScreen({ navigation }: Props) {
         </SafeAreaView>
       </View>
 
-      {/* ── Meta bar ── */}
-      <View style={styles.metaCard}>
-        <Text style={styles.metaShift}>
-          Ca làm việc:{" "}
-          <Text style={styles.metaShiftVal}>Hành chính từ 08:00 đến 17:30</Text>
-        </Text>
-        <View style={styles.metaPeriodRow}>
-          <Text style={styles.metaPeriodLabel}>
-            01/{String(month + 1).padStart(2, "0")}/{year} –{" "}
-            {new Date(year, month + 1, 0).getDate()}/
-            {String(month + 1).padStart(2, "0")}/{year}
-          </Text>
-          <TouchableOpacity style={styles.metaDropdown}>
-            <Text style={styles.metaDropdownText}>
-              Tháng {month + 1}/{year}
-            </Text>
-            <Text style={{ fontSize: 10, color: COLORS.primary }}>▾</Text>
-          </TouchableOpacity>
-        </View>
+      {/* Stats */}
+      <View style={styles.statsBar}>
+        {[
+          {
+            num: filteredPresent,
+            label: "CÓ MẶT",
+            color: COLORS.success,
+          },
+          {
+            num: filteredLate,
+            label: "ĐI MUỘN",
+            color: COLORS.warning,
+          },
+          { num: absentDays, label: "VẮNG", color: COLORS.danger },
+        ].map((item, i) => (
+          <View key={i} style={styles.statCard}>
+            <View style={styles.statRow}>
+              <Text style={[styles.statNum, { color: item.color }]}>
+                {item.num}
+              </Text>
+            </View>
+            <Text style={styles.statLabel}>{item.label}</Text>
+          </View>
+        ))}
       </View>
+
+      {tab === "list" && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingHorizontal: H_PAD,
+            paddingVertical: 8,
+            gap: 8,
+          }}
+          style={{
+            backgroundColor: "#fff",
+            borderBottomWidth: 1,
+            borderBottomColor: "#e8ecf2",
+            maxHeight: 50,
+          }}
+        >
+          <TouchableOpacity
+            style={{
+              paddingHorizontal: 12,
+              paddingVertical: 5,
+              borderRadius: 20,
+              backgroundColor:
+                selectedWeek === null ? COLORS.primary : "#f1f5f9",
+            }}
+            onPress={() => {
+              setSelectedWeek(null);
+              setPage(1);
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: "600",
+                color: selectedWeek === null ? "#fff" : "#111827",
+              }}
+            >
+              Tất cả
+            </Text>
+          </TouchableOpacity>
+          {weeks.map((w, i) => (
+            <TouchableOpacity
+              key={i}
+              style={{
+                paddingHorizontal: 12,
+                paddingVertical: 5,
+                borderRadius: 20,
+                backgroundColor:
+                  selectedWeek === i ? COLORS.primary : "#f1f5f9",
+              }}
+              onPress={() => {
+                setSelectedWeek(i);
+                setPage(1);
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: "600",
+                  color: selectedWeek === i ? "#fff" : "#111827",
+                }}
+              >
+                {w.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      )}
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {loading ? (
@@ -413,174 +720,156 @@ export default function HistoryMainScreen({ navigation }: Props) {
             size="large"
           />
         ) : tab === "calendar" ? (
-          <View style={styles.calWrap}>
-            {/* Year nav */}
-            <View style={styles.yearNavRow}>
-              <TouchableOpacity onPress={prevYear}>
-                <Text style={styles.yearNavText}>‹</Text>
-              </TouchableOpacity>
-              <Text style={styles.yearText}>{year}</Text>
-              <TouchableOpacity onPress={nextYear}>
-                <Text style={styles.yearNavText}>›</Text>
-              </TouchableOpacity>
+          <>
+            <View style={styles.calWrap}>
+              <View style={styles.monthNavRow}>
+                <TouchableOpacity onPress={prevMonth}>
+                  <Text style={styles.monthNavBtn}>‹</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setShowMonthPicker(true)}>
+                  <Text style={styles.monthLabel}>Tháng {month + 1}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={nextMonth}>
+                  <Text style={styles.monthNavBtn}>›</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.dowRow}>
+                {DOW_LABELS.map((d, i) => (
+                  <View key={d} style={styles.dowCell}>
+                    <Text style={i === 6 ? styles.dowTextRed : styles.dowText}>
+                      {d}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+
+              {calWeeks.map((week, wi) => (
+                <View key={wi} style={styles.weekRow}>
+                  {week.map((day, ci) => renderCell(day, ci, wi))}
+                </View>
+              ))}
+
+              <View style={styles.legend}>
+                {[
+                  { color: "#6ee7b7", label: "Đúng giờ" },
+                  { color: "#fdba74", label: "Đi muộn" },
+                  { color: "#d1d5db", label: "Vắng mặt" },
+                ].map((l, i) => (
+                  <View key={i} style={styles.legendItem}>
+                    <View
+                      style={[styles.legendDot, { backgroundColor: l.color }]}
+                    />
+                    <Text style={styles.legendText}>{l.label}</Text>
+                  </View>
+                ))}
+              </View>
             </View>
 
-            {/* Month pills */}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.monthPillsContent}
-              style={{ marginBottom: 10 }}
-            >
-              {MONTH_PILLS.map((m, i) => (
-                <TouchableOpacity
+            <View style={styles.summaryBar}>
+              {[
+                {
+                  label: "Số công:",
+                  val: `${totalPresent}/${workDaysTotal} ngày`,
+                  color: COLORS.success,
+                },
+                {
+                  label: "Đi muộn:",
+                  val: `${totalLate} ngày`,
+                  color: COLORS.warning,
+                },
+                {
+                  label: "Nghỉ:",
+                  val: `${absentDays} ngày`,
+                  color: COLORS.danger,
+                },
+              ].map((item, i) => (
+                <View
                   key={i}
                   style={[
-                    styles.monthPill,
-                    i === month && styles.monthPillActive,
+                    styles.summaryItem,
+                    i === 2 && styles.summaryItemLast,
                   ]}
-                  onPress={() => setMonth(i)}
                 >
-                  <Text
-                    style={[
-                      styles.monthPillText,
-                      i === month && styles.monthPillTextActive,
-                    ]}
-                  >
-                    {m}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-
-            {/* Badges */}
-            <View style={styles.summaryBadges}>
-              <View style={[styles.badgeCard, styles.badgeCardGreen]}>
-                <Text style={[styles.badgeNum, styles.badgeNumGreen]}>
-                  {totalPresent}
-                </Text>
-                <Text style={styles.badgeLabel}>Có mặt</Text>
-              </View>
-              <View style={[styles.badgeCard, styles.badgeCardAmber]}>
-                <Text style={[styles.badgeNum, styles.badgeNumAmber]}>
-                  {totalLate}
-                </Text>
-                <Text style={styles.badgeLabel}>Đi muộn</Text>
-              </View>
-              <View style={[styles.badgeCard, styles.badgeCardRed]}>
-                <Text style={[styles.badgeNum, styles.badgeNumRed]}>
-                  {absentDays}
-                </Text>
-                <Text style={styles.badgeLabel}>Vắng</Text>
-              </View>
-            </View>
-
-            {/* DOW headers */}
-            <View style={styles.dowRow}>
-              {DOW_LABELS.map((d, i) => (
-                <View key={d} style={styles.dowCell}>
-                  <Text style={i === 6 ? styles.dowTextRed : styles.dowText}>
-                    {d}
+                  <Text style={styles.summaryLabel}>{item.label}</Text>
+                  <Text style={[styles.summaryVal, { color: item.color }]}>
+                    {item.val}
                   </Text>
                 </View>
               ))}
             </View>
-
-            {/* Month nav */}
-            <View style={styles.monthNavRow}>
-              <TouchableOpacity onPress={prevMonth}>
-                <Text style={styles.monthNavBtn}>‹</Text>
-              </TouchableOpacity>
-              <Text style={styles.monthLabel}>Tháng {month + 1}</Text>
-              <TouchableOpacity onPress={nextMonth}>
-                <Text style={styles.monthNavBtn}>›</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Grid */}
-            {calWeeks.map((week, wi) => (
-              <View key={wi} style={styles.weekRow}>
-                {week.map((day, ci) => renderCell(day, ci, wi))}
-              </View>
-            ))}
-
-            {/* Legend */}
-            <View style={styles.legend}>
-              {[
-                { color: COLORS.green, label: "Đúng giờ" },
-                { color: COLORS.warning, label: "Đi muộn" },
-                { color: COLORS.danger, label: "Vắng mặt" },
-              ].map((l, i) => (
-                <View key={i} style={styles.legendItem}>
-                  <View
-                    style={[styles.legendDot, { backgroundColor: l.color }]}
-                  />
-                  <Text style={styles.legendText}>{l.label}</Text>
-                </View>
-              ))}
-            </View>
-
-            {/* Summary bar */}
-            <View style={styles.summaryBar}>
-              <View
-                style={[
-                  styles.summaryChip,
-                  { backgroundColor: COLORS.success },
-                ]}
-              >
-                <Text style={styles.summaryChipText}>
-                  Số công {totalPresent}/{workDaysTotal}
-                </Text>
-              </View>
-              <View
-                style={[
-                  styles.summaryChip,
-                  { backgroundColor: COLORS.warning },
-                ]}
-              >
-                <Text style={styles.summaryChipText}>Đi muộn {totalLate}</Text>
-              </View>
-              <View
-                style={[styles.summaryChip, { backgroundColor: COLORS.danger }]}
-              >
-                <Text style={styles.summaryChipText}>Nghỉ {absentDays}</Text>
-              </View>
-            </View>
-          </View>
+          </>
         ) : tab === "list" ? (
           <View style={styles.listSection}>
             <View
               style={{
                 flexDirection: "row",
                 alignItems: "center",
-                gap: 5,
+                justifyContent: "space-between",
                 marginBottom: 10,
               }}
             >
-              <Text style={{ fontSize: 16 }}>🕐</Text>
               <Text
-                style={{
-                  fontSize: 13,
-                  fontWeight: "700",
-                  color: COLORS.textDark,
-                }}
+                style={{ fontSize: 13, fontWeight: "700", color: "#111827" }}
               >
-                Danh sách chấm công — Tháng {month + 1}/{year}
+                {selectedWeek !== null
+                  ? weeks[selectedWeek]?.label
+                  : `Tháng ${month + 1}/${year}`}
+              </Text>
+              <Text style={{ fontSize: 11, color: "#94a3b8" }}>
+                {filteredRecords.length} ngày
               </Text>
             </View>
-            {sortedRecords.length === 0 ? (
+            {filteredRecords.length === 0 ? (
               <View style={styles.empty}>
                 <Text style={{ fontSize: 36 }}>📋</Text>
-                <Text style={styles.emptyText}>Không có dữ liệu tháng này</Text>
+                <Text style={styles.emptyText}>Không có dữ liệu</Text>
               </View>
             ) : (
-              sortedRecords.map((r, i) => renderLogCard(r, i))
+              <>
+                {pagedRecords.map((r, i) => renderLogCard(r, i))}
+                {hasMore && (
+                  <TouchableOpacity
+                    style={{
+                      padding: 12,
+                      alignItems: "center",
+                      borderWidth: 1,
+                      borderColor: "#e2e8f0",
+                      borderRadius: 10,
+                      marginTop: 8,
+                    }}
+                    onPress={() => setPage((p) => p + 1)}
+                  >
+                    <Text
+                      style={{
+                        color: COLORS.primary,
+                        fontWeight: "600",
+                        fontSize: 13,
+                      }}
+                    >
+                      Xem thêm ({filteredRecords.length - pagedRecords.length}{" "}
+                      bản ghi)
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </>
             )}
           </View>
         ) : (
           <View style={styles.explainSection}>
-            <Text style={styles.explainSectionTitle}>
-              Các ngày cần giải trình — Tháng {month + 1}/{year}
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <Text style={[styles.explainSectionTitle, { marginBottom: 0 }]}>
+                Các ngày cần giải trình
+              </Text>
+              <TouchableOpacity 
+                style={{ backgroundColor: "#eff6ff", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderSize: 1, borderColor: "#3b82f6" }}
+                onPress={() => navigation.navigate("ExplanationHistory")}
+              >
+                <Text style={{ fontSize: 12, fontWeight: "700", color: "#2563eb" }}>Lịch sử đơn ›</Text>
+              </TouchableOpacity>
+            </View>
+            <Text style={{ fontSize: 12, color: "#64748b", marginBottom: 12 }}>
+              Dữ liệu tính cho Tháng {month + 1}/{year}
             </Text>
             {explainDays.length === 0 ? (
               <View style={styles.empty}>

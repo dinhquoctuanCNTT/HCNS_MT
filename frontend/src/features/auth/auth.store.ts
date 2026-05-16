@@ -16,12 +16,16 @@ export const useAuthStore = create<AuthStoreState>((set) => ({
   userId: getAuthUserId(),
 
   setAuth: (token, user) => {
+    const normalizedUser = {
+      ...user,
+      fullname: (user as any).full_name ?? (user as any).fullName ?? "",
+    };
     saveAuthData(token, user); // lưu vào localStorage (bao gồm role + userId)
     set({
       token,
       user,
-      role: user.role, // ← thêm
-      userId: user.id, // ← thêm
+      role: user.role,
+      userId: user.id,
     });
   },
 

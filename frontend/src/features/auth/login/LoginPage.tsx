@@ -1,9 +1,6 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import AuthLayout from "../../../layouts/AuthLayout/AuthLayout";
-import AuthCard from "../shared/AuthCard";
-import Input from "../../../shared/ui/Input/Input";
-import Button from "../../../shared/ui/Button/Button";
 import { authService } from "../auth.service";
 import { useAuthStore } from "../auth.store";
 import type { LoginFromValues } from "./login.types";
@@ -12,79 +9,99 @@ import "./login.css";
 const LoginPage = () => {
   const navigate = useNavigate();
   const { setAuth } = useAuthStore();
-
   const [form, setForm] = useState<LoginFromValues>({
     phone: "",
     password: "",
   });
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showPass, setShowPass] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage("");
-
     if (!form.phone || !form.password) {
       setMessage("Vui lòng nhập số điện thoại và mật khẩu");
       return;
     }
-
     try {
+      setLoading(true);
       const data = await authService.login(form);
       setAuth(data.token, data.user);
       navigate("/admin/dashboard");
     } catch (error: any) {
       const res = error?.response?.data;
       const status = error?.response?.status;
-
       if (res?.needOtp && res?.email) {
         navigate(`/verify-otp?email=${encodeURIComponent(res.email)}`);
         return;
       }
-
       if (status === 401) {
-        setMessage(
-          "Số điện thoại hoặc mật khẩu không đúng. Vui lòng kiểm tra lại.",
-        );
+        setMessage("Số điện thoại hoặc mật khẩu không đúng.");
       } else {
         setMessage(res?.message || "Đăng nhập thất bại, vui lòng thử lại");
       }
+    } finally {
+      setLoading(false);
     }
   };
+
   return (
     <AuthLayout>
-      <AuthCard>
-        <h2 className="login-title">Đăng nhập</h2>
+      <h3 className="lp-system">HỆ THỐNG QUẢN LÝ NHÂN SỰ</h3>
+      <p className="lp-sub">Hãy đăng nhập tài khoản của bạn</p>
 
-        <form onSubmit={handleSubmit}>
-          <Input
-            label="Số điện thoại"
-            type="tel"
-            placeholder="VD: 0901234567"
-            value={form.phone}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, phone: e.target.value }))
-            }
-          />
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="lp-form">
+        <div className="lp-fields-row">
+          {/* Tài khoản */}
+          <div className="lp-field">
+            <label className="lp-label">Tài khoản</label>
+            <input
+              type="tel"
+              className="lp-input"
+              placeholder="nhập tài khoản tại đây"
+              value={form.phone}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, phone: e.target.value }))
+              }
+            />
+          </div>
 
-          <Input
-            label="Mật khẩu"
-            type="password"
-            placeholder="Nhập mật khẩu"
-            value={form.password}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, password: e.target.value }))
-            }
-          />
+          {/* Mật khẩu */}
+          <div className="lp-field">
+            <label className="lp-label">Mật khẩu</label>
+            <div className="lp-input-wrap">
+              <button
+                type="button"
+                className="lp-eye"
+                onClick={() => setShowPass((s) => !s)}
+              >
+                {showPass ? "🙉" : "🙈"}
+              </button>
+              <input
+                type={showPass ? "text" : "password"}
+                className="lp-input lp-input--has-icon"
+                placeholder="Nhập mật khẩu tại đây"
+                value={form.password}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, password: e.target.value }))
+                }
+              />
+            </div>
+          </div>
+        </div>
 
-          {message && <p className="error-text">{message}</p>}
+        {message && <p className="lp-error">{message}</p>}
 
-          <Button type="submit">Đăng nhập</Button>
-        </form>
+        <div className="lp-divider" />
 
-        <p className="login-footer">
-          Chưa có tài khoản? <Link to="/register">Đăng ký</Link>
-        </p>
-      </AuthCard>
+        <div className="lp-actions">
+          <button type="submit" className="lp-btn" disabled={loading}>
+            {loading ? "Đang đăng nhập..." : "Đăng nhập"}
+          </button>
+        </div>
+      </form>
     </AuthLayout>
   );
 };

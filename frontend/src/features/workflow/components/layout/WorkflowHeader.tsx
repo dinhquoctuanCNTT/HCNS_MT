@@ -33,7 +33,6 @@ export default function WorkflowHeader({
   projects = [],
   projectId,
   onProjectChange,
-  onOpenCreate,
   activeTab,
 }: Props) {
   const projectKey = project?.code ?? project?.key ?? "N/A";
@@ -53,15 +52,6 @@ export default function WorkflowHeader({
       >
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <div>
-            <div
-              style={{
-                fontSize: 12,
-                color: "#888",
-                marginBottom: 2,
-              }}
-            >
-              Projects / {projectKey}
-            </div>
             <div
               style={{
                 fontSize: 13,

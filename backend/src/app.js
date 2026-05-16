@@ -4,10 +4,17 @@ import path from "path";
 import { fileURLToPath } from "url";
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
-import workflowRoutes from "./models/workflow/routes/workflow.routes.js";
-import notificationRoutes from "./models/workflow/routes/notification.route.js";
+import workflowRoutes from "./modules/workflow/routes/workflow.routes.js";
+import notificationRoutes from "./modules/workflow/routes/notification.route.js";
+import dashboardRoutes from "./modules/dashboard/dashboard.routes.js";
+import reportRoutes from "./modules/report/report.routes.js";
 import { loadModels } from "./services/face.service.js";
 import attendanceRoute from "./routes/attendance.routes.js";
+import settingsRoutes from "./modules/settings/settings.routes.js";
+import supportRoutes from "./modules/support/support.routes.js";
+import explanationRoutes from "./modules/explanation/explanation.routes.js";
+import shiftRoutes from "./modules/shift/shift.routes.js";
+import authMiddleware from "./middlewares/auth.middleware.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -24,7 +31,7 @@ app.use(
     ],
   }),
 );
-app.use(express.json({ limit: "10mb" })); // ← thêm limit
+app.use(express.json({ limit: "10mb" }));
 loadModels()
   .then(() => console.log("[Server] Face models preloaded"))
   .catch((err) => console.error("[Server] Face model load error:", err));
@@ -36,6 +43,13 @@ app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/workflow", workflowRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/report", reportRoutes);
+
+app.use("/api/setting", settingsRoutes);
+app.use("/api/support", supportRoutes);
+app.use("/api/explanations", authMiddleware, explanationRoutes);
+app.use("/api/shifts", authMiddleware, shiftRoutes);
 
 // ---- Serve Frontend ----
 const frontendPath =

@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import Button from "../../shared/ui/Button/Button";
 import "./welcome.css";
 
 const WelcomePage = () => {
@@ -7,17 +6,43 @@ const WelcomePage = () => {
 
   return (
     <div className="welcome-page">
-      <div className="welcome-card">
-        <div className="welcome-logo">🐾</div>
-        <h1>Orix Pet</h1>
-        <p className="muted-text">Chào mừng</p>
+      {/* Header nền màu */}
+      <div className="welcome-header">
+        <img
+          src="/mt-logo.png"
+          alt="MT Holdings"
+          className="welcome-logo-img"
+          onError={(e) => {
+            (e.target as HTMLImageElement).style.display = "none";
+          }}
+        />
+        <h1 className="welcome-brand">MT Holdings</h1>
+        <p className="welcome-tagline">Hệ thống quản lý nhân sự</p>
+      </div>
 
-        <div className="welcome-actions">
-          <Button onClick={() => navigate("/login")}>Đăng nhập</Button>
-          <Button variant="outline" onClick={() => navigate("/register")}>
-            Đăng ký
-          </Button>
+      {/* Card trắng nổi lên */}
+      <div className="welcome-card">
+        {/* Input giả — dẫn sang login khi bấm */}
+        <div className="welcome-input-fake" onClick={() => navigate("/login")}>
+          <span>Số điện thoại</span>
         </div>
+        <div className="welcome-input-fake" onClick={() => navigate("/login")}>
+          <span>Mật khẩu</span>
+        </div>
+
+        <div className="welcome-remember">
+          <label className="welcome-checkbox-wrap">
+            <input type="checkbox" defaultChecked />
+            <span>Ghi nhớ đăng nhập</span>
+          </label>
+        </div>
+
+        <button
+          className="welcome-btn-login"
+          onClick={() => navigate("/login")}
+        >
+          Đăng nhập
+        </button>
       </div>
     </div>
   );

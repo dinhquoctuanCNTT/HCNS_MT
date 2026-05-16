@@ -4,7 +4,7 @@ import { COLORS } from "../../constants/colors";
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.bg,
     justifyContent: "space-between",
     paddingHorizontal: 24,
     paddingVertical: 40,
@@ -18,12 +18,12 @@ export const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 28,
     fontWeight: "700",
-    color: COLORS.text,
+    color: COLORS.textDark,
   },
   subtitle: {
     marginTop: 6,
     fontSize: 14,
-    color: COLORS.subtext,
+    color: COLORS.textLight,
   },
   bottom: {
     gap: 14,
@@ -37,7 +37,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
   },
   primaryText: {
-    color: COLORS.while,
+    color: COLORS.white,
     fontWeight: "600",
     fontSize: 16,
   },
@@ -48,7 +48,7 @@ export const styles = StyleSheet.create({
     borderRadius: 16,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: COLORS.while,
+    backgroundColor: COLORS.white,
   },
   secondaryText: {
     color: COLORS.primary,

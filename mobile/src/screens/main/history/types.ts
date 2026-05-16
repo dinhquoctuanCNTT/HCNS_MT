@@ -15,9 +15,17 @@ export interface DayDetail {
   dateStr: string;
 }
 
-// Stack param list cho HistoryStack
+// Tab Schedule: HistoryMain là màn đầu, Stats là màn thứ hai
 export type HistoryStackParamList = {
   HistoryMain: undefined;
+  Stats: undefined;
   DayDetail: { detail: DayDetail };
   UpdateRequest: { detail: DayDetail };
+  ExplanationHistory: undefined;
+};
+
+// Root stack chỉ còn Tabs và RegisterFace
+export type RootStackParamList = {
+  Tabs: undefined;
+  RegisterFace: undefined;
 };

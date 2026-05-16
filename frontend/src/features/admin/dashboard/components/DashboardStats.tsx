@@ -1,58 +1,68 @@
-const stats = [
-  {
-    value: "$30200",
-    label: "All Earnings",
-    update: "update : 2:15 am",
-    tone: "orange",
-  },
-  {
-    value: "290+",
-    label: "Page Views",
-    update: "update : 2:15 am",
-    tone: "green",
-  },
-  {
-    value: "145",
-    label: "Task Completed",
-    update: "update : 2:15 am",
-    tone: "pink",
-  },
-  {
-    value: "500",
-    label: "Downloads",
-    update: "update : 2:15 am",
-    tone: "blue",
-  },
-];
+import { useEffect, useState } from "react";
+import { Users, BarChart2, ThumbsUp, Briefcase } from "lucide-react";
+import { dashboardApi } from "../../../../api/dashboardApi";
+
+interface Stats {
+  total_nv: number;
+  da_cham: number;
+  nghi_phep: number;
+}
 
 export default function DashboardStats() {
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [pending, setPending] = useState<number>(0);
+
+  useEffect(() => {
+    dashboardApi.getStats().then((d) => setStats(d.kpi)).catch(() => {});
+    dashboardApi.getPendingCount().then((d) => setPending(d.total)).catch(() => {});
+  }, []);
+
+  const attendancePct =
+    stats && stats.total_nv > 0
+      ? Math.round((stats.da_cham / stats.total_nv) * 100)
+      : 0;
+
   return (
-    <section className="dashboard-stats">
-      {stats.map((item) => (
-        <article
-          key={item.label}
-          className={`dashboard-stat-card dashboard-stat-card--${item.tone}`}
-        >
-          <div className="dashboard-stat-card__body">
-            <div>
-              <h3>{item.value}</h3>
-              <p>{item.label}</p>
-            </div>
+    <div className="dashboard-stats">
+      <div className="kpi-card" style={{ backgroundColor: "#2dce89" }}>
+        <div className="kpi-card__info">
+          <h4>Nhân sự</h4>
+          <div className="value">{stats ? stats.total_nv.toLocaleString() : "—"}</div>
+        </div>
+        <div className="kpi-card__icon">
+          <Users size={24} color="#fff" />
+        </div>
+      </div>
 
-            <div className="dashboard-stat-card__miniChart">
-              <span />
-              <span />
-              <span />
-              <span />
-            </div>
-          </div>
+      <div className="kpi-card" style={{ backgroundColor: "#11cdef" }}>
+        <div className="kpi-card__info">
+          <h4>Chấm công</h4>
+          <div className="value">{stats ? `${attendancePct}%` : "—"}</div>
+        </div>
+        <div className="kpi-card__icon">
+          <BarChart2 size={24} color="#fff" />
+        </div>
+      </div>
 
-          <div className="dashboard-stat-card__footer">
-            <span className="dashboard-stat-card__clock">◷</span>
-            <span>{item.update}</span>
-          </div>
-        </article>
-      ))}
-    </section>
+      <div className="kpi-card" style={{ backgroundColor: "#f5365c" }}>
+        <div className="kpi-card__info">
+          <h4>Đơn chờ duyệt</h4>
+          <div className="value">{pending}</div>
+        </div>
+        <div className="kpi-card__icon">
+          <ThumbsUp size={24} color="#fff" />
+        </div>
+      </div>
+
+      <div className="kpi-card" style={{ backgroundColor: "#8898aa" }}>
+        <div className="kpi-card__info">
+          <h4>Lượt nghỉ</h4>
+          <div className="value">{stats ? stats.nghi_phep : "—"}</div>
+        </div>
+        <div className="kpi-card__icon">
+          <Briefcase size={24} color="#fff" />
+        </div>
+      </div>
+    </div>
   );
 }

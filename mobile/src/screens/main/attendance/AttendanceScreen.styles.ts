@@ -1,37 +1,16 @@
 import { StyleSheet, Dimensions, Platform } from "react-native";
 
-const { width, height } = Dimensions.get("window");
-
-export const COLORS = {
-  primary: "#4A90D9",
-  primaryDark: "#2E78C7",
-  primaryLight: "#EBF4FF",
-  success: "#27AE60",
-  successLight: "#E8F8F0",
-  danger: "#E74C3C",
-  dangerLight: "#FDEDEC",
-  warning: "#F39C12",
-  bg: "#F0F4FA",
-  white: "#FFFFFF",
-  textDark: "#1A2340",
-  textMid: "#4A5568",
-  textLight: "#8A9BB5",
-  border: "#DDE5F0",
-  overlay: "rgba(0,0,0,0.5)",
-  overlayDark: "rgba(0,0,0,0.65)",
-};
-
-// Kích thước nút chụp tròn
-const CAPTURE_BTN = 76;
-const CAPTURE_RING = 96;
+const { width } = Dimensions.get("window");
+import COLORS from "../../../constants/colors";
+export { COLORS };
+export const ORANGE = "#F97316";
+const CAPTURE_BTN = 72;
+const CORNER_LEN = 28;
 
 export default StyleSheet.create({
   container: { flex: 1, backgroundColor: "#000" },
 
-  // ── Camera full screen ─────────────────────────────────────────────────────
   camera: { flex: 1 },
-
-  // ── Top bar ────────────────────────────────────────────────────────────────
   topBar: {
     position: "absolute",
     top: 0,
@@ -49,7 +28,6 @@ export default StyleSheet.create({
   topTitle: { color: "#fff", fontSize: 16, fontWeight: "700" },
   topTime: { color: "#fff", fontSize: 13, fontWeight: "500", opacity: 0.85 },
 
-  // ── Mode switch ────────────────────────────────────────────────────────────
   modeSwitch: {
     position: "absolute",
     top: Platform.OS === "ios" ? 118 : 102,
@@ -70,7 +48,6 @@ export default StyleSheet.create({
   },
   modeBtnTextActive: { color: "#fff" },
 
-  // ── Face frame ─────────────────────────────────────────────────────────────
   faceFrameWrap: {
     position: "absolute",
     top: 0,
@@ -80,49 +57,29 @@ export default StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  faceFrame: {
-    width: width * 0.62,
-    height: width * 0.75,
-    borderRadius: width * 0.38,
-    borderWidth: 3,
-    // ← mặc định trắng mờ (không gây cảm giác lỗi)
-    borderColor: "rgba(255,255,255,0.7)",
-    borderStyle: "dashed",
-  },
-  faceFrameScanning: {
-    borderColor: COLORS.warning,
-    borderStyle: "solid",
-  },
-  faceFrameSuccess: {
-    borderColor: COLORS.success,
-    borderStyle: "solid",
-    borderWidth: 4,
-  },
-  faceFrameError: {
-    borderColor: COLORS.danger,
-    borderStyle: "solid",
-    borderWidth: 4,
-  },
-  scanLine: {
-    position: "absolute",
-    width: width * 0.55,
-    height: 2,
-    backgroundColor: COLORS.primary,
-    opacity: 0.7,
-  },
   faceHint: {
-    marginTop: 20,
-    color: "rgba(255,255,255,0.85)",
-    fontSize: 13,
-    fontWeight: "500",
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
     textAlign: "center",
-    backgroundColor: "rgba(0,0,0,0.3)",
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 12,
+    marginBottom: 20,
+    letterSpacing: 0.2,
   },
-
-  // ── Processing overlay ─────────────────────────────────────────────────────
+  faceFrame: {
+    width: width * 0.72,
+    height: width * 0.88,
+    position: "relative",
+  },
+  corner: {
+    position: "absolute",
+    width: CORNER_LEN,
+    height: CORNER_LEN,
+    borderWidth: 3,
+  },
+  cornerTL: { top: 0, left: 0, borderRightWidth: 0, borderBottomWidth: 0, borderTopLeftRadius: 3 },
+  cornerTR: { top: 0, right: 0, borderLeftWidth: 0, borderBottomWidth: 0, borderTopRightRadius: 3 },
+  cornerBL: { bottom: 0, left: 0, borderRightWidth: 0, borderTopWidth: 0, borderBottomLeftRadius: 3 },
+  cornerBR: { bottom: 0, right: 0, borderLeftWidth: 0, borderTopWidth: 0, borderBottomRightRadius: 3 },
   processingOverlay: {
     position: "absolute",
     top: 0,
@@ -141,8 +98,6 @@ export default StyleSheet.create({
     letterSpacing: 0.3,
   },
   processingSubText: { color: "rgba(255,255,255,0.65)", fontSize: 12 },
-
-  // ── Bottom bar ─────────────────────────────────────────────────────────────
   bottomBar: {
     position: "absolute",
     bottom: 0,
@@ -157,29 +112,18 @@ export default StyleSheet.create({
   },
   gpsText: { color: "rgba(255,255,255,0.6)", fontSize: 12 },
 
-  // ── Nút chụp tròn (Camera-style) ──────────────────────────────────────────
-  captureRing: {
-    width: CAPTURE_RING,
-    height: CAPTURE_RING,
-    borderRadius: CAPTURE_RING / 2,
-    borderWidth: 3,
-    borderColor: "rgba(255,255,255,0.85)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  captureRingCheckout: {
-    borderColor: "rgba(231,76,60,0.85)",
-  },
   captureBtn: {
     width: CAPTURE_BTN,
     height: CAPTURE_BTN,
     borderRadius: CAPTURE_BTN / 2,
-    backgroundColor: "#fff",
+    backgroundColor: ORANGE,
     justifyContent: "center",
     alignItems: "center",
-  },
-  captureBtnCheckout: {
-    backgroundColor: COLORS.danger,
+    shadowColor: ORANGE,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.45,
+    shadowRadius: 10,
+    elevation: 8,
   },
   captureBtnLabel: {
     marginTop: 10,
@@ -189,7 +133,6 @@ export default StyleSheet.create({
     letterSpacing: 0.2,
   },
 
-  // ── Result card ────────────────────────────────────────────────────────────
   resultOverlay: {
     position: "absolute",
     bottom: 0,
@@ -297,7 +240,6 @@ export default StyleSheet.create({
     lineHeight: 20,
   },
 
-  // ── Permission screen ──────────────────────────────────────────────────────
   permissionContainer: {
     flex: 1,
     backgroundColor: COLORS.bg,

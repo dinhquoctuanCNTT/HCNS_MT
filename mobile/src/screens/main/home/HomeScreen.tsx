@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,16 +7,129 @@ import {
   StatusBar,
   FlatList,
   Image,
+  ImageBackground,
 } from "react-native";
 import Svg, { Path, Circle } from "react-native-svg";
+import { useFocusEffect, CommonActions } from "@react-navigation/native";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
 import { attendanceApi } from "../../../api/attendanceApi";
-import styles, { COLORS } from "./HomeScreen.style";
+import styles, { COLORS, BLUE } from "./HomeScreen.style";
 
-// ─── FaceID icon ──────────────────────────────────────────────────────────────
-function FaceID({
-  size = 20,
+// ─── SVG Progress Ring ──────────────────────────────────────────────────────
+function TenureRing({ years }: { years: string | null }) {
+  const R = 34;
+  const SW = 5;
+  const SZ = (R + SW) * 2 + 4;
+  const C = SZ / 2;
+  const circumference = 2 * Math.PI * R;
+  const pct = years ? Math.min(parseFloat(years) / 5, 1) : 0;
+  const arcLen = circumference * pct;
+  const gap = circumference - arcLen;
+
+  return (
+    <View
+      style={{
+        width: SZ,
+        height: SZ,
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Svg
+        width={SZ}
+        height={SZ}
+        style={{ position: "absolute", top: 0, left: 0 }}
+        viewBox={`0 0 ${SZ} ${SZ}`}
+      >
+        <Circle
+          cx={C}
+          cy={C}
+          r={R}
+          stroke="#DBEAFE"
+          strokeWidth={SW}
+          fill="none"
+        />
+        {pct > 0 && (
+          <Circle
+            cx={C}
+            cy={C}
+            r={R}
+            stroke={BLUE}
+            strokeWidth={SW}
+            fill="none"
+            strokeDasharray={`${arcLen} ${gap}`}
+            strokeLinecap="round"
+            transform={`rotate(-90 ${C} ${C})`}
+          />
+        )}
+      </Svg>
+      <View style={{ alignItems: "center" }}>
+        <Text
+          style={{
+            fontSize: 16,
+            fontWeight: "900",
+            color: BLUE,
+            lineHeight: 19,
+          }}
+        >
+          {years ?? "—"}
+        </Text>
+        <Text style={{ fontSize: 8, fontWeight: "700", color: "#64748B" }}>
+          Years
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+// ─── Header SVG Icons ───────────────────────────────────────────────────────
+function BellIcon() {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"
+        stroke="#fff"
+        strokeWidth={1.8}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M13.73 21a2 2 0 01-3.46 0"
+        stroke="#fff"
+        strokeWidth={1.8}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+function SearchIcon() {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+      <Circle cx={11} cy={11} r={7} stroke="#fff" strokeWidth={1.8} />
+      <Path
+        d="M16.5 16.5l4 4"
+        stroke="#fff"
+        strokeWidth={1.8}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+function GearIcon() {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+      <Circle cx={12} cy={12} r={3} stroke="#fff" strokeWidth={1.8} />
+      <Path
+        d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"
+        stroke="#fff"
+        strokeWidth={1.6}
+      />
+    </Svg>
+  );
+}
+function FaceIDIcon({
+  size = 12,
   color = "#fff",
 }: {
   size?: number;
@@ -66,181 +179,109 @@ function FaceID({
   );
 }
 
-// ─── Quick actions (4 icons) ──────────────────────────────────────────────────
+// ─── Data ────────────────────────────────────────────────────────────────────
 const QUICK = [
   {
-    label: "Bảng công",
+    label: "Thống kê\ncá nhân",
     screen: "Schedule",
-    bg: "transparent",
-    icon: (
-      <Image
-        source={require("../../../../assets/icon/timesheet.png")}
-        style={{ width: 32, height: 32 }}
-        resizeMode="contain"
-      />
-    ),
+    nestedScreen: "Stats",
+    icon: require("../../../../assets/icon/timesheet.png"),
+    cal: false,
   },
   {
-    label: "Lịch làm việc",
+    label: "Lịch làm\nviệc",
     screen: "Schedule",
-    bg: "transparent",
-    icon: (
-      <Image
-        source={require("../../../../assets/icon/schedule.png")}
-        style={{ width: 32, height: 32 }}
-        resizeMode="contain"
-      />
-    ),
+    resetTab: true,
+    icon: require("../../../../assets/icon/schedule.png"),
+    cal: true,
   },
   {
     label: "Đơn từ",
     screen: "Leave",
-    bg: "transparent",
-    icon: (
-      <Image
-        source={require("../../../../assets/icon/document.png")}
-        style={{ width: 32, height: 32 }}
-        resizeMode="contain"
-      />
-    ),
+    icon: require("../../../../assets/icon/document.png"),
+    cal: false,
   },
   {
     label: "Xem thêm",
     screen: "Profile",
-    bg: "transparent",
-    icon: (
-      <Image
-        source={require("../../../../assets/icon/options.png")}
-        style={{ width: 32, height: 32 }}
-        resizeMode="contain"
-      />
-    ),
+    icon: require("../../../../assets/icon/options.png"),
+    cal: false,
   },
 ];
 
-// ─── Services (8 items = 4×2 grid) ───────────────────────────────────────────
 const SERVICES = [
   {
-    label: "Chuyển & Nhận",
+    label: "Chuyển &\nNhận",
     screen: "Leave",
     badge: 0,
-    bg: "transparent",
-    icon: (
-      <Image
-        source={require("../../../../assets/icon/transaction.png")}
-        style={{ width: 32, height: 32 }}
-        resizeMode="contain"
-      />
-    ),
+    icon: require("../../../../assets/icon/transaction.png"),
+    bg: "#fee2e2",
   },
   {
     label: "Phúc lợi",
     screen: "Leave",
     badge: 0,
-    bg: "transparent",
-    icon: (
-      <Image
-        source={require("../../../../assets/icon/welfare.png")}
-        style={{ width: 32, height: 32 }}
-        resizeMode="contain"
-      />
-    ),
+    icon: require("../../../../assets/icon/welfare.png"),
+    bg: "#fce7f3",
   },
   {
     label: "Bảo hiểm",
     screen: "Leave",
     badge: 0,
-    bg: "transparent",
-    icon: (
-      <Image
-        source={require("../../../../assets/icon/insurance.png")}
-        style={{ width: 32, height: 32 }}
-        resizeMode="contain"
-      />
-    ),
+    icon: require("../../../../assets/icon/insurance.png"),
+    bg: "#e0e7ff",
   },
   {
     label: "Thanh toán",
     screen: "Leave",
-    badge: 3,
-    bg: "transparent",
-    icon: (
-      <Image
-        source={require("../../../../assets/icon/payment.gif")}
-        style={{ width: 32, height: 32 }}
-        resizeMode="contain"
-      />
-    ),
+    badge: 2,
+    icon: require("../../../../assets/icon/payment.gif"),
+    bg: "#dbeafe",
   },
   {
     label: "Hỗ trợ IT",
     screen: "Leave",
-    badge: 0,
-    bg: "transparent",
-    icon: (
-      <Image
-        source={require("../../../../assets/icon/tech_support.png")}
-        style={{ width: 32, height: 32 }}
-        resizeMode="contain"
-      />
-    ),
+    badge: 1,
+    icon: require("../../../../assets/icon/tech_support.png"),
+    bg: "#ccfbf1",
   },
   {
-    label: "Mở thẻ",
+    label: "Văn phòng\nđiện tử",
     screen: "Leave",
     badge: 0,
-    bg: "transparent",
-    icon: (
-      <Image
-        source={require("../../../../assets/icon/payment.gif")}
-        style={{ width: 32, height: 32 }}
-        resizeMode="contain"
-      />
-    ),
+    icon: require("../../../../assets/icon/document.png"),
+    bg: "#fef3c7",
   },
   {
     label: "Kỹ năng",
     screen: "Leave",
     badge: 0,
-    bg: "transparent",
-    icon: (
-      <Image
-        source={require("../../../../assets/icon/skills.png")}
-        style={{ width: 32, height: 32 }}
-        resizeMode="contain"
-      />
-    ),
+    icon: require("../../../../assets/icon/skills.png"),
+    bg: "#dcfce7",
   },
   {
-    label: "Định tuyến",
+    label: "Tuyển dụng",
     screen: "Leave",
     badge: 0,
-    bg: "transparent",
-    icon: (
-      <Image
-        source={require("../../../../assets/icon/navigation.png")}
-        style={{ width: 32, height: 32 }}
-        resizeMode="contain"
-      />
-    ),
+    icon: require("../../../../assets/icon/navigation.png"),
+    bg: "#f3e8ff",
   },
 ];
 
-// ─── Banners ──────────────────────────────────────────────────────────────────
 const BANNERS = [
   {
     key: "1",
     tag: "VĂN HÓA",
     title: "10 Phương châm\nToda San",
     meta: "Hôm nay · 08:00",
-    action: "Đọc ngay →",
+    action: "Đọc ngay",
     isNew: false,
     bg1: "#1e3a8a",
     bg2: "#2563eb",
   },
   {
     key: "2",
-    tag: "SỰ KIỆN 2025",
+    tag: "SỰ KIỆN",
     title: "Giải chạy\nToda San 2025",
     meta: "Đăng ký trước 30/04",
     action: "",
@@ -260,37 +301,111 @@ const BANNERS = [
   },
 ];
 
-// ─── Main component ───────────────────────────────────────────────────────────
+// ─── Screen ──────────────────────────────────────────────────────────────────
 export default function HomeScreen({ navigation }: any) {
   const user = useSelector((state: RootState) => state.auth.user);
   const [todayRecord, setTodayRecord] = useState<any>(null);
 
-  useEffect(() => {
-    const today = new Date().toISOString().slice(0, 10);
-    attendanceApi
-      .getHistory(today, today)
-      .then((res) => {
-        const d = Array.isArray(res.data) ? res.data : [];
-        if (d.length) setTodayRecord(d[0]);
-      })
-      .catch(() => {});
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      const today = new Date().toISOString().slice(0, 10);
+      attendanceApi
+        .getHistory(today, today)
+        .then((res) => {
+          const d = Array.isArray(res.data) ? res.data : [];
+          setTodayRecord(d.length ? d[0] : null);
+        })
+        .catch(() => {});
+    }, []),
+  );
 
-  const fmt = (iso: string) =>
-    new Date(iso).toLocaleTimeString("vi-VN", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  const fmtTime = (iso: string) => {
+    const d = new Date(iso);
+    const h = d.getHours();
+    const m = d.getMinutes().toString().padStart(2, "0");
+    return { time: `${h % 12 || 12}:${m}`, ampm: h >= 12 ? "PM" : "AM" };
+  };
 
-  const checkIn = todayRecord?.check_in ? fmt(todayRecord.check_in) : null;
-  const checkOut = todayRecord?.check_out ? fmt(todayRecord.check_out) : null;
+  const todayDate = new Date().getDate();
+  const checkInFmt = todayRecord?.check_in
+    ? fmtTime(todayRecord.check_in)
+    : null;
+  const checkOutFmt = todayRecord?.check_out
+    ? fmtTime(todayRecord.check_out)
+    : null;
+  const avatarUrl = (user as any)?.avatar_url;
+
+  const tenureYears = (() => {
+    const raw = (user as any)?.created_at;
+    if (!raw) return null;
+    const y =
+      (Date.now() - new Date(raw).getTime()) / (365.25 * 24 * 3600 * 1000);
+    return y >= 0.1 ? y.toFixed(1) : null;
+  })();
+
+  const lateMinutes = checkInFmt
+    ? (() => {
+        const d = new Date(todayRecord.check_in);
+        const m = d.getHours() * 60 + d.getMinutes() - (8 * 60 + 5);
+        return m > 0 ? m : 0;
+      })()
+    : 0;
+
+  const earlyMinutes = checkOutFmt
+    ? (() => {
+        const d = new Date(todayRecord.check_out);
+        const m = 17 * 60 + 30 - (d.getHours() * 60 + d.getMinutes());
+        return m > 0 ? m : 0;
+      })()
+    : 0;
+
+  const otMinutes = checkOutFmt
+    ? (() => {
+        const d = new Date(todayRecord.check_out);
+        const m = d.getHours() * 60 + d.getMinutes() - (17 * 60 + 30);
+        return m > 0 ? m : 0;
+      })()
+    : 0;
+
+  const goTo = (item: any) => {
+    if (item.nestedScreen) {
+      navigation.dispatch((state: any) => {
+        const idx = state.routes.findIndex((r: any) => r.name === item.screen);
+        if (idx < 0) { navigation.navigate(item.screen); return CommonActions.navigate(item.screen); }
+        const routes = state.routes.map((r: any, j: number) =>
+          j === idx
+            ? { ...r, state: { index: 0, routes: [{ name: item.nestedScreen }] } }
+            : r,
+        );
+        return CommonActions.reset({ ...state, index: idx, routes });
+      });
+    } else if (item.resetTab) {
+      navigation.dispatch((state: any) => {
+        const idx = state.routes.findIndex((r: any) => r.name === item.screen);
+        if (idx < 0) return CommonActions.navigate(item.screen);
+        const routes = state.routes.map((r: any, j: number) =>
+          j === idx ? { ...r, state: undefined } : r,
+        );
+        return CommonActions.reset({ ...state, index: idx, routes });
+      });
+    } else {
+      navigation.navigate(item.screen, item.params);
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.navy} />
+      <StatusBar barStyle="light-content" backgroundColor="#0A4FA0" />
 
-      {/* ══ HEADER ══ */}
-      <View style={styles.header}>
+      {/* ══════ HEADER ══════ */}
+      <ImageBackground
+        source={require("../../../../assets/hinh-nen-mau-xanh-duong-30-576x1024.jpg")}
+        style={styles.headerArea}
+        imageStyle={styles.headerBgImg}
+      >
+        {/* Dark overlay for legibility */}
+        <View style={styles.headerOverlay} pointerEvents="none" />
+
         {/* User row */}
         <View style={styles.headerRow}>
           <View style={styles.headerLeft}>
@@ -298,139 +413,172 @@ export default function HomeScreen({ navigation }: any) {
               style={styles.avatar}
               onPress={() => navigation.navigate("Profile")}
             >
-              <Text style={styles.avatarText}>
-                {(user?.fullName || "U")[0].toUpperCase()}
-              </Text>
+              {avatarUrl ? (
+                <Image source={{ uri: avatarUrl }} style={styles.avatarImg} />
+              ) : (
+                <Text style={styles.avatarInitial}>
+                  {(user?.fullName || "U")[0].toUpperCase()}
+                </Text>
+              )}
             </TouchableOpacity>
             <View>
               <Text style={styles.userName}>
                 {user?.fullName || "Nhân viên"}
               </Text>
-              <Text style={styles.userRole}>Nhân viên kinh doanh</Text>
+              <Text style={styles.userRole}>
+                {(user as any)?.job_title || "Nhân viên kinh doanh"}
+              </Text>
             </View>
           </View>
-          <View style={styles.headerRight}>
+          <View style={styles.headerIcons}>
             <TouchableOpacity style={styles.iconBtn}>
-              <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-                <Path
-                  d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"
-                  stroke="white"
-                  strokeWidth={1.8}
-                  strokeLinecap="round"
-                />
-                <Path
-                  d="M13.73 21a2 2 0 01-3.46 0"
-                  stroke="white"
-                  strokeWidth={1.8}
-                  strokeLinecap="round"
-                />
-              </Svg>
+              <BellIcon />
               <View style={styles.notifDot} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconBtn}>
-              <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-                <Circle
-                  cx={11}
-                  cy={11}
-                  r={7}
-                  stroke="white"
-                  strokeWidth={1.8}
-                />
-                <Path
-                  d="M16.5 16.5l4 4"
-                  stroke="white"
-                  strokeWidth={1.8}
-                  strokeLinecap="round"
-                />
-              </Svg>
+              <SearchIcon />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.iconBtn}
+              onPress={() => navigation.navigate("Profile")}
+            >
+              <GearIcon />
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* ── SLIM ATTENDANCE BAR ── */}
-        <View style={styles.attendBar}>
-          {/* Left: check-in */}
-          <View style={styles.attendSide}>
-            <TouchableOpacity
-              style={styles.attendFab}
-              onPress={() => navigation.navigate("Attendance")}
-            >
-              <FaceID size={18} color="#fff" />
-            </TouchableOpacity>
-            <View style={{ gap: 1 }}>
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 5 }}
-              >
-                <View style={styles.attendStatusDot} />
-                <Text style={styles.attendLabel}>Vào ca:</Text>
+        {/* ── Glass Card ── */}
+        <View style={styles.glassCard}>
+          {/* Tenure badge top-right */}
+          {tenureYears && (
+            <View style={styles.tenureBadge}>
+              <Text style={styles.tenureBadgeVal}>{tenureYears}</Text>
+              <Text style={styles.tenureBadgeLbl}>Years</Text>
+              <Text style={styles.tenureBadgeLbl}>tenure</Text>
+            </View>
+          )}
+
+          {/* Vào ca | Ring | Ra ca */}
+          <View style={styles.attendRow}>
+            {/* Left — Vào ca */}
+            <View style={styles.attendCol}>
+              <View style={styles.labelRow}>
+                <View
+                  style={[
+                    styles.statusDot,
+                    checkInFmt && styles.statusDotActive,
+                  ]}
+                />
+                <Text style={styles.attendLbl}>Vào ca:</Text>
               </View>
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 5 }}
-              >
-                <Text
-                  style={checkIn ? styles.attendTime : styles.attendTimeDim}
-                >
-                  {checkIn ?? "--:--"}
+              <View style={styles.timeRow}>
+                <Text style={checkInFmt ? styles.timeVal : styles.timeValDim}>
+                  {checkInFmt ? checkInFmt.time : "--:--"}
                 </Text>
-                {checkIn && (
-                  <View style={styles.attendBadge}>
-                    <Text style={styles.attendBadgeText}>Đúng giờ</Text>
-                  </View>
-                )}
+                <Text style={checkInFmt ? styles.ampmVal : styles.ampmDim}>
+                  {checkInFmt ? checkInFmt.ampm : "AM"}
+                </Text>
               </View>
+              {lateMinutes > 0 && (
+                <View style={styles.statusBadgeWarn}>
+                  <Text style={styles.statusBadgeWarnTxt}>
+                    Muộn {lateMinutes}p
+                  </Text>
+                </View>
+              )}
+              {checkInFmt && lateMinutes === 0 && (
+                <View style={styles.statusBadgeOk}>
+                  <Text style={styles.statusBadgeOkTxt}>Đúng giờ</Text>
+                </View>
+              )}
+            </View>
+
+            {/* Center — ring */}
+            <View style={styles.ringWrap}>
+              <TenureRing years={tenureYears} />
+            </View>
+
+            {/* Right — Ra ca */}
+            <View style={[styles.attendCol, styles.attendColRight]}>
+              <View style={[styles.labelRow, { justifyContent: "flex-end" }]}>
+                <Text style={styles.attendLbl}>Ra ca:</Text>
+                <View
+                  style={[
+                    styles.statusDot,
+                    checkOutFmt && styles.statusDotActive,
+                  ]}
+                />
+              </View>
+              <View style={[styles.timeRow, { justifyContent: "flex-end" }]}>
+                <Text style={checkOutFmt ? styles.ampmVal : styles.ampmDim}>
+                  {checkOutFmt ? checkOutFmt.ampm : "PM"}
+                </Text>
+                <Text style={checkOutFmt ? styles.timeVal : styles.timeValDim}>
+                  {checkOutFmt ? checkOutFmt.time : "--:--"}
+                </Text>
+              </View>
+              {earlyMinutes > 0 && (
+                <View
+                  style={[styles.statusBadgeWarn, { alignSelf: "flex-end" }]}
+                >
+                  <Text style={styles.statusBadgeWarnTxt}>
+                    Sớm {earlyMinutes}p
+                  </Text>
+                </View>
+              )}
+              {otMinutes > 0 && (
+                <View style={[styles.statusBadgeOk, { alignSelf: "flex-end" }]}>
+                  <Text style={styles.statusBadgeOkTxt}>OT {otMinutes}p</Text>
+                </View>
+              )}
+              {checkOutFmt && earlyMinutes === 0 && otMinutes === 0 && (
+                <View style={[styles.statusBadgeOk, { alignSelf: "flex-end" }]}>
+                  <Text style={styles.statusBadgeOkTxt}>Đúng giờ</Text>
+                </View>
+              )}
             </View>
           </View>
 
           {/* Divider */}
-          <View
-            style={{
-              width: 1,
-              height: "60%",
-              backgroundColor: COLORS.borderMid,
-            }}
-          />
+          <View style={styles.divider} />
 
-          {/* Right: check-out */}
-          <View style={[styles.attendSide, styles.attendSideRight]}>
-            <View
-              style={[styles.attendStatusDot, styles.attendStatusDotGray]}
-            />
-            <View style={{ gap: 1 }}>
-              <Text style={styles.attendLabel}>Ra ca:</Text>
-              <Text style={styles.attendTimeDim}>{checkOut ?? "--:--"}</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* ── QUICK ACTIONS (4 icons) ── */}
-        <View style={styles.quickCard}>
-          <View style={styles.quickGrid}>
+          {/* Quick actions */}
+          <View style={styles.quickRow}>
             {QUICK.map((item, i) => (
               <TouchableOpacity
                 key={i}
                 style={styles.quickItem}
-                onPress={() => navigation.navigate(item.screen)}
                 activeOpacity={0.75}
+                onPress={() => goTo(item)}
               >
-                <View
-                  style={[styles.quickIconBox, { backgroundColor: item.bg }]}
-                >
-                  {item.icon}
+                <View style={styles.quickIconBox}>
+                  {item.cal ? (
+                    <View style={styles.calIcon}>
+                      <View style={styles.calHeader} />
+                      <Text style={styles.calDate}>{todayDate}</Text>
+                    </View>
+                  ) : (
+                    <Image
+                      source={item.icon}
+                      style={styles.quickIconImg}
+                      resizeMode="contain"
+                    />
+                  )}
                 </View>
                 <Text style={styles.quickLabel}>{item.label}</Text>
               </TouchableOpacity>
             ))}
           </View>
         </View>
-      </View>
+      </ImageBackground>
 
-      {/* ══ SCROLL BODY ══ */}
+      {/* ══════ SCROLL BODY ══════ */}
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* DỊCH VỤ — 4 columns × 2 rows */}
+        {/* DỊCH VỤ */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>DỊCH VỤ</Text>
@@ -440,7 +588,7 @@ export default function HomeScreen({ navigation }: any) {
             {SERVICES.map((item, i) => (
               <TouchableOpacity
                 key={i}
-                style={styles.svcItem}
+                style={[styles.svcItem, { backgroundColor: item.bg + "30" }]}
                 onPress={() => navigation.navigate(item.screen)}
                 activeOpacity={0.75}
               >
@@ -448,7 +596,11 @@ export default function HomeScreen({ navigation }: any) {
                   <View
                     style={[styles.svcIconBox, { backgroundColor: item.bg }]}
                   >
-                    {item.icon}
+                    <Image
+                      source={item.icon}
+                      style={{ width: 28, height: 28 }}
+                      resizeMode="contain"
+                    />
                   </View>
                   {item.badge > 0 && (
                     <View style={styles.badgeWrap}>
@@ -468,7 +620,6 @@ export default function HomeScreen({ navigation }: any) {
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>BẢN TIN NỘI BỘ</Text>
-            <Text style={styles.cardLink}>Xem tất cả ›</Text>
           </View>
           <FlatList
             horizontal
@@ -510,13 +661,20 @@ export default function HomeScreen({ navigation }: any) {
             )}
           />
           <View style={styles.dotsRow}>
-            <View style={styles.dotActive} />
-            <View style={styles.dotInactive} />
-            <View style={styles.dotInactive} />
+            {BANNERS.map((_, i) => (
+              <View
+                key={i}
+                style={[
+                  styles.dotPip,
+                  i === 0
+                    ? { width: 20, backgroundColor: BLUE }
+                    : { width: 6, backgroundColor: "#D1D5DB" },
+                ]}
+              />
+            ))}
           </View>
         </View>
       </ScrollView>
-      {/* Bottom nav is in MainStack.tsx — do NOT add it here */}
     </View>
   );
 }

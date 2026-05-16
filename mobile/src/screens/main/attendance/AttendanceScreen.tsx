@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Animated,
-  Easing,
   Vibration,
   Linking,
   Alert,
@@ -18,9 +17,181 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
 import { attendanceApi } from "../../../api/attendanceApi";
 import styles, { COLORS } from "./AttendanceScreen.styles";
+import { isLate } from "../history/helpers";
 
 type Mode = "check_in" | "check_out";
 type Status = "idle" | "processing" | "success" | "error";
+type ShiftStatus = "before" | "active" | "after";
+
+// ── Ca làm việc cố định ────────────────────────────────────────────────────────
+const SHIFT = {
+  startH: 8,
+  startM: 0,
+  endH: 17,
+  endM: 30,
+  graceMins: 5,
+};
+
+function getShiftStatus(now: Date): ShiftStatus {
+  const totalMins = now.getHours() * 60 + now.getMinutes();
+  const startMins = SHIFT.startH * 60 + SHIFT.startM;
+  const endMins = SHIFT.endH * 60 + SHIFT.endM;
+  if (totalMins < startMins + SHIFT.graceMins) return "before";
+  if (totalMins < endMins) return "active";
+  return "after";
+}
+
+function getCountdown(now: Date): {
+  label: string;
+  seconds: number;
+  color: string;
+} {
+  const totalSecs =
+    now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+  const startSecs = SHIFT.startH * 3600 + SHIFT.startM * 60;
+  const endSecs = SHIFT.endH * 3600 + SHIFT.endM * 60;
+
+  if (totalSecs < startSecs) {
+    return {
+      label: "Ca bắt đầu sau",
+      seconds: startSecs - totalSecs,
+      color: "#4A90D9",
+    };
+  }
+  if (totalSecs < endSecs) {
+    return {
+      label: "Ca kết thúc sau",
+      seconds: endSecs - totalSecs,
+      color: "#27AE60",
+    };
+  }
+  return { label: "Ca đã kết thúc", seconds: 0, color: "#8A9BB5" };
+}
+
+function formatCountdown(seconds: number): string {
+  if (seconds <= 0) return "--:--:--";
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  return [h, m, s].map((v) => String(v).padStart(2, "0")).join(":");
+}
+
+function getShiftLabel(status: ShiftStatus): {
+  text: string;
+  color: string;
+  bg: string;
+} {
+  switch (status) {
+    case "before":
+      return {
+        text: "Chưa vào ca",
+        color: "#4A90D9",
+        bg: "rgba(74,144,217,0.15)",
+      };
+    case "active":
+      return {
+        text: "Đang trong ca",
+        color: "#27AE60",
+        bg: "rgba(39,174,96,0.15)",
+      };
+    case "after":
+      return {
+        text: "Đã ra ca",
+        color: "#8A9BB5",
+        bg: "rgba(138,155,181,0.15)",
+      };
+  }
+}
+
+// ── Shift Info Bar ─────────────────────────────────────────────────────────────
+function ShiftBar({ now }: { now: Date }) {
+  const shiftStatus = getShiftStatus(now);
+  const countdown = getCountdown(now);
+  const label = getShiftLabel(shiftStatus);
+
+  return (
+    <View
+      style={{
+        position: "absolute",
+        top: Platform.OS === "ios" ? 110 : 94,
+        left: 16,
+        right: 16,
+        backgroundColor: "rgba(0,0,0,0.55)",
+        borderRadius: 14,
+        padding: 12,
+        borderWidth: 1,
+        borderColor: "rgba(255,255,255,0.12)",
+      }}
+    >
+      {/* Row 1: Ca làm việc + trạng thái */}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 8,
+        }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <Text
+            style={{
+              color: "rgba(255,255,255,0.6)",
+              fontSize: 11,
+              fontWeight: "600",
+            }}
+          >
+            CA LÀM VIỆC
+          </Text>
+          <Text style={{ color: "#fff", fontSize: 13, fontWeight: "800" }}>
+            {String(SHIFT.startH).padStart(2, "0")}:
+            {String(SHIFT.startM).padStart(2, "0")}
+            {" – "}
+            {String(SHIFT.endH).padStart(2, "0")}:
+            {String(SHIFT.endM).padStart(2, "0")}
+          </Text>
+        </View>
+        <View
+          style={{
+            backgroundColor: label.bg,
+            paddingHorizontal: 10,
+            paddingVertical: 3,
+            borderRadius: 20,
+            borderWidth: 1,
+            borderColor: label.color + "55",
+          }}
+        >
+          <Text style={{ color: label.color, fontSize: 10, fontWeight: "700" }}>
+            {label.text}
+          </Text>
+        </View>
+      </View>
+
+      {/* Row 2: Đếm ngược */}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <Text style={{ color: "rgba(255,255,255,0.55)", fontSize: 11 }}>
+          {countdown.label}
+        </Text>
+        <Text
+          style={{
+            color: countdown.color,
+            fontSize: 18,
+            fontWeight: "800",
+            letterSpacing: 1,
+            fontVariant: ["tabular-nums"],
+          }}
+        >
+          {countdown.seconds > 0 ? formatCountdown(countdown.seconds) : "--"}
+        </Text>
+      </View>
+    </View>
+  );
+}
 
 export default function AttendanceScreen({ navigation }: any) {
   const [permission, requestPermission] = useCameraPermissions();
@@ -30,55 +201,42 @@ export default function AttendanceScreen({ navigation }: any) {
   const [resultDate, setResultDate] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [location, setLocation] = useState("");
-  const [clockStr, setClockStr] = useState("");
+  const [now, setNow] = useState(new Date());
 
   const cameraRef = useRef<CameraView>(null);
   const isCapturing = useRef(false);
   const slideAnim = useRef(new Animated.Value(300)).current;
-  const scanAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const user = useSelector((state: RootState) => state.auth.user);
 
-  // ── Đồng hồ ──────────────────────────────────────────────────────────────────
   useEffect(() => {
-    const t = setInterval(() => {
-      setClockStr(
-        new Date().toLocaleTimeString("vi-VN", {
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-        }),
-      );
-    }, 1000);
+    const t = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(t);
   }, []);
 
-  // ── Scan animation ────────────────────────────────────────────────────────────
+  // Auto-detect check_in / check_out dựa trên record hôm nay
   useEffect(() => {
-    if (status === "idle" || status === "processing") {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(scanAnim, {
-            toValue: 1,
-            duration: 1800,
-            useNativeDriver: true,
-            easing: Easing.inOut(Easing.ease),
-          }),
-          Animated.timing(scanAnim, {
-            toValue: 0,
-            duration: 1800,
-            useNativeDriver: true,
-            easing: Easing.inOut(Easing.ease),
-          }),
-        ]),
-      ).start();
-    } else {
-      scanAnim.stopAnimation();
-    }
-  }, [status]);
+    const today = new Date().toISOString().slice(0, 10);
+    attendanceApi.getHistory(today, today)
+      .then(res => {
+        const record = Array.isArray(res.data) ? res.data[0] : null;
+        if (record?.check_in && !record?.check_out) {
+          setMode("check_out");
+        } else {
+          setMode("check_in");
+        }
+      })
+      .catch(() => setMode("check_in"));
+  }, []);
 
-  // ── Reset khi đổi mode ────────────────────────────────────────────────────────
+  const clockStr = now.toLocaleTimeString("vi-VN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+
+
   useEffect(() => {
     if (permission?.granted) {
       setStatus("idle");
@@ -87,7 +245,6 @@ export default function AttendanceScreen({ navigation }: any) {
     }
   }, [permission?.granted, mode]);
 
-  // ── Mở cài đặt GPS ───────────────────────────────────────────────────────────
   const openLocationSettings = () => {
     if (Platform.OS === "ios") {
       Linking.openURL("app-settings:");
@@ -96,18 +253,14 @@ export default function AttendanceScreen({ navigation }: any) {
     }
   };
 
-  // ── Chụp ảnh ──────────────────────────────────────────────────────────────────
   const handleCapture = useCallback(async () => {
     if (isCapturing.current || !cameraRef.current) return;
 
-    // ── Lấy tọa độ GPS ───────────────────────────────────────────────────────
     let latitude: number | undefined;
     let longitude: number | undefined;
 
     try {
       await Location.requestForegroundPermissionsAsync();
-
-      // Thử cache trước (nhanh, không cần GPS signal)
       const cached = await Location.getLastKnownPositionAsync({
         maxAge: 120000,
         requiredAccuracy: 1000,
@@ -117,7 +270,6 @@ export default function AttendanceScreen({ navigation }: any) {
         latitude = cached.coords.latitude;
         longitude = cached.coords.longitude;
       } else {
-        // Không có cache → lấy mới
         const fresh = await Location.getCurrentPositionAsync({
           accuracy: Location.Accuracy.Low,
         });
@@ -126,10 +278,8 @@ export default function AttendanceScreen({ navigation }: any) {
       }
     } catch (e) {
       console.warn("[GPS] error:", e);
-      // Vẫn tiếp tục — backend sẽ báo lỗi no_gps
     }
 
-    // ── Tiến hành chụp ────────────────────────────────────────────────────────
     isCapturing.current = true;
 
     Vibration.vibrate(40);
@@ -156,16 +306,29 @@ export default function AttendanceScreen({ navigation }: any) {
       if (!photo?.base64) throw new Error("Lỗi khi chụp ảnh");
 
       const base64Full = `data:image/jpg;base64,${photo.base64}`;
-      console.log("[SEND] lat:", latitude, "lng:", longitude);
       const res =
         mode === "check_in"
           ? await attendanceApi.checkIn(base64Full, latitude, longitude)
           : await attendanceApi.checkOut(base64Full, latitude, longitude);
 
       Vibration.vibrate([0, 60, 60, 60]);
+      // Sau check_in → bước tiếp là check_out, và ngược lại
+      setMode(prev => prev === "check_in" ? "check_out" : "check_in");
+      console.log("[CHECKIN RESULT]", JSON.stringify(res.data));
       const t = new Date(res.data.time);
       setResultTime(
-        t.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }),
+        t.toLocaleTimeString("vi-VN", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      );
+      setResultDate(
+        t.toLocaleDateString("vi-VN", {
+          weekday: "long",
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        }),
       );
       setResultDate(
         t.toLocaleDateString("vi-VN", {
@@ -181,6 +344,7 @@ export default function AttendanceScreen({ navigation }: any) {
       Vibration.vibrate(200);
       const data = err.response?.data;
       const msg = err.response?.data?.message || err.message || "Lỗi kết nối";
+      console.log("[Attendance Error]", JSON.stringify(err.response?.data));
 
       if (
         data?.reason === "out_of_range" ||
@@ -216,7 +380,7 @@ export default function AttendanceScreen({ navigation }: any) {
     setStatus("idle");
   };
 
-  // ── Permission camera ─────────────────────────────────────────────────────────
+  // ── Permission ────────────────────────────────────────────────────────────────
   if (!permission) return <View />;
   if (!permission.granted) {
     return (
@@ -234,18 +398,11 @@ export default function AttendanceScreen({ navigation }: any) {
     );
   }
 
-  const scanTranslateY = scanAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-80, 80],
-  });
   const isCheckout = mode === "check_out";
 
-  const faceFrameStyle = [
-    styles.faceFrame,
-    status === "processing" && styles.faceFrameScanning,
-    status === "success" && styles.faceFrameSuccess,
-    status === "error" && styles.faceFrameError,
-  ];
+  const cornerColor =
+    status === "success" ? COLORS.success :
+    status === "error"   ? COLORS.danger  : "#F97316";
 
   return (
     <View style={styles.container}>
@@ -260,50 +417,18 @@ export default function AttendanceScreen({ navigation }: any) {
         <Text style={styles.topTime}>{clockStr}</Text>
       </View>
 
-      {/* Mode switch */}
-      <View style={styles.modeSwitch}>
-        <TouchableOpacity
-          style={[styles.modeBtn, mode === "check_in" && styles.modeBtnActive]}
-          onPress={() => setMode("check_in")}
-        >
-          <Text
-            style={[
-              styles.modeBtnText,
-              mode === "check_in" && styles.modeBtnTextActive,
-            ]}
-          >
-            🟢 Vào ca
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.modeBtn, mode === "check_out" && styles.modeBtnActive]}
-          onPress={() => setMode("check_out")}
-        >
-          <Text
-            style={[
-              styles.modeBtnText,
-              mode === "check_out" && styles.modeBtnTextActive,
-            ]}
-          >
-            🔴 Ra ca
-          </Text>
-        </TouchableOpacity>
-      </View>
+      {/* Shift info bar */}
+      <ShiftBar now={now} />
 
-      {/* Face frame */}
+      {/* Face frame – corner brackets */}
       <View style={styles.faceFrameWrap} pointerEvents="none">
-        <View style={faceFrameStyle} />
-        {(status === "idle" || status === "processing") && (
-          <Animated.View
-            style={[
-              styles.scanLine,
-              { transform: [{ translateY: scanTranslateY }] },
-            ]}
-          />
-        )}
-        {status === "idle" && (
-          <Text style={styles.faceHint}>Đặt khuôn mặt vào khung</Text>
-        )}
+        <Text style={styles.faceHint}>Đưa khuôn mặt vào vùng chỉ định</Text>
+        <View style={styles.faceFrame}>
+          <View style={[styles.corner, styles.cornerTL, { borderColor: cornerColor }]} />
+          <View style={[styles.corner, styles.cornerTR, { borderColor: cornerColor }]} />
+          <View style={[styles.corner, styles.cornerBL, { borderColor: cornerColor }]} />
+          <View style={[styles.corner, styles.cornerBR, { borderColor: cornerColor }]} />
+        </View>
       </View>
 
       {/* Processing overlay */}
@@ -323,43 +448,23 @@ export default function AttendanceScreen({ navigation }: any) {
           <Text style={styles.gpsText}>
             📍 Vị trí sẽ được xác định khi chấm công
           </Text>
-
           <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
             <TouchableOpacity onPress={handleCapture} activeOpacity={0.85}>
-              <View
-                style={[
-                  styles.captureRing,
-                  isCheckout && styles.captureRingCheckout,
-                ]}
-              >
-                <View
-                  style={[
-                    styles.captureBtn,
-                    isCheckout && styles.captureBtnCheckout,
-                  ]}
-                >
-                  <Svg width={28} height={28} viewBox="0 0 24 24" fill="none">
-                    <Path
-                      d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"
-                      stroke={isCheckout ? "#fff" : COLORS.primary}
-                      strokeWidth={1.8}
-                      strokeLinejoin="round"
-                    />
-                    <Circle
-                      cx={12}
-                      cy={13}
-                      r={4}
-                      stroke={isCheckout ? "#fff" : COLORS.primary}
-                      strokeWidth={1.8}
-                    />
-                  </Svg>
-                </View>
+              <View style={styles.captureBtn}>
+                <Svg width={28} height={28} viewBox="0 0 24 24" fill="none">
+                  <Path
+                    d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"
+                    stroke="#fff"
+                    strokeWidth={1.8}
+                    strokeLinejoin="round"
+                  />
+                  <Circle cx={12} cy={13} r={4} stroke="#fff" strokeWidth={1.8} />
+                </Svg>
               </View>
             </TouchableOpacity>
           </Animated.View>
-
           <Text style={styles.captureBtnLabel}>
-            {isCheckout ? "Nhấn để chấm ra" : "Nhấn để chấm vào"}
+            {isCheckout ? "🔴  Nhấn để chấm ra ca" : "🟢  Nhấn để chấm vào ca"}
           </Text>
         </View>
       )}
@@ -444,7 +549,21 @@ export default function AttendanceScreen({ navigation }: any) {
                 )}
               </>
             )}
-
+            {status === "success" && (
+              <TouchableOpacity
+                style={[
+                  styles.btnRetry,
+                  { backgroundColor: "#EFF6FF", borderColor: "#0e7fc0" },
+                ]}
+                onPress={() =>
+                  navigation.navigate("Schedule", { screen: "Stats" })
+                }
+              >
+                <Text style={[styles.btnRetryText, { color: "#0e7fc0" }]}>
+                  📊 Xem thống kê
+                </Text>
+              </TouchableOpacity>
+            )}
             <TouchableOpacity style={styles.btnRetry} onPress={handleReset}>
               <Text style={styles.btnRetryText}>Chấm lại</Text>
             </TouchableOpacity>

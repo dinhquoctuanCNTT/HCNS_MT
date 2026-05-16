@@ -14,103 +14,211 @@ import {
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { HistoryStackParamList } from "./types";
 import { fmtTime } from "./helpers";
-import { COLORS, H_PAD } from "./HistoryScreen.style";
-import BackButton from "./BackButton";
+import { COLORS } from "./HistoryScreen/HistoryScreen.style";
+import { explanationApi } from "../../../api/explanationApi";
 
 type Props = NativeStackScreenProps<HistoryStackParamList, "UpdateRequest">;
 
-export default function UpdateRequestForm({ route, navigation }: Props) {
-  const { detail } = route.params;
+/* ── Helpers ── */
+function parseWorkDate(dateStr: string): string {
+  // dateStr: "dd/mm/yyyy" → "yyyy-mm-dd"
+  const parts = dateStr.split("/");
+  return `${parts[2]}-${parts[1]}-${parts[0]}`;
+}
 
-  const [violationType, setViolationType] = useState("");
-  const [checkInTime, setCheckInTime] = useState(
-    detail.record?.check_in ? fmtTime(detail.record.check_in) : "08:30",
-  );
-  const [checkOutTime, setCheckOutTime] = useState(
-    detail.record?.check_out ? fmtTime(detail.record.check_out) : "17:30",
-  );
-  const [shiftType, setShiftType] = useState("");
-  const [approver, setApprover] = useState("");
-  const [reason, setReason] = useState("");
-  const [saving, setSaving] = useState(false);
+function toTimeInput(iso: string | null): string {
+  if (!iso) return "";
+  const t = iso.includes("T") ? iso.split("T")[1] : iso;
+  const [h, m] = t.split(":");
+  return `${h}:${m}`;
+}
 
-  const handleSend = async (draft = false) => {
-    if (!reason.trim() && !draft) {
-      Alert.alert("Thiếu thông tin", "Vui lòng nhập lý do giải trình");
-      return;
-    }
-    try {
-      setSaving(true);
-      Alert.alert("Thành công", draft ? "Đã lưu nháp" : "Đã gửi giải trình", [
-        { text: "OK", onPress: () => navigation.goBack() },
-      ]);
-    } catch {
-      Alert.alert("Lỗi", "Không thể gửi, thử lại sau");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const FieldLabel = ({
-    text,
-    required = false,
-  }: {
-    text: string;
-    required?: boolean;
-  }) => (
+/* ── Sub-components ── */
+function FieldLabel({
+  text,
+  required = false,
+}: {
+  text: string;
+  required?: boolean;
+}) {
+  return (
     <Text style={fs.label}>
       {text}
       {required && <Text style={fs.required}> *</Text>}
     </Text>
   );
+}
 
-  const SelectField = ({
-    label,
-    value,
-    placeholder,
-    required = false,
-    onPress,
-  }: any) => (
-    <View style={fs.fieldWrap}>
-      <FieldLabel text={label} required={required} />
-      <TouchableOpacity
-        style={fs.selectBox}
-        onPress={onPress}
-        activeOpacity={0.7}
-      >
-        <Text style={value ? fs.selectVal : fs.selectPlaceholder}>
-          {value || placeholder}
-        </Text>
-        <Text style={fs.arrow}>▾</Text>
-      </TouchableOpacity>
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={fs.infoRow}>
+      <Text style={fs.infoLabel}>{label}</Text>
+      <Text style={fs.infoValue}>{value}</Text>
     </View>
   );
+}
 
-  const TimeField = ({ label, value, onChange, required = false }: any) => (
+function SelectField({
+  label,
+  value,
+  placeholder,
+  required = false,
+  options,
+  onChange,
+  zIndex = 1,
+}: {
+  label: string;
+  value: string;
+  placeholder: string;
+  required?: boolean;
+  options: string[];
+  onChange: (v: string) => void;
+  zIndex?: number;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <View style={[fs.fieldWrap, { zIndex }]}>
+      <FieldLabel text={label} required={required} />
+      <TouchableOpacity
+        style={fs.selectRow}
+        onPress={() => setIsOpen(!isOpen)}
+        activeOpacity={0.7}
+      >
+        <Text style={value ? fs.selectValue : fs.selectPlaceholder}>
+          {value || placeholder}
+        </Text>
+        <Text style={fs.chevron}>{isOpen ? "▲" : "▼"}</Text>
+      </TouchableOpacity>
+      {isOpen && (
+        <View style={fs.dropdown}>
+          {options.map((opt, i) => (
+            <TouchableOpacity
+              key={i}
+              style={[
+                fs.dropdownItem,
+                i === options.length - 1 && { borderBottomWidth: 0 },
+              ]}
+              onPress={() => {
+                onChange(opt);
+                setIsOpen(false);
+              }}
+            >
+              <Text style={fs.dropdownText}>{opt}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+    </View>
+  );
+}
+
+function TimeField({
+  label,
+  value,
+  onChange,
+  required = false,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  required?: boolean;
+}) {
+  return (
     <View style={{ flex: 1 }}>
       <FieldLabel text={label} required={required} />
-      <View style={fs.timeBox}>
+      <View style={fs.timeInputWrap}>
         <TextInput
           value={value}
           onChangeText={onChange}
           style={fs.timeInput}
           keyboardType="numbers-and-punctuation"
-          placeholderTextColor={COLORS.textLight}
+          placeholder="08:00"
+          placeholderTextColor="#9ca3af"
         />
-        <Text style={fs.clock}>🕐</Text>
+        <Text style={{ fontSize: 16 }}>🕒</Text>
       </View>
     </View>
   );
+}
+
+/* ── Main Screen ── */
+export default function UpdateRequestForm({ route, navigation }: Props) {
+  const { detail } = route.params;
+  const r = detail.record;
+
+  const [violationType, setViolationType] = useState("");
+  const [checkInTime, setCheckInTime] = useState(
+    r?.check_in ? toTimeInput(r.check_in) : "08:00",
+  );
+  const [checkOutTime, setCheckOutTime] = useState(
+    r?.check_out ? toTimeInput(r.check_out) : "17:30",
+  );
+  const [reason, setReason] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const isAbsent = detail.status === "absent";
+  const isLate = detail.status === "late";
+
+  const handleSend = async () => {
+    if (!reason.trim()) {
+      Alert.alert("Thiếu thông tin", "Vui lòng nhập lý do giải trình");
+      return;
+    }
+    if (!violationType) {
+      Alert.alert("Thiếu thông tin", "Vui lòng chọn loại vi phạm");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const workDate = parseWorkDate(detail.dateStr);
+
+      await explanationApi.create({
+        workDate,
+        reason: `[${violationType}] ${reason}`.trim(),
+        requestedCheckIn: checkInTime ? checkInTime + ":00" : undefined,
+        requestedCheckOut: checkOutTime ? checkOutTime + ":00" : undefined,
+      });
+
+      Alert.alert(
+        "✅ Gửi thành công",
+        "Đơn giải trình đã được gửi. Bạn có thể theo dõi trạng thái trong lịch sử.",
+        [
+          {
+            text: "Xem lịch sử",
+            onPress: () => navigation.navigate("ExplanationHistory"),
+          },
+          {
+            text: "Quay lại",
+            style: "cancel",
+            onPress: () => navigation.goBack(),
+          },
+        ],
+      );
+    } catch (err: any) {
+      Alert.alert(
+        "Lỗi",
+        err.response?.data?.message || "Không thể gửi, thử lại sau",
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
-    <View style={{ flex: 1, backgroundColor: COLORS.bg }}>
+    <View style={{ flex: 1, backgroundColor: "#f3f4f6" }}>
       {/* ── Header ── */}
       <View style={fs.header}>
         <SafeAreaView>
           <View style={fs.headerRow}>
-            <BackButton onPress={() => navigation.goBack()} />
-            <Text style={fs.headerTitle}>Giải trình</Text>
-            <View style={{ width: 40 }} />
+            <TouchableOpacity
+              style={fs.backBtn}
+              onPress={() => navigation.goBack()}
+            >
+              <Text style={fs.backBtnText}>‹</Text>
+            </TouchableOpacity>
+            <Text style={fs.headerTitle}>Giải trình chấm công</Text>
+            <View style={{ width: 36 }} />
           </View>
           <Text style={fs.headerSub}>
             {detail.dayOfWeek}, {detail.dateStr}
@@ -118,252 +226,312 @@ export default function UpdateRequestForm({ route, navigation }: Props) {
         </SafeAreaView>
       </View>
 
-      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-        <View style={fs.body}>
-          {/* Ngày giải trình */}
-          <View style={fs.fieldWrap}>
-            <FieldLabel text="Ngày giải trình" required />
-            <View style={fs.dateBox}>
-              <Text style={fs.dateVal}>{detail.dateStr}</Text>
-              <Text style={{ fontSize: 18 }}>📅</Text>
-            </View>
+      <ScrollView
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* ── Thông tin gốc ── */}
+        <View style={fs.section}>
+          <Text style={fs.sectionTitle}>📋 Thông tin chấm công gốc</Text>
+          <View style={fs.infoCard}>
+            <InfoRow label="Ngày" value={detail.dateStr} />
+            <InfoRow
+              label="Trạng thái"
+              value={
+                isAbsent ? "Vắng mặt" : isLate ? "Đi muộn" : "Lỗi chấm công"
+              }
+            />
+            <InfoRow
+              label="Giờ vào gốc"
+              value={r?.check_in ? fmtTime(r.check_in) : "Chưa có"}
+            />
+            <InfoRow
+              label="Giờ ra gốc"
+              value={r?.check_out ? fmtTime(r.check_out) : "Chưa có"}
+            />
           </View>
+        </View>
+
+        {/* ── Form giải trình ── */}
+        <View style={fs.section}>
+          <Text style={fs.sectionTitle}>✏️ Thông tin giải trình</Text>
 
           <SelectField
             label="Loại vi phạm"
             required
             value={violationType}
-            placeholder="Chọn loại vi phạm"
-            onPress={() =>
-              Alert.alert("Loại vi phạm", "", [
-                { text: "Đi muộn", onPress: () => setViolationType("Đi muộn") },
-                { text: "Về sớm", onPress: () => setViolationType("Về sớm") },
-                {
-                  text: "Quên chấm công",
-                  onPress: () => setViolationType("Quên chấm công"),
-                },
-                {
-                  text: "Vắng không phép",
-                  onPress: () => setViolationType("Vắng không phép"),
-                },
-                { text: "Huỷ", style: "cancel" },
-              ])
-            }
+            placeholder="Chọn loại vi phạm..."
+            options={["Đi muộn", "Về sớm", "Quên check-out", "Vắng có lý do"]}
+            onChange={setViolationType}
+            zIndex={3000}
           />
 
-          <View style={fs.fieldWrap}>
-            <View style={fs.timeRow}>
+          {/* Giờ đề xuất */}
+          <View style={[fs.fieldWrap, { zIndex: 2000 }]}>
+            <FieldLabel text="Giờ đề xuất" required />
+            <View style={{ flexDirection: "row", gap: 12 }}>
               <TimeField
-                label="Giờ vào"
-                required
+                label="Vào ca"
                 value={checkInTime}
                 onChange={setCheckInTime}
               />
-              <View style={{ width: 12 }} />
               <TimeField
-                label="Giờ ra"
-                required
+                label="Ra ca"
                 value={checkOutTime}
                 onChange={setCheckOutTime}
               />
             </View>
           </View>
 
-          <SelectField
-            label="Kiểu công"
-            required
-            value={shiftType}
-            placeholder="Chọn kiểu công"
-            onPress={() =>
-              Alert.alert("Kiểu công", "", [
-                {
-                  text: "Ca hành chính",
-                  onPress: () => setShiftType("Ca hành chính"),
-                },
-                { text: "Ca sáng", onPress: () => setShiftType("Ca sáng") },
-                { text: "Ca chiều", onPress: () => setShiftType("Ca chiều") },
-                { text: "Ca tối", onPress: () => setShiftType("Ca tối") },
-                { text: "Huỷ", style: "cancel" },
-              ])
-            }
-          />
-
-          <SelectField
-            label="Người phê duyệt"
-            required
-            value={approver}
-            placeholder="Chọn người phê duyệt"
-            onPress={() =>
-              Alert.alert("Người phê duyệt", "", [
-                {
-                  text: "Quản lý trực tiếp",
-                  onPress: () => setApprover("Quản lý trực tiếp"),
-                },
-                {
-                  text: "Trưởng phòng",
-                  onPress: () => setApprover("Trưởng phòng"),
-                },
-                { text: "Giám đốc", onPress: () => setApprover("Giám đốc") },
-                { text: "Huỷ", style: "cancel" },
-              ])
-            }
-          />
-
-          <View style={fs.fieldWrap}>
-            <FieldLabel text="Lý do" required />
+          {/* Lý do */}
+          <View style={[fs.fieldWrap, { zIndex: 1000 }]}>
+            <FieldLabel text="Lý do giải trình" required />
             <TextInput
               value={reason}
               onChangeText={setReason}
-              placeholder="Nhập lý do giải trình..."
-              placeholderTextColor={COLORS.textLight}
+              placeholder="Mô tả chi tiết lý do (ví dụ: hỏng xe, quên check-out, đi gặp khách hàng...)"
+              placeholderTextColor="#9ca3af"
               multiline
-              numberOfLines={4}
+              numberOfLines={5}
               style={fs.textArea}
+              textAlignVertical="top"
             />
+            <Text style={fs.charCount}>{reason.length} ký tự</Text>
           </View>
         </View>
 
+        {/* ── Lưu ý ── */}
+        <View style={fs.noteBox}>
+          <Text style={fs.noteText}>
+            💡 Đơn giải trình sẽ được gửi đến quản lý để xem xét. Bạn có thể
+            theo dõi trạng thái trong mục "Lịch sử giải trình".
+          </Text>
+        </View>
+
+        {/* ── Buttons ── */}
         <View style={fs.btnRow}>
           <TouchableOpacity
-            style={fs.btnOutline}
-            onPress={() => handleSend(true)}
-            disabled={saving}
+            style={fs.btnCancel}
+            onPress={() => navigation.goBack()}
           >
-            <Text style={fs.btnOutlineText}>Lưu nháp</Text>
+            <Text style={fs.btnCancelText}>Huỷ</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={fs.btnSolid}
-            onPress={() => handleSend(false)}
+            style={[fs.btnSubmit, saving && { opacity: 0.7 }]}
+            onPress={handleSend}
             disabled={saving}
           >
             {saving ? (
-              <ActivityIndicator color={COLORS.white} size="small" />
+              <ActivityIndicator color="#fff" size="small" />
             ) : (
-              <Text style={fs.btnSolidText}>Gửi yêu cầu</Text>
+              <>
+                <Text style={fs.btnSubmitText}>📤 Gửi giải trình</Text>
+              </>
             )}
           </TouchableOpacity>
         </View>
+
+        <View style={{ height: 40 }} />
       </ScrollView>
     </View>
   );
 }
 
 const fs = StyleSheet.create({
+  /* Header */
   header: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: "#1c64f2",
     paddingTop: Platform.OS === "ios" ? 0 : 20,
-    paddingHorizontal: H_PAD,
-    paddingBottom: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 20,
   },
   headerRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginTop: 8,
+    marginTop: 12,
     marginBottom: 6,
   },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  backBtnText: { fontSize: 24, color: "#fff", marginTop: -3 },
   headerTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: "700",
-    color: COLORS.white,
-    textAlign: "center",
+    color: "#fff",
     flex: 1,
+    textAlign: "center",
   },
   headerSub: {
-    fontSize: 12,
-    color: "rgba(255,255,255,0.8)",
+    fontSize: 13,
+    color: "rgba(255,255,255,0.85)",
     textAlign: "center",
   },
-  body: { padding: H_PAD, backgroundColor: COLORS.white, paddingBottom: 8 },
-  fieldWrap: { marginBottom: 16 },
-  label: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: COLORS.textDark,
-    marginBottom: 8,
+
+  /* Section */
+  section: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    backgroundColor: "#fff",
+    borderRadius: 14,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  required: { color: COLORS.danger },
-  dateBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 13,
-    backgroundColor: COLORS.white,
-  },
-  dateVal: { fontSize: 14, color: COLORS.textDark, fontWeight: "500" },
-  selectBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 13,
-    backgroundColor: COLORS.white,
-  },
-  selectVal: { fontSize: 14, color: COLORS.textDark, flex: 1 },
-  selectPlaceholder: { fontSize: 14, color: COLORS.textLight, flex: 1 },
-  arrow: { fontSize: 12, color: COLORS.textLight },
-  timeRow: { flexDirection: "row" },
-  timeBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-    backgroundColor: COLORS.white,
-  },
-  timeInput: {
-    flex: 1,
+  sectionTitle: {
     fontSize: 14,
-    color: COLORS.textDark,
-    fontWeight: "500",
+    fontWeight: "700",
+    color: "#111827",
+    marginBottom: 12,
   },
-  clock: { fontSize: 16 },
+
+  /* Info card */
+  infoCard: { gap: 8 },
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f3f4f6",
+  },
+  infoLabel: { fontSize: 13, color: "#6b7280" },
+  infoValue: { fontSize: 13, fontWeight: "600", color: "#111827" },
+
+  /* Field */
+  fieldWrap: { marginTop: 14 },
+  label: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#374151",
+    marginBottom: 6,
+    textTransform: "uppercase",
+    letterSpacing: 0.3,
+  },
+  required: { color: "#ef4444" },
+
+  /* Select */
+  selectRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: "#d1d5db",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 11,
+    backgroundColor: "#fff",
+  },
+  selectValue: { fontSize: 14, color: "#111827", flex: 1 },
+  selectPlaceholder: { fontSize: 14, color: "#9ca3af", flex: 1 },
+  chevron: { fontSize: 12, color: "#6b7280" },
+  dropdown: {
+    position: "absolute",
+    top: "100%",
+    left: 0,
+    right: 0,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 6,
+    zIndex: 999,
+    marginTop: 2,
+  },
+  dropdownItem: {
+    paddingVertical: 13,
+    paddingHorizontal: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f3f4f6",
+  },
+  dropdownText: { fontSize: 14, color: "#374151", fontWeight: "500" },
+
+  /* Time */
+  timeInputWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#d1d5db",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: "#fff",
+    gap: 8,
+  },
+  timeInput: { flex: 1, fontSize: 15, color: "#111827", padding: 0 },
+
+  /* Textarea */
   textArea: {
     borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    borderColor: "#d1d5db",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     fontSize: 14,
-    color: COLORS.textDark,
-    minHeight: 100,
-    textAlignVertical: "top",
-    backgroundColor: COLORS.white,
+    color: "#111827",
+    minHeight: 110,
+    backgroundColor: "#fff",
+    lineHeight: 20,
   },
+  charCount: {
+    fontSize: 11,
+    color: "#9ca3af",
+    textAlign: "right",
+    marginTop: 4,
+  },
+
+  /* Note */
+  noteBox: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    backgroundColor: "#eff6ff",
+    borderRadius: 10,
+    padding: 12,
+    borderLeftWidth: 3,
+    borderLeftColor: "#3b82f6",
+  },
+  noteText: { fontSize: 12.5, color: "#1d4ed8", lineHeight: 18 },
+
+  /* Buttons */
   btnRow: {
     flexDirection: "row",
     gap: 10,
-    paddingHorizontal: H_PAD,
-    paddingVertical: 16,
-    paddingBottom: 40,
-    backgroundColor: COLORS.white,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    marginHorizontal: 16,
+    marginTop: 20,
   },
-  btnOutline: {
+  btnCancel: {
     flex: 1,
-    borderWidth: 1.5,
-    borderColor: COLORS.primary,
+    borderWidth: 1,
+    borderColor: "#d1d5db",
     borderRadius: 10,
-    paddingVertical: 14,
+    paddingVertical: 13,
     alignItems: "center",
+    backgroundColor: "#fff",
   },
-  btnSolid: {
-    flex: 1,
-    backgroundColor: COLORS.primary,
+  btnCancelText: { fontSize: 14, fontWeight: "600", color: "#374151" },
+  btnSubmit: {
+    flex: 2,
+    backgroundColor: "#2563eb",
     borderRadius: 10,
-    paddingVertical: 14,
+    paddingVertical: 13,
     alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 6,
   },
-  btnOutlineText: { fontSize: 14, color: COLORS.primary, fontWeight: "700" },
-  btnSolidText: { fontSize: 14, color: COLORS.white, fontWeight: "700" },
+  btnSubmitText: { fontSize: 14, fontWeight: "700", color: "#fff" },
 });

@@ -32,6 +32,6 @@ export const getAuthUserId = () => {
 export const clearAuthData = () => {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
-  localStorage.removeItem(ROLE_KEY); // ← thêm
-  localStorage.removeItem(USER_ID_KEY); // ← thêm
+  localStorage.removeItem(ROLE_KEY);
+  localStorage.removeItem(USER_ID_KEY);
 };

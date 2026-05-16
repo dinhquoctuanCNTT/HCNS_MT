@@ -1,0 +1,259 @@
+.ls-page {
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  padding: 20px;
+  background-color: #f1f5f9;
+  min-height: 100vh;
+}
+
+/* ── Tabs Row ── */
+.ls-tabs-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: transparent;
+  margin-bottom: 20px;
+}
+.ls-tabs {
+  display: flex;
+  gap: 4px;
+  background: #f8fafc;
+  padding: 8px 12px 0;
+  border-bottom: 1px solid #e2e8f0;
+  width: 100%;
+}
+.ls-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  position: relative;
+  border: none;
+  background: transparent;
+  transition: all 0.2s;
+  border-radius: 8px 8px 0 0;
+}
+.ls-tab:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+.ls-tab--active {
+  color: #3b82f6;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-bottom: 2px solid #3b82f6;
+  margin-bottom: -1px;
+  z-index: 2;
+}
+.ls-tab-icon {
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+}
+.ls-tab-count { 
+  font-weight: 500; 
+  color: #94a3b8;
+  margin-left: 2px;
+}
+.ls-tab--active .ls-tab-count {
+  color: #3b82f6;
+}
+
+/* ── Main Card Container ── */
+.ls-card {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+
+/* ── Filter Container ── */
+.ls-filter-container {
+  padding: 16px 20px;
+  display: flex;
+  gap: 20px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  align-items: flex-end;
+}
+.ls-filter-group { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 6px;
+  flex: 1;
+}
+.ls-label { 
+  font-size: 13px; 
+  font-weight: 600; 
+  color: #334155; 
+  margin-bottom: 2px;
+}
+.ls-input, .ls-select {
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  color: #334155;
+  background: #ffffff;
+  transition: all 0.2s;
+  width: 100%;
+}
+.ls-input:focus, .ls-select:focus {
+  border-color: #3b82f6;
+  background: #fff;
+}
+.ls-input-search {
+  padding-left: 36px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 12px center;
+  background-size: 16px;
+}
+
+/* ── Table ── */
+.ls-table-wrap {
+  overflow: hidden;
+}
+.ls-table { width: 100%; border-collapse: collapse; }
+.ls-table th {
+  background: #ffffff;
+  padding: 14px 16px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e293b;
+  border-bottom: 1px solid #e2e8f0;
+}
+.ls-table th:last-child { border-right: none; }
+
+.ls-table tbody tr {
+  border-bottom: 1px solid #e2e8f0;
+  transition: background 0.1s;
+}
+.ls-table tbody tr:nth-child(odd) {
+  background: #f2f4f6; /* Light grey for odd rows */
+}
+.ls-table tbody tr:nth-child(even) {
+  background: #ffffff; /* White for even rows */
+}
+.ls-table tbody tr:hover {
+  background: #f0f7ff !important;
+}
+
+.ls-table td {
+  padding: 8px 16px; /* Reduced from 12px */
+  font-size: 13.5px;
+  color: #1a1a1a;
+  border-right: 1px solid #e2e8f0;
+  vertical-align: middle;
+}
+.ls-table td:last-child { border-right: none; }
+
+/* ── Status Badges ── */
+.ls-status {
+  padding: 4px 14px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  min-width: 80px;
+}
+.ls-status--dunggio { background-color: #22c55e; }
+.ls-status--dimuon  { background-color: #f59e0b; }
+.ls-status--vesom   { background-color: #8b5cf6; }
+.ls-status--vangmat { background-color: #ef4444; }
+.ls-status--missing { background-color: #94a3b8; }
+
+.ls-status-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: flex-start;
+}
+
+/* ── Actions ── */
+.ls-actions { display: flex; gap: 8px; }
+.ls-btn-action {
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+.ls-btn-view { 
+  background-color: #fff;
+  color: #3b82f6; 
+  border-color: #3b82f6; 
+}
+.ls-btn-view:hover {
+  background-color: #eff6ff;
+}
+.ls-btn-request { 
+  background-color: #fff;
+  color: #ef4444; 
+  border-color: #ef4444; 
+}
+.ls-btn-request:hover {
+  background-color: #fef2f2;
+}
+
+.ls-btn-excel {
+  background: #10b981; color: #fff; border: none;
+  padding: 4px 9px; border-radius: 6px; font-weight: 600;
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+.ls-btn-excel:hover {
+  background: #059669;
+}
+
+/* ── Photo thumbnails ── */
+.ls-photos {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.ls-photo-thumb {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.15s;
+}
+.ls-photo-thumb:hover {
+  opacity: 0.85;
+  transform: scale(1.08);
+}
+
+/* ── Photo overlay modal ── */
+.ls-photo-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: zoom-out;
+}
+.ls-photo-overlay-img {
+  max-width: 90vw;
+  max-height: 90vh;
+  border-radius: 12px;
+  object-fit: contain;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+}

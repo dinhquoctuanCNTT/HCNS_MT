@@ -1,321 +1,283 @@
 import { StyleSheet, Dimensions, Platform } from "react-native";
+import COLORS from "../../../constants/colors";
+
+export { COLORS };
 
 const { width } = Dimensions.get("window");
-const H_PAD = 14;
-const GAP = 7;
-// 4 columns: total gap = GAP * 3, total padding = H_PAD * 2
-const COL4 = Math.floor((width - H_PAD * 4 - GAP * 3) / 4);
+const H_PAD    = 16;
+const GAP      = 10;
+const COL4     = Math.floor((width - H_PAD * 4 - GAP * 3) / 4);
+const BANNER_W = Math.floor((width - H_PAD * 2 - GAP) / 2);
 
-export const COLORS = {
-  navy: "#0484d4",
-  navyMid: "#046fa0",
-  blue: "#1d4ed8",
-  blueLight: "#eff6ff",
-  success: "#22c55e",
-  successLight: "#dcfce7",
-  successDark: "#16a34a",
-  warning: "#d97706",
-  warningLight: "#fef3c7",
-  danger: "#ef4444",
-  dangerLight: "#fef2f2",
-  teal: "#0891b2",
-  tealLight: "#e0f7fa",
-  purple: "#7c3aed",
-  purpleLight: "#f5f3ff",
-  bg: "#f0f2f7",
-  white: "#ffffff",
-  textDark: "#111827",
-  textMid: "#374151",
-  textLight: "#9ca3af",
-  border: "#e2e8f0",
-  borderMid: "#e8ecf2",
-};
+export const BLUE = "#0D8BFF";
 
 export default StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.bg },
+  container: { flex: 1, backgroundColor: "#F0F4F8" },
 
-  // ── HEADER ─────────────────────────────────────────────────────────────────
-  header: {
-    backgroundColor: COLORS.navy,
-    paddingTop: Platform.OS === "ios" ? 50 : 56,
+  // ── HEADER ───────────────────────────────────────────────────────────────
+  headerArea: {
+    paddingTop: Platform.OS === "ios" ? 52 : 36,
     paddingHorizontal: H_PAD,
-    paddingBottom: 0,
+    paddingBottom: 20,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    overflow: "hidden",
+    backgroundColor: "#0A4FA0",
   },
+  headerBgImg: {
+    resizeMode: "cover",
+    opacity: 1,
+  },
+  headerOverlay: {
+    position: "absolute",
+    top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: "rgba(0,0,0,0)",
+  },
+
+  // ── USER ROW ─────────────────────────────────────────────────────────────
   headerRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 12,
+    marginBottom: 14,
   },
-  headerLeft: { flexDirection: "row", alignItems: "center", gap: 10 },
-  headerRight: { flexDirection: "row", gap: 8 },
+  headerLeft:  { flexDirection: "row", alignItems: "center", gap: 10 },
+  headerIcons: { flexDirection: "row", gap: 8 },
 
   avatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: "rgba(255,255,255,0.18)",
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(255,255,255,0.25)",
     borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.4)",
+    borderColor: "rgba(255,255,255,0.60)",
     justifyContent: "center",
     alignItems: "center",
+    overflow: "hidden",
   },
-  avatarText: { fontSize: 14, fontWeight: "800", color: COLORS.white },
-  userName: { fontSize: 14, fontWeight: "800", color: COLORS.white },
-  userRole: { fontSize: 10, color: "rgba(255,255,255,0.6)", marginTop: 2 },
+  avatarImg:     { width: 44, height: 44, borderRadius: 22 },
+  avatarInitial: { fontSize: 17, fontWeight: "800", color: "#fff" },
+  userName: { fontSize: 15, fontWeight: "800", color: "#fff", letterSpacing: 0.2 },
+  userRole:  { fontSize: 11, color: "rgba(255,255,255,0.82)", marginTop: 1 },
 
   iconBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: "rgba(255,255,255,0.12)",
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(255,255,255,0.22)",
     justifyContent: "center",
     alignItems: "center",
   },
   notifDot: {
     position: "absolute",
-    top: 5,
-    right: 5,
-    width: 7,
-    height: 7,
+    top: 6, right: 6,
+    width: 7, height: 7,
     borderRadius: 3.5,
-    backgroundColor: COLORS.danger,
+    backgroundColor: "#FF4444",
     borderWidth: 1.5,
-    borderColor: COLORS.navy,
+    borderColor: "rgba(255,255,255,0.5)",
   },
 
-  // ── ATTENDANCE BAR (slim white pill) ───────────────────────────────────────
-  attendBar: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
+  // ── GLASS CARD ───────────────────────────────────────────────────────────
+  glassCard: {
+    backgroundColor: "rgba(255,255,255,0.55)",
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: COLORS.borderMid,
-    flexDirection: "row",
-    alignItems: "center",
+    borderColor: "rgba(255,255,255,0.60)",
     overflow: "hidden",
-    marginBottom: 0, // flush to primaryCard
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-    borderBottomWidth: 0,
   },
-  attendSide: {
-    flex: 1,
+
+  tenureBadge: {
+    position: "absolute",
+    top: 10, right: 12,
+    zIndex: 10,
+    backgroundColor: "#EFF6FF",
+    borderRadius: 10,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+    minWidth: 54,
+  },
+  tenureBadgeVal: { fontSize: 12, fontWeight: "900", color: BLUE, lineHeight: 15 },
+  tenureBadgeLbl: { fontSize: 7, fontWeight: "600", color: "#64748B" },
+
+  // ── ATTEND ROW ───────────────────────────────────────────────────────────
+  attendRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    paddingVertical: 11,
+    paddingTop: 16,
+    paddingBottom: 12,
     paddingHorizontal: 14,
   },
-  attendSideRight: {
-    borderLeftWidth: 1,
-    borderLeftColor: COLORS.borderMid,
-    backgroundColor: "#fafbfc",
-  },
-  attendFab: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.navy,
-    justifyContent: "center",
-    alignItems: "center",
-    flexShrink: 0,
-  },
-  attendStatusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: COLORS.success,
-  },
-  attendStatusDotGray: {
-    backgroundColor: "#d1d5db",
-  },
-  attendLabel: { fontSize: 10.5, color: COLORS.textLight, fontWeight: "500" },
-  attendTime: { fontSize: 14, fontWeight: "800", color: COLORS.navy },
-  attendTimeDim: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: COLORS.textLight,
-    letterSpacing: 1,
-  },
-  attendBadge: {
-    backgroundColor: COLORS.successLight,
-    borderRadius: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-  },
-  attendBadgeText: {
-    fontSize: 8.5,
-    fontWeight: "700",
-    color: COLORS.successDark,
-  },
+  attendCol:      { flex: 1, gap: 4 },
+  attendColRight: { alignItems: "flex-end" },
 
-  // ── QUICK ACTIONS (4 icons below attendance bar) ───────────────────────────
-  quickCard: {
-    backgroundColor: COLORS.white,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.borderMid,
-    borderBottomLeftRadius: 14,
-    borderBottomRightRadius: 14,
-    paddingTop: 12,
-    paddingBottom: 14,
-    paddingHorizontal: H_PAD,
+  labelRow: { flexDirection: "row", alignItems: "center", gap: 5 },
+  statusDot:       { width: 7, height: 7, borderRadius: 3.5, backgroundColor: "#D1D5DB" },
+  statusDotActive: { backgroundColor: "#22C55E" },
+  attendLbl:       { fontSize: 10, fontWeight: "600", color: "#94A3B8" },
+
+  timeRow:    { flexDirection: "row", alignItems: "baseline", gap: 3 },
+  timeVal:    { fontSize: 20, fontWeight: "900", color: "#1E293B", letterSpacing: 0.3 },
+  timeValDim: { fontSize: 20, fontWeight: "700", color: "#CBD5E1", letterSpacing: 0.6 },
+  ampmVal:    { fontSize: 10, fontWeight: "700", color: "#475569" },
+  ampmDim:    { fontSize: 10, fontWeight: "600", color: "#CBD5E1" },
+
+  statusBadgeOk: {
+    backgroundColor: "#DCFCE7", borderRadius: 6,
+    paddingHorizontal: 6, paddingVertical: 2, marginTop: 2, alignSelf: "flex-start",
   },
-  quickGrid: { flexDirection: "row" },
-  quickItem: { flex: 1, alignItems: "center", gap: 6 },
+  statusBadgeOkTxt: { fontSize: 8, fontWeight: "700", color: "#16A34A" },
+  statusBadgeWarn: {
+    backgroundColor: "#FEF3C7", borderRadius: 6,
+    paddingHorizontal: 6, paddingVertical: 2, marginTop: 2, alignSelf: "flex-start",
+  },
+  statusBadgeWarnTxt: { fontSize: 8, fontWeight: "700", color: "#D97706" },
+
+  ringWrap: { alignItems: "center", justifyContent: "center", marginHorizontal: 8 },
+
+  // ── DIVIDER ───────────────────────────────────────────────────────────────
+  divider: { height: 1, backgroundColor: "#EEF2F7", marginHorizontal: 14 },
+
+  // ── QUICK ACTIONS ────────────────────────────────────────────────────────
+  quickRow: { flexDirection: "row", paddingHorizontal: 4, paddingVertical: 10 },
+  quickItem: { flex: 1, alignItems: "center", gap: 5 },
   quickIconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
+    width: 48, height: 48,
+    borderRadius: 14,
+    backgroundColor: "#EFF6FF",
     justifyContent: "center",
     alignItems: "center",
   },
-  quickLabel: {
-    fontSize: 9.5,
-    fontWeight: "700",
-    color: COLORS.textDark,
-    textAlign: "center",
-    lineHeight: 13,
-  },
+  quickIconImg: { width: 26, height: 26 },
+  quickLabel: { fontSize: 9, fontWeight: "600", color: "#475569", textAlign: "center", lineHeight: 12 },
 
-  // ── SCROLL ─────────────────────────────────────────────────────────────────
+  // Calendar icon with today date
+  calIcon: {
+    width: 34, height: 34,
+    borderRadius: 8,
+    backgroundColor: "#fff",
+    borderWidth: 1.5,
+    borderColor: BLUE,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  calHeader: {
+    width: "100%",
+    height: 9,
+    backgroundColor: BLUE,
+    position: "absolute",
+    top: 0,
+  },
+  calDate: { fontSize: 14, fontWeight: "900", color: BLUE, marginTop: 4 },
+
+  // ── SCROLL ────────────────────────────────────────────────────────────────
   scroll: { flex: 1 },
   scrollContent: {
     paddingHorizontal: H_PAD,
-    paddingTop: 12,
-    paddingBottom: 90,
+    paddingTop: 14,
+    paddingBottom: 100,
     gap: 12,
   },
 
-  // ── SECTION CARD ───────────────────────────────────────────────────────────
+  // ── SECTION CARD ──────────────────────────────────────────────────────────
   card: {
-    backgroundColor: COLORS.white,
-    borderRadius: 14,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
     padding: H_PAD,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
   },
   cardHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 12,
+    marginBottom: 14,
   },
-  cardTitle: {
-    fontSize: 12,
-    fontWeight: "800",
-    color: COLORS.navy,
-    letterSpacing: 0.4,
-  },
-  cardLink: { fontSize: 10.5, color: COLORS.blue, fontWeight: "600" },
+  cardTitle: { fontSize: 12, fontWeight: "800", color: "#1E293B", letterSpacing: 0.5 },
+  cardLink:  { fontSize: 11, color: BLUE, fontWeight: "600" },
 
-  // ── SERVICE GRID — 4 columns ───────────────────────────────────────────────
-  svcGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: GAP,
-  },
+  // ── SERVICE GRID ──────────────────────────────────────────────────────────
+  svcGrid: { flexDirection: "row", flexWrap: "wrap", rowGap: GAP, columnGap: GAP },
   svcItem: {
     width: COL4,
-    backgroundColor: COLORS.white,
-    borderRadius: 10,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: COLORS.borderMid,
-    paddingTop: 10,
-    paddingBottom: 8,
-    paddingHorizontal: 2,
+    borderColor: "#EEF0F6",
+    paddingTop: 14, paddingBottom: 10,
+    paddingHorizontal: 4,
     alignItems: "center",
-    gap: 5,
+    gap: 7,
   },
   svcIconBox: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 44, height: 44,
+    borderRadius: 22,
     justifyContent: "center",
     alignItems: "center",
   },
-  svcLabel: {
-    fontSize: 8.5,
-    fontWeight: "600",
-    color: COLORS.textDark,
-    textAlign: "center",
-    lineHeight: 12,
-  },
-
-  // Badge
-  badgeWrap: { position: "absolute", top: -2, right: -2 },
+  svcLabel:  { fontSize: 9, fontWeight: "600", color: "#475569", textAlign: "center", lineHeight: 12 },
+  badgeWrap: { position: "absolute", top: -3, right: -3 },
   badge: {
     backgroundColor: COLORS.danger,
     borderRadius: 7,
-    width: 14,
-    height: 14,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1.5,
-    borderColor: COLORS.white,
+    minWidth: 14, height: 14,
+    justifyContent: "center", alignItems: "center",
+    borderWidth: 1.5, borderColor: "#fff",
+    paddingHorizontal: 2,
   },
-  badgeText: { fontSize: 7.5, fontWeight: "800", color: COLORS.white },
+  badgeText: { fontSize: 7.5, fontWeight: "800", color: "#fff" },
 
-  // ── NEWS BANNERS ───────────────────────────────────────────────────────────
-  bannerScroll: { marginHorizontal: -H_PAD },
+  // ── FACE ID BUTTONS ───────────────────────────────────────────────────────
+  faceRow: { flexDirection: "row", gap: 6, alignItems: "center" },
+  faceBtn: {
+    flexDirection: "row", alignItems: "center", gap: 4,
+    backgroundColor: BLUE, borderRadius: 12,
+    paddingHorizontal: 8, paddingVertical: 4,
+  },
+  faceBtnGhost: {
+    flexDirection: "row", alignItems: "center", gap: 4,
+    backgroundColor: "transparent", borderRadius: 12,
+    borderWidth: 1, borderColor: BLUE,
+    paddingHorizontal: 8, paddingVertical: 4,
+  },
+  faceBtnText:      { fontSize: 9, fontWeight: "700", color: "#fff" },
+  faceBtnTextGhost: { fontSize: 9, fontWeight: "700", color: BLUE },
+
+  // ── BANNERS ───────────────────────────────────────────────────────────────
+  bannerScroll:  { marginHorizontal: -H_PAD },
   bannerContent: { paddingHorizontal: H_PAD, gap: 10 },
   bannerCard: {
-    width: 230,
-    borderRadius: 12,
+    width: BANNER_W,
+    borderRadius: 14,
     overflow: "hidden",
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
   },
-  bannerImg: {
-    height: 150,
-    justifyContent: "flex-end",
-    padding: 10,
-  },
-  bannerTag: {
-    fontSize: 7,
-    fontWeight: "800",
-    color: "rgba(255,255,255,0.7)",
-    letterSpacing: 1,
-    marginBottom: 2,
-  },
-  bannerTitle: {
-    fontSize: 13,
-    fontWeight: "900",
-    color: COLORS.white,
-    lineHeight: 18,
-  },
+  bannerImg:  { height: 100, justifyContent: "flex-end", padding: 10 },
+  bannerTag:  { fontSize: 7, fontWeight: "800", color: "rgba(255,255,255,0.8)", letterSpacing: 1, marginBottom: 2, textTransform: "uppercase" },
+  bannerTitle:{ fontSize: 12, fontWeight: "900", color: "#fff", lineHeight: 15 },
   bannerFooter: {
-    backgroundColor: COLORS.white,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    flexDirection: "row",
-    alignItems: "center",
+    backgroundColor: "#fff",
+    paddingHorizontal: 10, paddingVertical: 7,
+    flexDirection: "row", alignItems: "center",
     justifyContent: "space-between",
   },
-  bannerMeta: { fontSize: 9, color: COLORS.textLight },
-  bannerLink: { fontSize: 9.5, color: COLORS.blue, fontWeight: "700" },
+  bannerMeta: { fontSize: 8.5, color: "#94A3B8" },
+  bannerLink: { fontSize: 9,   color: BLUE, fontWeight: "700" },
   bannerNew: {
     backgroundColor: COLORS.successLight,
-    borderRadius: 4,
-    paddingHorizontal: 7,
-    paddingVertical: 2,
+    borderRadius: 8, paddingHorizontal: 6, paddingVertical: 2,
   },
-  bannerNewText: { fontSize: 9, fontWeight: "800", color: COLORS.successDark },
-
-  // Dots
-  dotsRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 4,
-    marginTop: 10,
-  },
-  dotActive: {
-    width: 18,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: COLORS.navy,
-  },
-  dotInactive: {
-    width: 6,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: "#d1d5db",
-  },
+  bannerNewText: { fontSize: 8, fontWeight: "800", color: COLORS.successDark },
+  dotsRow: { flexDirection: "row", justifyContent: "center", gap: 4, marginTop: 10 },
+  dotPip:  { height: 4, borderRadius: 2 },
 });

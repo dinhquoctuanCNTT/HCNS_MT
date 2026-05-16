@@ -6,9 +6,9 @@ import {
   ScrollView,
   ActivityIndicator,
 } from "react-native";
-import { attendanceApi } from "../../../api/attendanceApi";
+import { attendanceApi } from "../../../../api/attendanceApi";
 import styles, { COLORS, H_PAD, CELL_W } from "./HistoryScreen.style";
-import { Tab, DayDetail } from "./types";
+import { Tab, DayDetail } from "../types";
 import {
   DOW_LABELS,
   DOW_FULL,
@@ -19,9 +19,9 @@ import {
   isLate,
   buildGrid,
   getDayStatus,
-} from "./helpers";
-import DayDetailScreen from "./DayDetailScreen";
-import UpdateRequestForm from "./UpdateRequestForm";
+} from "../helpers";
+
+const PAGE_SIZE = 10;
 
 export default function HistoryScreen({ navigation }: any) {
   const today = useMemo(() => new Date(), []);
@@ -30,8 +30,10 @@ export default function HistoryScreen({ navigation }: any) {
   const [records, setRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState<Tab>("calendar");
-  const [selectedDay, setSelectedDay] = useState<DayDetail | null>(null);
-  const [showForm, setShowForm] = useState(false);
+  const [page, setPage] = useState(1);
+
+  // Reset page khi đổi tháng/năm
+  useEffect(() => setPage(1), [year, month]);
 
   useEffect(() => {
     (async () => {
@@ -67,7 +69,7 @@ export default function HistoryScreen({ navigation }: any) {
       const date = new Date(year, month, d);
       if (date > today) break;
       const dow = date.getDay();
-      if (dow === 0 || dow === 6) continue;
+      if (dow === 0) continue;
       if (!recMap.has(d)) n++;
     }
     return n;
@@ -79,7 +81,7 @@ export default function HistoryScreen({ navigation }: any) {
     for (let d = 1; d <= last; d++) {
       const date = new Date(year, month, d);
       if (date > today) break;
-      if (date.getDay() !== 0 && date.getDay() !== 6) n++;
+      if (date.getDay() !== 0) n++;
     }
     return n;
   }, [year, month, today]);
@@ -104,6 +106,21 @@ export default function HistoryScreen({ navigation }: any) {
     return list.reverse();
   }, [recMap, year, month, today]);
 
+  const sortedRecords = useMemo(
+    () =>
+      [...records].sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+      ),
+    [records],
+  );
+
+  // Phân trang
+  const pagedRecords = useMemo(
+    () => sortedRecords.slice(0, page * PAGE_SIZE),
+    [sortedRecords, page],
+  );
+  const hasMore = pagedRecords.length < sortedRecords.length;
+
   const prevYear = () => setYear((y) => y - 1);
   const nextYear = () => setYear((y) => y + 1);
   const prevMonth = () => {
@@ -124,15 +141,16 @@ export default function HistoryScreen({ navigation }: any) {
       const status = getDayStatus(day, year, month, recMap, today);
       if (status === "future" || status === "weekend") return;
       const date = new Date(year, month, day);
-      setSelectedDay({
+      const detail = {
         day,
         record: recMap.get(day) ?? null,
         status,
         dayOfWeek: DOW_FULL[dowIdx(date)],
         dateStr: fmtDate(date),
-      });
+      };
+      navigation.navigate("DayDetail", { detail });
     },
-    [year, month, recMap, today],
+    [year, month, recMap, today, navigation],
   );
 
   // ── Calendar cell ──────────────────────────────────────────────────────────
@@ -148,7 +166,7 @@ export default function HistoryScreen({ navigation }: any) {
     const rec = recMap.get(day);
     const late = isLate(rec);
 
-    let numStyle = styles.dayNumDefault;
+    let numStyle: object = styles.dayNumDefault;
     if (isSun) numStyle = styles.dayNumRed;
     else if (status === "late") numStyle = styles.dayNumAmber;
     else if (status === "future") numStyle = styles.dayNumFuture;
@@ -163,10 +181,10 @@ export default function HistoryScreen({ navigation }: any) {
     );
 
     let dotColor: string | null = null;
-    if (status === "present") dotColor = COLORS.green;
+    if (status === "present") dotColor = COLORS.success;
     else if (status === "late") dotColor = COLORS.warning;
     else if (status === "absent") dotColor = COLORS.danger;
-    else if (isToday && rec && !late) dotColor = COLORS.green;
+    else if (isToday && rec && !late) dotColor = COLORS.success;
     else if (isToday && rec && late) dotColor = COLORS.warning;
 
     const cell = (
@@ -216,6 +234,7 @@ export default function HistoryScreen({ navigation }: any) {
       : miss
         ? COLORS.dangerLight
         : COLORS.successLight;
+
     return (
       <TouchableOpacity
         key={idx}
@@ -304,10 +323,7 @@ export default function HistoryScreen({ navigation }: any) {
       <TouchableOpacity
         key={idx}
         style={styles.explainCard}
-        onPress={() => {
-          setSelectedDay(detail);
-          setShowForm(true);
-        }}
+        onPress={() => navigation.navigate("UpdateRequest", { detail })}
         activeOpacity={0.8}
       >
         <View style={[styles.explainDateBox, { backgroundColor: bg }]}>
@@ -324,10 +340,7 @@ export default function HistoryScreen({ navigation }: any) {
         </View>
         <TouchableOpacity
           style={styles.explainBtn}
-          onPress={() => {
-            setSelectedDay(detail);
-            setShowForm(true);
-          }}
+          onPress={() => navigation.navigate("UpdateRequest", { detail })}
         >
           <Text style={styles.explainBtnText}>Giải trình</Text>
         </TouchableOpacity>
@@ -335,30 +348,9 @@ export default function HistoryScreen({ navigation }: any) {
     );
   };
 
-  const sortedRecords = useMemo(
-    () =>
-      [...records].sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-      ),
-    [records],
-  );
-
-  // ── Sub-screen routing ─────────────────────────────────────────────────────
-  if (showForm && selectedDay)
-    return (
-      <UpdateRequestForm
-        detail={selectedDay}
-        onClose={() => setShowForm(false)}
-      />
-    );
-  if (selectedDay)
-    return (
-      <DayDetailScreen
-        detail={selectedDay}
-        onBack={() => setSelectedDay(null)}
-        onRequestUpdate={() => setShowForm(true)}
-      />
-    );
+  // ── Sub-screen routing đã bị xóa ─────────────────────────────────────────
+  // DayDetailScreen và UpdateRequestForm đã được chuyển lên root MainStack
+  // Navigation giờ sử dụng navigation.navigate() thay vì inline rendering
 
   // ── Main render ────────────────────────────────────────────────────────────
   return (
@@ -431,7 +423,6 @@ export default function HistoryScreen({ navigation }: any) {
           />
         ) : tab === "calendar" ? (
           <View style={styles.calWrap}>
-            {/* Year nav */}
             <View style={styles.yearNavRow}>
               <TouchableOpacity onPress={prevYear}>
                 <Text style={styles.yearNavText}>‹</Text>
@@ -524,7 +515,7 @@ export default function HistoryScreen({ navigation }: any) {
             {/* Legend */}
             <View style={styles.legend}>
               {[
-                { color: COLORS.green, label: "Đúng giờ" },
+                { color: COLORS.success, label: "Đúng giờ" },
                 { color: COLORS.warning, label: "Đi muộn" },
                 { color: COLORS.danger, label: "Vắng mặt" },
               ].map((l, i) => (
@@ -585,13 +576,113 @@ export default function HistoryScreen({ navigation }: any) {
                 Danh sách chấm công — Tháng {month + 1}/{year}
               </Text>
             </View>
+
             {sortedRecords.length === 0 ? (
               <View style={styles.empty}>
                 <Text style={{ fontSize: 36 }}>📋</Text>
                 <Text style={styles.emptyText}>Không có dữ liệu tháng này</Text>
               </View>
             ) : (
-              sortedRecords.map((r, i) => renderLogCard(r, i))
+              <>
+                {/* Tổng kết */}
+                <View
+                  style={{
+                    flexDirection: "row",
+                    gap: 8,
+                    marginBottom: 12,
+                    backgroundColor: COLORS.bg,
+                    borderRadius: 10,
+                    padding: 10,
+                  }}
+                >
+                  <View style={{ flex: 1, alignItems: "center" }}>
+                    <Text
+                      style={{
+                        fontSize: 18,
+                        fontWeight: "800",
+                        color: COLORS.success,
+                      }}
+                    >
+                      {totalPresent}
+                    </Text>
+                    <Text style={{ fontSize: 10, color: COLORS.textLight }}>
+                      Có mặt
+                    </Text>
+                  </View>
+                  <View style={{ width: 1, backgroundColor: COLORS.border }} />
+                  <View style={{ flex: 1, alignItems: "center" }}>
+                    <Text
+                      style={{
+                        fontSize: 18,
+                        fontWeight: "800",
+                        color: COLORS.warning,
+                      }}
+                    >
+                      {totalLate}
+                    </Text>
+                    <Text style={{ fontSize: 10, color: COLORS.textLight }}>
+                      Đi muộn
+                    </Text>
+                  </View>
+                  <View style={{ width: 1, backgroundColor: COLORS.border }} />
+                  <View style={{ flex: 1, alignItems: "center" }}>
+                    <Text
+                      style={{
+                        fontSize: 18,
+                        fontWeight: "800",
+                        color: COLORS.danger,
+                      }}
+                    >
+                      {absentDays}
+                    </Text>
+                    <Text style={{ fontSize: 10, color: COLORS.textLight }}>
+                      Vắng
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Danh sách có phân trang */}
+                {pagedRecords.map((r, i) => renderLogCard(r, i))}
+
+                {/* Nút xem thêm */}
+                {hasMore && (
+                  <TouchableOpacity
+                    style={{
+                      padding: 12,
+                      alignItems: "center",
+                      borderWidth: 1,
+                      borderColor: COLORS.border,
+                      borderRadius: 10,
+                      marginTop: 8,
+                      backgroundColor: COLORS.white,
+                    }}
+                    onPress={() => setPage((p) => p + 1)}
+                  >
+                    <Text
+                      style={{
+                        color: COLORS.primary,
+                        fontWeight: "600",
+                        fontSize: 13,
+                      }}
+                    >
+                      Xem thêm ({sortedRecords.length - pagedRecords.length} bản
+                      ghi)
+                    </Text>
+                  </TouchableOpacity>
+                )}
+
+                {/* Hiển thị trang hiện tại */}
+                <Text
+                  style={{
+                    textAlign: "center",
+                    color: COLORS.textLight,
+                    fontSize: 11,
+                    marginTop: 8,
+                  }}
+                >
+                  Hiển thị {pagedRecords.length}/{sortedRecords.length} bản ghi
+                </Text>
+              </>
             )}
           </View>
         ) : (

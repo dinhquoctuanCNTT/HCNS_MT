@@ -1,7 +1,7 @@
 import React from "react";
 import { TouchableOpacity, StyleSheet, Platform } from "react-native";
 import Svg, { Path } from "react-native-svg";
-import { COLORS } from "./HistoryScreen.style";
+import { COLORS } from "./HistoryScreen/HistoryScreen.style";
 
 interface Props {
   onPress: () => void;

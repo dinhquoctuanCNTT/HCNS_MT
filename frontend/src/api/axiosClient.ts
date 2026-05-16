@@ -5,7 +5,7 @@ const axiosClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
-    "ngrok-skip-browser-warning": "true", // ← thêm dòng này
+    "ngrok-skip-browser-warning": "true",
   },
 });
 

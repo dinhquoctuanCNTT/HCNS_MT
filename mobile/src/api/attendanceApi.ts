@@ -15,6 +15,7 @@ export const attendanceApi = {
 
   getLeaveRequests: (status?: string) =>
     axiosClient.get("/attendance/leave", { params: { status } }),
+
   createLeaveRequest: (data: {
     leave_type: string;
     from_date: string;
@@ -22,4 +23,7 @@ export const attendanceApi = {
     total_days?: number;
     reason?: string;
   }) => axiosClient.post("/attendance/leave", data),
+
+  getStats: (month?: string, employeeId?: number) =>
+    axiosClient.get("/attendance/stats", { params: { month, employeeId } }),
 };

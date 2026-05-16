@@ -29,10 +29,16 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     setCredentials: (state, action: PayloadAction<SetCredentialsPayload>) => {
+      const raw = action.payload.user;
+      const user: User = {
+        ...raw,
+        fullName: (raw as any).full_name ?? raw.fullName ?? "",
+        has_registered_face: !!(raw as any).has_registered_face,
+      };
       state.token = action.payload.token;
-      state.user = action.payload.user;
+      state.user = user;
       AsyncStorage.setItem("token", action.payload.token);
-      AsyncStorage.setItem("user", JSON.stringify(action.payload.user));
+      AsyncStorage.setItem("user", JSON.stringify(user));
     },
     logout: (state) => {
       state.token = null;
@@ -44,9 +50,16 @@ const authSlice = createSlice({
       state.token = action.payload.token;
       state.user = action.payload.user;
     },
+    updateUser: (state, action: PayloadAction<Partial<User>>) => {
+      if (state.user) {
+        state.user = { ...state.user, ...action.payload };
+        AsyncStorage.setItem("user", JSON.stringify(state.user));
+      }
+    },
   },
 });
 
-export const { setCredentials, logout, restoreSession } = authSlice.actions;
+export const { setCredentials, logout, restoreSession, updateUser } =
+  authSlice.actions;
 export default authSlice.reducer;
 export type { AuthState, User };

@@ -8,96 +8,197 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   Platform,
+  Image,
+  StatusBar,
+  TextInput,
+  Dimensions,
+  StyleSheet,
 } from "react-native";
 import { useDispatch } from "react-redux";
-import AppInput from "../../components/common/AppInput";
-import AppButton from "../../components/common/AppButton";
-import Logo from "../../components/auth/Logo";
 import { styles } from "./LoginScreen.style";
 import { setCredentials } from "../../store/slices/authSlice";
 import axiosClient from "../../api/axiosClient";
+
+const { width, height } = Dimensions.get("window");
 
 export default function LoginScreen({ navigation }: any) {
   const dispatch = useDispatch();
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [remember, setRemember] = useState(true);
+  const [showPass, setShowPass] = useState(false);
+  const [phoneError, setPhoneError] = useState("");
+  const [passError, setPassError] = useState("");
 
   const onLogin = async () => {
-    if (!phone.trim() || !password.trim()) {
-      Alert.alert("Lỗi", "Vui lòng nhập số điện thoại và mật khẩu");
-      return;
-    }
+    let hasError = false;
+    if (!phone.trim()) {
+      setPhoneError("Tên đăng nhập không được để trống");
+      hasError = true;
+    } else setPhoneError("");
+
+    if (!password.trim() || password.length < 6) {
+      setPassError("Mật khẩu phải có ít nhất 6 ký tự");
+      hasError = true;
+    } else setPassError("");
+
+    if (hasError) return;
+
     try {
       setLoading(true);
       const res = await axiosClient.post("/auth/login", { phone, password });
-      dispatch(
-        setCredentials({
-          token: res.data.token,
-          user: res.data.user,
-        }),
-      );
+      dispatch(setCredentials({ token: res.data.token, user: res.data.user }));
     } catch (err: any) {
-      const message =
-        err.response?.data?.message || "Sai số điện thoại hoặc mật khẩu";
-      Alert.alert("Đăng nhập thất bại", message);
+      Alert.alert(
+        "Đăng nhập thất bại",
+        err.response?.data?.message || "Sai thông tin đăng nhập",
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+    <View style={styles.root}>
+      <StatusBar barStyle="light-content" backgroundColor="#1B3F7E" />
+
+      {/* ── Geometric background shapes dùng View ── */}
+      <View style={styles.geoBg}>
+        <View style={styles.geoShape1} />
+        <View style={styles.geoShape2} />
+        <View style={styles.geoShape3} />
+        <View style={styles.geoShape4} />
+      </View>
+
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <View style={styles.container}>
-          <Logo small />
-          <View style={styles.card}>
-            <Text style={styles.title}>Login</Text>
-            <Text style={styles.subtitle}>Enter your phone and password</Text>
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.inner}>
+            {/* ── Card thống nhất — logo + form + illustration ── */}
+            <View style={styles.card}>
+              {/* Logo trong card */}
+              <View style={styles.cardLogoWrap}>
+                <Image
+                  source={require("../../assets/mt-logo.png")}
+                  style={styles.cardLogo}
+                  resizeMode="contain"
+                />
+              </View>
 
-            <AppInput
-              label="Số điện thoại"
-              placeholder="0911957620"
-              value={phone}
-              onChangeText={setPhone}
-              keyboardType="phone-pad"
-            />
-            <AppInput
-              label="Password"
-              placeholder="••••••••"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-            />
+              {/* Divider */}
+              <View style={styles.divider} />
 
-            <TouchableOpacity
-              onPress={() => navigation.navigate("ForgotPassword")}
-            >
-              <Text style={styles.forgot}>Forgot password?</Text>
-            </TouchableOpacity>
+              {/* Input tài khoản */}
+              <View
+                style={[
+                  styles.inputBox,
+                  phoneError ? styles.inputErrBox : null,
+                ]}
+              >
+                <TextInput
+                  style={styles.input}
+                  placeholder="Tên đăng nhập"
+                  placeholderTextColor="#9ca3af"
+                  value={phone}
+                  onChangeText={setPhone}
+                  keyboardType="phone-pad"
+                  autoCapitalize="none"
+                />
+              </View>
+              {phoneError ? (
+                <Text style={styles.errText}>{phoneError}</Text>
+              ) : (
+                <View style={{ height: 10 }} />
+              )}
 
-            {loading ? (
-              <ActivityIndicator size="large" color="#534ab7" />
-            ) : (
-              <AppButton title="Log in" onPress={onLogin} />
-            )}
+              {/* Input mật khẩu */}
+              <View
+                style={[
+                  styles.inputBox,
+                  styles.inputRow,
+                  passError ? styles.inputErrBox : null,
+                  { marginTop: 16 },
+                ]}
+              >
+                <TextInput
+                  style={[styles.input, { flex: 1 }]}
+                  placeholder="Mật khẩu"
+                  placeholderTextColor="#9ca3af"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPass}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowPass((s) => !s)}
+                  style={styles.eyeBtn}
+                >
+                  <Text style={styles.eyeTxt}>{showPass ? "👁️" : "🔒"}</Text>
+                </TouchableOpacity>
+              </View>
+              {passError ? (
+                <Text style={styles.errText}>{passError}</Text>
+              ) : (
+                <View style={{ height: 10 }} />
+              )}
 
-            <View style={styles.footerRow}>
-              <Text style={styles.footerText}>Don't have an account? </Text>
-              <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-                <Text style={styles.link}>Sign up</Text>
-              </TouchableOpacity>
+              {/* Ghi nhớ + Quên MK */}
+              <View style={styles.rememberRow}>
+                <TouchableOpacity
+                  style={styles.checkRow}
+                  onPress={() => setRemember((r) => !r)}
+                  activeOpacity={0.7}
+                >
+                  <View
+                    style={[styles.checkbox, remember && styles.checkboxOn]}
+                  >
+                    {remember && <Text style={styles.checkMark}>✓</Text>}
+                  </View>
+                  <Text style={styles.rememberTxt}>Ghi nhớ</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate("ForgotPassword")}
+                >
+                  <Text style={styles.forgotTxt}>Quên mật khẩu?</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Nút đăng nhập */}
+              {loading ? (
+                <ActivityIndicator
+                  size="large"
+                  color="#2563EB"
+                  style={{ marginVertical: 8 }}
+                />
+              ) : (
+                <TouchableOpacity
+                  style={styles.loginBtn}
+                  onPress={onLogin}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.loginTxt}>Đăng nhập</Text>
+                </TouchableOpacity>
+              )}
+
+              {/* ── Illustration tích hợp trong card ── */}
+              <View style={styles.illustrationWrap}>
+                <Image
+                  source={require("../../assets/buiding.png")}
+                  style={styles.illustration}
+                  resizeMode="contain"
+                />
+              </View>
             </View>
+            {/* End card */}
           </View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }

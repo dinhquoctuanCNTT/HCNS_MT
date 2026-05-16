@@ -6,7 +6,7 @@ import { startOverdueJob } from "./jobs/overdue.job.js";
 dotenv.config();
 
 const PORT = Number(process.env.PORT || 3001);
-const HOST = "0.0.0.0"; // ← nhận kết nối từ mọi IP (điện thoại, LAN...)
+const HOST = "0.0.0.0";
 
 const startServer = async () => {
   try {

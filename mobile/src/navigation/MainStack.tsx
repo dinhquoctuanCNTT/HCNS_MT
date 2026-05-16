@@ -14,7 +14,7 @@ import { RootState } from "../store";
 
 import HomeScreen from "../screens/main/home/HomeScreen";
 import AttendanceScreen from "../screens/main/attendance/AttendanceScreen";
-import HistoryStack from "../screens/main/history/HistoryStack"; // ✅ HistoryStack
+import HistoryStack from "../screens/main/history/HistoryStack";
 import LeaveScreen from "../screens/main/leave/LeaveScreen";
 import ProfileScreen from "../screens/main/profile/ProfileScreen";
 import RegisterFaceScreen from "../screens/auth/RegisterScreen";
@@ -23,7 +23,6 @@ const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 const NAVY = "#1e3a8a";
-const BLUE = "#1d4ed8";
 const GRAY = "#94a3b8";
 const WHITE = "#ffffff";
 const BORDER = "#e8ecf2";
@@ -31,7 +30,6 @@ const BG = "#f0f2f7";
 const BAR_H = Platform.OS === "ios" ? 78 : 64;
 const PB = Platform.OS === "ios" ? 22 : 10;
 
-// ─── Face-ID icon ─────────────────────────────────────────────────────────────
 function FaceIDIcon({
   color = WHITE,
   size = 25,
@@ -86,7 +84,6 @@ function FaceIDIcon({
   );
 }
 
-// ─── Nav icons ────────────────────────────────────────────────────────────────
 function NavHome({ active }: { active: boolean }) {
   const c = active ? NAVY : GRAY;
   return (
@@ -172,28 +169,24 @@ function NavMore({ active }: { active: boolean }) {
   );
 }
 
-// ─── Tab meta ─────────────────────────────────────────────────────────────────
 const TAB_META: Record<
   string,
   { label: string; Icon: (p: { active: boolean }) => JSX.Element }
 > = {
   Home: { label: "Trang chủ", Icon: NavHome },
   Schedule: { label: "Lịch sử", Icon: NavCalendar },
-  Attendance: { label: "", Icon: () => <></> }, // FAB slot
+  Attendance: { label: "", Icon: () => <></> },
   Leave: { label: "Thông báo", Icon: NavBell },
   Profile: { label: "Xem thêm", Icon: NavMore },
 };
 
-// ─── Custom tab bar ───────────────────────────────────────────────────────────
+// ─── Custom tab bar — KHÔNG có reset logic, chỉ navigate đơn giản ─────────────
 function CustomTabBar({ state, navigation }: any) {
   return (
     <View style={s.bar}>
       {state.routes.map((route: any, index: number) => {
         const focused = state.index === index;
         const isCenter = route.name === "Attendance";
-        const onPress = () => {
-          if (!focused) navigation.navigate(route.name);
-        };
         const meta = TAB_META[route.name];
 
         if (isCenter) {
@@ -201,7 +194,7 @@ function CustomTabBar({ state, navigation }: any) {
             <TouchableOpacity
               key={route.key}
               style={s.fabSlot}
-              onPress={onPress}
+              onPress={() => navigation.navigate("Attendance")}
               activeOpacity={0.85}
             >
               <View style={s.fab}>
@@ -218,7 +211,11 @@ function CustomTabBar({ state, navigation }: any) {
           <TouchableOpacity
             key={route.key}
             style={s.tab}
-            onPress={onPress}
+            onPress={() => {
+              if (!focused) {
+                navigation.navigate(route.name);
+              }
+            }}
             activeOpacity={0.75}
           >
             <Icon active={focused} />
@@ -235,7 +232,6 @@ function CustomTabBar({ state, navigation }: any) {
   );
 }
 
-// ─── Tab Navigator ────────────────────────────────────────────────────────────
 function TabNavigator() {
   return (
     <Tab.Navigator
@@ -243,20 +239,20 @@ function TabNavigator() {
       screenOptions={{ headerShown: false }}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Schedule" component={HistoryStack} />
+      <Tab.Screen
+        name="Schedule"
+        component={HistoryStack}
+      />
       <Tab.Screen name="Attendance" component={AttendanceScreen} />
       <Tab.Screen name="Leave" component={LeaveScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );
 }
-
-// ─── Root Stack ───────────────────────────────────────────────────────────────
 export default function MainStack() {
   const user = useSelector((state: RootState) => state.auth.user);
   const initialRoute =
     user?.has_registered_face === false ? "RegisterFace" : "Tabs";
-
   return (
     <Stack.Navigator
       initialRouteName={initialRoute}
@@ -282,12 +278,7 @@ const s = StyleSheet.create({
     borderTopColor: BORDER,
     alignItems: "flex-end",
   },
-  tab: {
-    flex: 1,
-    alignItems: "center",
-    paddingBottom: PB,
-    gap: 2,
-  },
+  tab: { flex: 1, alignItems: "center", paddingBottom: PB, gap: 2 },
   label: { fontSize: 9, color: GRAY, fontWeight: "600" },
   labelActive: { fontSize: 9, color: NAVY, fontWeight: "800" },
   underline: {
@@ -298,7 +289,6 @@ const s = StyleSheet.create({
     marginTop: 1,
   },
   underlineGap: { width: 4, height: 3, marginTop: 1 },
-
   fabSlot: {
     flex: 1,
     alignItems: "center",
@@ -325,7 +315,6 @@ const s = StyleSheet.create({
       android: { elevation: 10 },
     }),
   },
-
   notifDot: {
     position: "absolute",
     top: 0,

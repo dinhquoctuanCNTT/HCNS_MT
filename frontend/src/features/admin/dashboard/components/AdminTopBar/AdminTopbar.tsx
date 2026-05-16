@@ -2,6 +2,7 @@ import { MessageCircle, Search, Menu, ChevronDown } from "lucide-react";
 import "./AdminTopBar.css";
 import { useEffect, useRef, useState } from "react";
 import NotificationBell from "../../../../workflow/components/layout/NotificationBell";
+import PendingRequestBell from "../PendingRequestBell";
 import { useAuthStore } from "../../../../auth/auth.store";
 import AdminTopBarMenu from "../../../../user/components/AdminTopbarMenu";
 import { API_BASE_URL } from "../../../../../config/env";
@@ -62,7 +63,7 @@ export default function AdminTopbar({ onToggleSidebar }: AdminTopbarProps) {
           className="admin-topbar__flag"
         />
 
-        <NotificationBell />
+        <PendingRequestBell />
 
         <button className="admin-topbar__iconBtn" type="button">
           <MessageCircle size={20} />

@@ -26,23 +26,29 @@ export const MONTH_PILLS = [
 ];
 
 export function fmtTime(iso: string) {
-  return new Date(iso).toLocaleTimeString("vi-VN", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const timePart = iso.split("T")[1] ?? "";
+  const [h, m] = timePart.split(":").map(Number);
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
+
 export function fmtDate(d: Date) {
   return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
 }
+
 export function dowIdx(d: Date) {
   const j = d.getDay();
   return j === 0 ? 6 : j - 1;
 }
+
 export function isLate(r: any) {
   if (!r?.check_in) return false;
-  const t = new Date(r.check_in);
-  return t.getHours() > 8 || (t.getHours() === 8 && t.getMinutes() > 5);
+  const parts = r.check_in.split("T");
+  if (parts.length < 2) return false;
+  const timePart = parts[1];
+  const [h, m] = timePart.split(":").map(Number);
+  return h > 8 || (h === 8 && m > 5);
 }
+
 export function buildGrid(year: number, month: number): (number | null)[][] {
   const start = dowIdx(new Date(year, month, 1));
   const last = new Date(year, month + 1, 0).getDate();
@@ -55,6 +61,7 @@ export function buildGrid(year: number, month: number): (number | null)[][] {
   for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
   return weeks;
 }
+
 export function getDayStatus(
   day: number,
   year: number,
@@ -68,7 +75,8 @@ export function getDayStatus(
     day === today.getDate() &&
     month === today.getMonth() &&
     year === today.getFullYear();
-  if (dow === 0 || dow === 6) return "weekend";
+
+  if (dow === 0) return "weekend"; // chỉ CN là weekend, T7 tính bình thường
   if (date > today && !isToday) return "future";
   if (isToday) return "today";
   const rec = recMap.get(day);

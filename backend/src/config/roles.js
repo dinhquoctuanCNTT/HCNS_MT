@@ -21,8 +21,9 @@ export const PERMISSIONS = {
     "manage:branches",
     "manage:departments",
     "manage:tasks",
-    "create:tasks", // ← thêm
+    "create:tasks",
     "view:reports",
+    "view:all_user",
     "delete:tasks",
     "assign:tasks",
     "manage:projects",
@@ -31,9 +32,10 @@ export const PERMISSIONS = {
     "manage:branches",
     "manage:departments",
     "manage:tasks",
-    "create:tasks", // ← thêm
+    "create:tasks",
     "view:reports",
     "view:all_tasks",
+    "view:all_users",
     "delete:tasks",
     "assign:tasks",
     "manage:projects",
@@ -41,19 +43,21 @@ export const PERMISSIONS = {
   branch_manager: [
     "manage:departments",
     "manage:tasks",
-    "create:tasks", // ← thêm
+    "create:tasks",
     "view:branch_reports",
     "assign:tasks",
     "view:branch_tasks",
+    "view:branch_users",
     "delete:tasks",
     "manage:projects",
   ],
   department_head: [
     "manage:tasks",
-    "create:tasks", // ← thêm
+    "create:tasks",
     "assign:tasks",
     "view:department_tasks",
     "view:department_reports",
+    "view:department_users",
     "delete:tasks",
   ],
   employee: ["view:own_tasks", "create:tasks", "update:own_tasks"],

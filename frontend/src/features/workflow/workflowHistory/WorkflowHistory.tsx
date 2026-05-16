@@ -405,14 +405,6 @@ export default function WorkflowHistory({ projectId }: Props) {
             {filtered.length} completed
           </span>
         </div>
-
-        <div className="wfh__toolbar-right">
-          <span className="wfh__count">
-            {filtered.length === 0
-              ? "No results"
-              : `Showing ${(page - 1) * PAGE_SIZE + 1}–${Math.min(page * PAGE_SIZE, filtered.length)} of ${filtered.length}`}
-          </span>
-        </div>
       </div>
 
       {/* ── Body ── */}
