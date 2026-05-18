@@ -23,7 +23,7 @@ const { width, height } = Dimensions.get("window");
 
 export default function LoginScreen({ navigation }: any) {
   const dispatch = useDispatch();
-  const [phone, setPhone] = useState("");
+  const [employeeCode, setEmployeeCode] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [remember, setRemember] = useState(true);
@@ -33,8 +33,8 @@ export default function LoginScreen({ navigation }: any) {
 
   const onLogin = async () => {
     let hasError = false;
-    if (!phone.trim()) {
-      setPhoneError("Tên đăng nhập không được để trống");
+    if (!employeeCode.trim()) {
+      setPhoneError("Mã nhân viên không được để trống");
       hasError = true;
     } else setPhoneError("");
 
@@ -47,7 +47,7 @@ export default function LoginScreen({ navigation }: any) {
 
     try {
       setLoading(true);
-      const res = await axiosClient.post("/auth/login", { phone, password });
+      const res = await axiosClient.post("/auth/login", { employee_code: employeeCode.trim().toUpperCase(), password });
       dispatch(setCredentials({ token: res.data.token, user: res.data.user }));
     } catch (err: any) {
       Alert.alert(
@@ -104,12 +104,12 @@ export default function LoginScreen({ navigation }: any) {
               >
                 <TextInput
                   style={styles.input}
-                  placeholder="Tên đăng nhập"
+                  placeholder="Mã nhân viên (VD: MTH67)"
                   placeholderTextColor="#9ca3af"
-                  value={phone}
-                  onChangeText={setPhone}
-                  keyboardType="phone-pad"
-                  autoCapitalize="none"
+                  value={employeeCode}
+                  onChangeText={setEmployeeCode}
+                  keyboardType="default"
+                  autoCapitalize="characters"
                 />
               </View>
               {phoneError ? (
