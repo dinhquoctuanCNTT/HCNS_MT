@@ -12,7 +12,7 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.anonymous.mobile"
+      "bundleIdentifier": "com.mtholdings.hcns"
     },
     "android": {
       "adaptiveIcon": {
@@ -20,12 +20,18 @@
         "monochromeImage": "./assets/android-icon-monochrome.png",
         "backgroundImage": "./assets/android-icon-background.png"
       },
-      "package": "com.anonymous.mobile"
+      "package": "com.mtholdings.hcns"
     },
     "extra": {
       "eas": {
         "projectId": "5e1df543-d9b4-4ab5-9227-174cfb40df0b"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/5e1df543-d9b4-4ab5-9227-174cfb40df0b"
     }
   }
 }
