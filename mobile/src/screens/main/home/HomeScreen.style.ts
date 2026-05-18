@@ -80,28 +80,23 @@ export default StyleSheet.create({
 
   // ── GLASS CARD ───────────────────────────────────────────────────────────
   glassCard: {
-    backgroundColor: "rgba(255,255,255,0.55)",
+    backgroundColor: "rgba(255,255,255,0.45)",
     borderRadius: 20,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.60)",
     overflow: "hidden",
+    position: "relative",
   },
 
-  tenureBadge: {
-    position: "absolute",
-    top: 10, right: 12,
-    zIndex: 10,
-    backgroundColor: "#EFF6FF",
-    borderRadius: 10,
-    paddingHorizontal: 9,
-    paddingVertical: 5,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#BFDBFE",
-    minWidth: 54,
+  floatingActions: {
+    position: "absolute", top: 12, right: 14, zIndex: 10,
+    flexDirection: "row", gap: 8,
   },
-  tenureBadgeVal: { fontSize: 12, fontWeight: "900", color: BLUE, lineHeight: 15 },
-  tenureBadgeLbl: { fontSize: 7, fontWeight: "600", color: "#64748B" },
+  floatingBtn: {
+    width: 32, height: 32, borderRadius: 16,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    alignItems: "center", justifyContent: "center",
+  },
 
   // ── ATTEND ROW ───────────────────────────────────────────────────────────
   attendRow: {
@@ -117,13 +112,13 @@ export default StyleSheet.create({
   labelRow: { flexDirection: "row", alignItems: "center", gap: 5 },
   statusDot:       { width: 7, height: 7, borderRadius: 3.5, backgroundColor: "#D1D5DB" },
   statusDotActive: { backgroundColor: "#22C55E" },
-  attendLbl:       { fontSize: 10, fontWeight: "600", color: "#94A3B8" },
+  attendLbl:       { fontSize: 11, fontWeight: "600", color: "#475569" },
 
   timeRow:    { flexDirection: "row", alignItems: "baseline", gap: 3 },
-  timeVal:    { fontSize: 20, fontWeight: "900", color: "#1E293B", letterSpacing: 0.3 },
-  timeValDim: { fontSize: 20, fontWeight: "700", color: "#CBD5E1", letterSpacing: 0.6 },
-  ampmVal:    { fontSize: 10, fontWeight: "700", color: "#475569" },
-  ampmDim:    { fontSize: 10, fontWeight: "600", color: "#CBD5E1" },
+  timeVal:    { fontSize: 24, fontWeight: "900", color: "#1E293B", letterSpacing: 0.3 },
+  timeValDim: { fontSize: 24, fontWeight: "900", color: "#1E293B", letterSpacing: 0.6 },
+  ampmVal:    { fontSize: 13, fontWeight: "800", color: "#1E293B" },
+  ampmDim:    { fontSize: 13, fontWeight: "800", color: "#1E293B" },
 
   statusBadgeOk: {
     backgroundColor: "#DCFCE7", borderRadius: 6,
@@ -137,42 +132,24 @@ export default StyleSheet.create({
   statusBadgeWarnTxt: { fontSize: 8, fontWeight: "700", color: "#D97706" },
 
   ringWrap: { alignItems: "center", justifyContent: "center", marginHorizontal: 8 },
+  mapBtnText: { fontSize: 11, fontWeight: "700", color: "#1E293B", marginTop: 2 },
 
   // ── DIVIDER ───────────────────────────────────────────────────────────────
   divider: { height: 1, backgroundColor: "#EEF2F7", marginHorizontal: 14 },
 
   // ── QUICK ACTIONS ────────────────────────────────────────────────────────
-  quickRow: { flexDirection: "row", paddingHorizontal: 4, paddingVertical: 10 },
-  quickItem: { flex: 1, alignItems: "center", gap: 5 },
+  quickRow: { flexDirection: "row", paddingHorizontal: 16, paddingVertical: 14, justifyContent: "space-between" },
+  quickItem: { alignItems: "center", gap: 6, width: 66 },
   quickIconBox: {
-    width: 48, height: 48,
-    borderRadius: 14,
-    backgroundColor: "#EFF6FF",
+    width: 60, height: 60,
+    borderRadius: 20,
+    backgroundColor: "#FFFFFF",
     justifyContent: "center",
     alignItems: "center",
+    shadowColor: "#000", shadowOpacity: 0.08, shadowRadius: 8, shadowOffset: { width: 0, height: 2 },
+    elevation: 3
   },
-  quickIconImg: { width: 26, height: 26 },
-  quickLabel: { fontSize: 9, fontWeight: "600", color: "#475569", textAlign: "center", lineHeight: 12 },
-
-  // Calendar icon with today date
-  calIcon: {
-    width: 34, height: 34,
-    borderRadius: 8,
-    backgroundColor: "#fff",
-    borderWidth: 1.5,
-    borderColor: BLUE,
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden",
-  },
-  calHeader: {
-    width: "100%",
-    height: 9,
-    backgroundColor: BLUE,
-    position: "absolute",
-    top: 0,
-  },
-  calDate: { fontSize: 14, fontWeight: "900", color: BLUE, marginTop: 4 },
+  quickLabel: { fontSize: 10, fontWeight: "600", color: "#1E293B", textAlign: "center", lineHeight: 14 },
 
   // ── SCROLL ────────────────────────────────────────────────────────────────
   scroll: { flex: 1 },

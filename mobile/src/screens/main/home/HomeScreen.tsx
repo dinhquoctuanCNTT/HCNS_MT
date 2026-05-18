@@ -16,70 +16,92 @@ import { RootState } from "../../../store";
 import { attendanceApi } from "../../../api/attendanceApi";
 import styles, { COLORS, BLUE } from "./HomeScreen.style";
 
-// ─── SVG Progress Ring ──────────────────────────────────────────────────────
-function TenureRing({ years }: { years: string | null }) {
-  const R = 34;
-  const SW = 5;
-  const SZ = (R + SW) * 2 + 4;
-  const C = SZ / 2;
-  const circumference = 2 * Math.PI * R;
-  const pct = years ? Math.min(parseFloat(years) / 5, 1) : 0;
-  const arcLen = circumference * pct;
-  const gap = circumference - arcLen;
-
+// ─── Custom SVGs ─────────────────────────────────────────────────────────────
+function CopyIcon() {
   return (
-    <View
-      style={{
-        width: SZ,
-        height: SZ,
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <Svg
-        width={SZ}
-        height={SZ}
-        style={{ position: "absolute", top: 0, left: 0 }}
-        viewBox={`0 0 ${SZ} ${SZ}`}
-      >
-        <Circle
-          cx={C}
-          cy={C}
-          r={R}
-          stroke="#DBEAFE"
-          strokeWidth={SW}
-          fill="none"
-        />
-        {pct > 0 && (
-          <Circle
-            cx={C}
-            cy={C}
-            r={R}
-            stroke={BLUE}
-            strokeWidth={SW}
-            fill="none"
-            strokeDasharray={`${arcLen} ${gap}`}
-            strokeLinecap="round"
-            transform={`rotate(-90 ${C} ${C})`}
-          />
-        )}
-      </Svg>
-      <View style={{ alignItems: "center" }}>
-        <Text
-          style={{
-            fontSize: 16,
-            fontWeight: "900",
-            color: BLUE,
-            lineHeight: 19,
-          }}
-        >
-          {years ?? "—"}
-        </Text>
-        <Text style={{ fontSize: 8, fontWeight: "700", color: "#64748B" }}>
-          Years
-        </Text>
+    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+      <Path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" fill="#fff" />
+    </Svg>
+  );
+}
+
+function DownloadIcon() {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+      <Path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="#fff" />
+    </Svg>
+  );
+}
+
+function MapLocationButton() {
+  return (
+    <View style={{
+      width: 86, height: 86, borderRadius: 43,
+      backgroundColor: '#E8F1FC',
+      borderWidth: 3, borderColor: '#fff',
+      alignItems: 'center', justifyContent: 'center',
+      shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, shadowOffset: { width: 0, height: 2 },
+      elevation: 5,
+    }}>
+      <View style={{
+        width: 76, height: 76, borderRadius: 38,
+        backgroundColor: '#478ECC',
+        alignItems: 'center', justifyContent: 'center',
+        overflow: 'hidden'
+      }}>
+         <Svg width={80} height={80} style={{ position: 'absolute' }}>
+            <Path d="M-10 50 L90 10 L90 90 L-10 90 Z" fill="#88C070" opacity={0.8} />
+            <Path d="M-10 65 L90 25" stroke="#fff" strokeWidth={3.5} opacity={0.6} />
+            <Path d="M35 -10 L45 90" stroke="#fff" strokeWidth={3.5} opacity={0.6} />
+            <Path d="M15 -10 L25 90" stroke="#fff" strokeWidth={1.5} opacity={0.6} />
+         </Svg>
+         <Svg width={34} height={40} viewBox="0 0 24 30" fill="none" style={{ marginTop: -10 }}>
+            <Path d="M12 2C6.48 2 2 6.48 2 12c0 7.5 10 16 10 16s10-8.5 10-16c0-5.52-4.48-10-10-10zm0 13.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z" fill="#1E3A8A" stroke="#fff" strokeWidth={2}/>
+         </Svg>
+      </View>
+      <View style={{
+        position: 'absolute', bottom: -2, right: -2,
+        width: 28, height: 28, borderRadius: 14,
+        backgroundColor: '#fff',
+        alignItems: 'center', justifyContent: 'center',
+        shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 3, shadowOffset: { width: 0, height: 1 },
+        elevation: 4
+      }}>
+        <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+          <Path d="M21 19V7c0-1.1-.9-2-2-2h-3.17L14 3h-4L8.17 5H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2z" fill="#4A8CC7" />
+          <Circle cx={12} cy={12} r={3.5} fill="#fff" />
+        </Svg>
       </View>
     </View>
+  );
+}
+
+function CalendarIconSVG({ day, color }: { day: string, color: string }) {
+  return (
+    <View style={{ width: 34, height: 34, borderRadius: 8, backgroundColor: '#F8FAFC', borderWidth: 1.5, borderColor: '#E2E8F0', overflow: 'hidden', alignItems: 'center' }}>
+      <View style={{ width: '100%', height: 9, backgroundColor: color }} />
+      <Text style={{ fontSize: 13, fontWeight: '800', color: '#1E293B', marginTop: 2 }}>{day}</Text>
+    </View>
+  );
+}
+
+function FolderIconSVG() {
+  return (
+    <Svg width={36} height={36} viewBox="0 0 24 24" fill="none">
+      <Path d="M9.17 6l2 2H20v10H4V6h5.17M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" fill="#0EA5E9" />
+      <Path d="M4 6h5.17l2 2H20v10H4V6z" fill="#38BDF8" />
+    </Svg>
+  );
+}
+
+function ListIconSVG() {
+  return (
+    <Svg width={30} height={30} viewBox="0 0 24 24" fill="none">
+      <Circle cx={5} cy={7} r={1.8} fill="#C084FC" />
+      <Circle cx={5} cy={12} r={1.8} fill="#C084FC" />
+      <Circle cx={5} cy={17} r={1.8} fill="#C084FC" />
+      <Path d="M9 7h11M9 12h11M9 17h11" stroke="#38BDF8" strokeWidth={2.5} strokeLinecap="round" />
+    </Svg>
   );
 }
 
@@ -185,27 +207,23 @@ const QUICK = [
     label: "Thống kê\ncá nhân",
     screen: "Schedule",
     nestedScreen: "Stats",
-    icon: require("../../../../assets/icon/timesheet.png"),
-    cal: false,
+    iconId: "stats",
   },
   {
     label: "Lịch làm\nviệc",
     screen: "Schedule",
     resetTab: true,
-    icon: require("../../../../assets/icon/schedule.png"),
-    cal: true,
+    iconId: "schedule",
   },
   {
     label: "Đơn từ",
     screen: "Leave",
-    icon: require("../../../../assets/icon/document.png"),
-    cal: false,
+    iconId: "leave",
   },
   {
     label: "Xem thêm",
     screen: "Profile",
-    icon: require("../../../../assets/icon/options.png"),
-    cal: false,
+    iconId: "more",
   },
 ];
 
@@ -449,26 +467,22 @@ export default function HomeScreen({ navigation }: any) {
 
         {/* ── Glass Card ── */}
         <View style={styles.glassCard}>
-          {/* Tenure badge top-right */}
-          {tenureYears && (
-            <View style={styles.tenureBadge}>
-              <Text style={styles.tenureBadgeVal}>{tenureYears}</Text>
-              <Text style={styles.tenureBadgeLbl}>Years</Text>
-              <Text style={styles.tenureBadgeLbl}>tenure</Text>
-            </View>
-          )}
+          {/* Top Right Floating Icons */}
+          <View style={styles.floatingActions}>
+            <TouchableOpacity style={styles.floatingBtn}>
+               <CopyIcon />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.floatingBtn}>
+               <DownloadIcon />
+            </TouchableOpacity>
+          </View>
 
-          {/* Vào ca | Ring | Ra ca */}
+          {/* Vào ca | Map | Ra ca */}
           <View style={styles.attendRow}>
             {/* Left — Vào ca */}
             <View style={styles.attendCol}>
               <View style={styles.labelRow}>
-                <View
-                  style={[
-                    styles.statusDot,
-                    checkInFmt && styles.statusDotActive,
-                  ]}
-                />
+                <View style={[styles.statusDot, { backgroundColor: checkInFmt ? '#22C55E' : 'rgba(0,0,0,0.15)' }]} />
                 <Text style={styles.attendLbl}>Vào ca:</Text>
               </View>
               <View style={styles.timeRow}>
@@ -493,21 +507,19 @@ export default function HomeScreen({ navigation }: any) {
               )}
             </View>
 
-            {/* Center — ring */}
+            {/* Center — Map */}
             <View style={styles.ringWrap}>
-              <TenureRing years={tenureYears} />
+              <TouchableOpacity activeOpacity={0.8} style={{ alignItems: 'center', gap: 6 }}>
+                 <MapLocationButton />
+                 <Text style={styles.mapBtnText}>Vị trí Chấm công</Text>
+              </TouchableOpacity>
             </View>
 
             {/* Right — Ra ca */}
             <View style={[styles.attendCol, styles.attendColRight]}>
               <View style={[styles.labelRow, { justifyContent: "flex-end" }]}>
                 <Text style={styles.attendLbl}>Ra ca:</Text>
-                <View
-                  style={[
-                    styles.statusDot,
-                    checkOutFmt && styles.statusDotActive,
-                  ]}
-                />
+                <View style={[styles.statusDot, { backgroundColor: checkOutFmt ? '#22C55E' : '#fff' }]} />
               </View>
               <View style={[styles.timeRow, { justifyContent: "flex-end" }]}>
                 <Text style={checkOutFmt ? styles.ampmVal : styles.ampmDim}>
@@ -552,18 +564,10 @@ export default function HomeScreen({ navigation }: any) {
                 onPress={() => goTo(item)}
               >
                 <View style={styles.quickIconBox}>
-                  {item.cal ? (
-                    <View style={styles.calIcon}>
-                      <View style={styles.calHeader} />
-                      <Text style={styles.calDate}>{todayDate}</Text>
-                    </View>
-                  ) : (
-                    <Image
-                      source={item.icon}
-                      style={styles.quickIconImg}
-                      resizeMode="contain"
-                    />
-                  )}
+                  {item.iconId === "stats" && <CalendarIconSVG day={todayDate.toString()} color="#4ADE80" />}
+                  {item.iconId === "schedule" && <CalendarIconSVG day="18" color="#3B82F6" />}
+                  {item.iconId === "leave" && <FolderIconSVG />}
+                  {item.iconId === "more" && <ListIconSVG />}
                 </View>
                 <Text style={styles.quickLabel}>{item.label}</Text>
               </TouchableOpacity>
