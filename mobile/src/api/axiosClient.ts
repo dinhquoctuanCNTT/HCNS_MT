@@ -4,8 +4,8 @@ import { Platform } from "react-native";
 
 const BASE_URL =
   Platform.OS === "web"
-    ? "http://localhost:3001/api" // web browser
-    : "http://192.168.68.100:3001/api"; // điện thoại thật (WiFi hotspot)
+    ? "http://localhost:3001/api"
+    : "https://unjustly-paralegal-jellied.ngrok-free.dev/api";
 
 const axiosClient = axios.create({
   baseURL: BASE_URL,

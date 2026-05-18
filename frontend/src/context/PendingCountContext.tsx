@@ -27,6 +27,8 @@ export function PendingCountProvider({
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const refreshPendingCount = useCallback(async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
     try {
       const res = await axiosClient.get("/api/explanations/pending-count");
       setPendingCount(res.data.count ?? 0);

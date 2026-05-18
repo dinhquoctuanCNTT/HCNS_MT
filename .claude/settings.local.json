@@ -4,7 +4,8 @@
       "Bash(Get-ChildItem -Path \"E:\\\\project_MT\\\\fullstack-project\" -Force)",
       "Bash(Select-Object Name, PSIsContainer)",
       "Bash(Format-Table -AutoSize)",
-      "Bash(Get-ChildItem -Path \"e:\\\\project_MT\\\\fullstack-project\\\\mobile\\\\src\\\\navigation\\\\\" -Recurse -File | Select-Object FullName)"
+      "Bash(Get-ChildItem -Path \"e:\\\\project_MT\\\\fullstack-project\\\\mobile\\\\src\\\\navigation\\\\\" -Recurse -File | Select-Object FullName)",
+      "PowerShell(Get-ChildItem \"e:\\\\project_MT\\\\fullstack-project\\\\mobile\\\\assets\" -Recurse | Where-Object { !$_.PSIsContainer } | Sort-Object Length -Descending | Select-Object Name, @{N='MB';E={[math]::Round\\($_.Length/1MB,1\\)}} | Select-Object -First 15)"
     ]
   }
 }
