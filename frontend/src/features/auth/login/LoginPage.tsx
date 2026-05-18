@@ -10,7 +10,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const { setAuth } = useAuthStore();
   const [form, setForm] = useState<LoginFromValues>({
-    phone: "",
+    employee_code: "",
     password: "",
   });
   const [message, setMessage] = useState("");
@@ -20,8 +20,8 @@ const LoginPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage("");
-    if (!form.phone || !form.password) {
-      setMessage("Vui lòng nhập số điện thoại và mật khẩu");
+    if (!form.employee_code || !form.password) {
+      setMessage("Vui lòng nhập mã nhân viên và mật khẩu");
       return;
     }
     try {
@@ -37,7 +37,7 @@ const LoginPage = () => {
         return;
       }
       if (status === 401) {
-        setMessage("Số điện thoại hoặc mật khẩu không đúng.");
+        setMessage("Mã nhân viên hoặc mật khẩu không đúng.");
       } else {
         setMessage(res?.message || "Đăng nhập thất bại, vui lòng thử lại");
       }
@@ -60,10 +60,10 @@ const LoginPage = () => {
             <input
               type="tel"
               className="lp-input"
-              placeholder="nhập tài khoản tại đây"
-              value={form.phone}
+              placeholder="Nhập mã nhân viên (VD: MTH67)"
+              value={form.employee_code}
               onChange={(e) =>
-                setForm((p) => ({ ...p, phone: e.target.value }))
+                setForm((p) => ({ ...p, employee_code: e.target.value }))
               }
             />
           </div>

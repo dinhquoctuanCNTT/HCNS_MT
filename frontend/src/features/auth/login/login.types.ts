@@ -1,4 +1,4 @@
 export type LoginFromValues = {
-  phone: string;
+  employee_code: string;
   password: string;
 };
