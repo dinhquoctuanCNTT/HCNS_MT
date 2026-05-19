@@ -80,11 +80,13 @@ export const login = async (req, res) => {
     const result = await pool.request()
       .input("employee_code", sql.NVarChar, employee_code.trim().toUpperCase())
       .query(`
-        SELECT id, email, password_hash, full_name, role, avatar_url, phone,
-               employee_code, job_title, created_at,
-               CASE WHEN face_descriptor IS NULL THEN 0 ELSE 1 END AS has_registered_face
-        FROM users
-        WHERE employee_code = @employee_code
+        SELECT u.id, u.email, u.password_hash, u.full_name, u.role, u.avatar_url, u.phone,
+               u.employee_code, u.job_title, u.created_at, u.branch_id,
+               ol.name AS branch_name,
+               CASE WHEN u.face_descriptor IS NULL THEN 0 ELSE 1 END AS has_registered_face
+        FROM users u
+        LEFT JOIN office_locations ol ON ol.id = u.branch_id
+        WHERE u.employee_code = @employee_code
       `);
 
     const user = result.recordset[0];

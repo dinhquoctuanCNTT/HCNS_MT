@@ -221,7 +221,7 @@ export default function HomeScreen({ navigation }: any) {
   const checkInFmt  = todayRecord?.check_in  ? fmtTime(todayRecord.check_in)  : null;
   const checkOutFmt = todayRecord?.check_out ? fmtTime(todayRecord.check_out) : null;
   const avatarUrl   = (user as any)?.avatar_url;
-  const branchName  = (user as any)?.branch_name ?? (user as any)?.department_name ?? null;
+  const branchName  = todayRecord?.branch_name ?? null;
 
   const lateMinutes = checkInFmt
     ? (() => {

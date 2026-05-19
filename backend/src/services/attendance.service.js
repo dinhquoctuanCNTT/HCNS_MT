@@ -410,13 +410,16 @@ export async function getAttendanceHistory(userId, fromDate, toDate) {
     .input("userId", sql.Int, userId)
     .input("from", sql.Date, fromDate)
     .input("to", sql.Date, toDate).query(`
-      SELECT id, date, check_in, check_out, face_verified, note,
-             anti_spoof_score, location_verified, latitude, longitude,
-             check_in_image_url, check_out_image_url,
-             late_minutes, early_minutes
-      FROM Attendance
-      WHERE user_id = @userId AND date BETWEEN @from AND @to
-      ORDER BY date DESC
+      SELECT a.id, a.date, a.check_in, a.check_out, a.face_verified, a.note,
+             a.anti_spoof_score, a.location_verified, a.latitude, a.longitude,
+             a.check_in_image_url, a.check_out_image_url,
+             a.late_minutes, a.early_minutes,
+             ol.name AS branch_name
+      FROM Attendance a
+      JOIN users u ON u.id = a.user_id
+      LEFT JOIN office_locations ol ON ol.id = u.branch_id
+      WHERE a.user_id = @userId AND a.date BETWEEN @from AND @to
+      ORDER BY a.date DESC
     `);
 
   return result.recordset.map((row) => ({
