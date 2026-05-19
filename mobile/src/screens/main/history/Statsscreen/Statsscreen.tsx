@@ -529,7 +529,7 @@ export default function StatsScreen({ navigation }: Props) {
                   <Text style={styles.overviewValueWarning}>
                     {stats?.total_late ?? totalLate}
                   </Text>{" "}
-                  <Text style={styles.overviewLabel}>Số muộn</Text>
+                  <Text style={styles.overviewLabel}>Đi muộn</Text>
                 </View>
                 <View style={styles.overviewCard}>
                   <Text style={styles.overviewIcon}>🏖️</Text>

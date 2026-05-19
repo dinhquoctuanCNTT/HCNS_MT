@@ -10,6 +10,7 @@ import {
   Platform,
   SafeAreaView,
   StyleSheet,
+  Keyboard,
 } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { HistoryStackParamList } from "./types";
@@ -81,7 +82,10 @@ function SelectField({
       <FieldLabel text={label} required={required} />
       <TouchableOpacity
         style={fs.selectRow}
-        onPress={() => setIsOpen(!isOpen)}
+        onPress={() => {
+          Keyboard.dismiss();
+          setIsOpen(!isOpen);
+        }}
         activeOpacity={0.7}
       >
         <Text style={value ? fs.selectValue : fs.selectPlaceholder}>
@@ -230,6 +234,7 @@ export default function UpdateRequestForm({ route, navigation }: Props) {
         style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
       >
         {/* ── Thông tin gốc ── */}
         <View style={fs.section}>
