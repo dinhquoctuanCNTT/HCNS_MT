@@ -26,4 +26,7 @@ export const attendanceApi = {
 
   getStats: (month?: string, employeeId?: number) =>
     axiosClient.get("/attendance/stats", { params: { month, employeeId } }),
+
+  getHolidays: (year: number) =>
+    axiosClient.get("/holidays", { params: { year } }),
 };

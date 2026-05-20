@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { attendanceApi } from "../../../../api/attendanceApi";
-import styles, { COLORS, H_PAD, CELL_W } from "./HistoryScreen.style";
+import styles, { COLORS, CELL_W } from "./HistoryScreen.style";
 import { Tab, DayDetail } from "../types";
 import {
   DOW_LABELS,
@@ -28,12 +28,28 @@ export default function HistoryScreen({ navigation }: any) {
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
   const [records, setRecords] = useState<any[]>([]);
+  const [holidayDates, setHolidayDates] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState<Tab>("calendar");
   const [page, setPage] = useState(1);
 
   // Reset page khi đổi tháng/năm
   useEffect(() => setPage(1), [year, month]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await attendanceApi.getHolidays(year);
+        setHolidayDates(
+          Array.isArray(res.data)
+            ? res.data.map((h: any) => String(h.holiday_date).slice(0, 10))
+            : [],
+        );
+      } catch {
+        setHolidayDates([]);
+      }
+    })();
+  }, [year]);
 
   useEffect(() => {
     (async () => {
@@ -58,6 +74,16 @@ export default function HistoryScreen({ navigation }: any) {
     return m;
   }, [records]);
 
+  const holidaySet = useMemo(() => new Set(holidayDates), [holidayDates]);
+
+  const isHolidayDay = useCallback(
+    (d: number) =>
+      holidaySet.has(
+        `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`,
+      ),
+    [holidaySet, year, month],
+  );
+
   const calWeeks = useMemo(() => buildGrid(year, month), [year, month]);
   const totalPresent = records.filter((r) => r.check_in).length;
   const totalLate = records.filter(isLate).length;
@@ -70,19 +96,26 @@ export default function HistoryScreen({ navigation }: any) {
       if (date > today) break;
       const dow = date.getDay();
       if (dow === 0) continue;
-      if (!recMap.has(d)) n++;
+      if (!recMap.has(d) && !isHolidayDay(d)) n++;
     }
     return n;
-  }, [recMap, year, month, today]);
+  }, [recMap, year, month, today, isHolidayDay]);
 
   const workDaysTotal = useMemo(() => {
     let n = 0;
     const last = new Date(year, month + 1, 0).getDate();
+    const prefix = `${year}-${String(month + 1).padStart(2, "0")}-`;
     for (let d = 1; d <= last; d++) {
-      if (new Date(year, month, d).getDay() !== 0) n++;
+      if (new Date(year, month, d).getDay() === 0) continue;
+      if (!holidaySet.has(`${prefix}${String(d).padStart(2, "0")}`)) n++;
     }
     return n;
-  }, [year, month]);
+  }, [year, month, holidaySet]);
+
+  const holidaysInMonth = useMemo(() => {
+    const prefix = `${year}-${String(month + 1).padStart(2, "0")}-`;
+    return holidayDates.filter((h) => h.startsWith(prefix)).length;
+  }, [holidayDates, year, month]);
 
   const explainDays = useMemo(() => {
     const list: DayDetail[] = [];
@@ -163,9 +196,11 @@ export default function HistoryScreen({ navigation }: any) {
     const isToday = status === "today";
     const rec = recMap.get(day);
     const late = isLate(rec);
+    const isHoliday = isHolidayDay(day);
 
     let numStyle: object = styles.dayNumDefault;
     if (isSun) numStyle = styles.dayNumRed;
+    else if (isHoliday && !rec) numStyle = { ...styles.dayNumDefault, color: "#ca8a04" };
     else if (status === "late") numStyle = styles.dayNumAmber;
     else if (status === "future") numStyle = styles.dayNumFuture;
     else if (isWknd) numStyle = styles.dayNumMuted;
@@ -179,7 +214,8 @@ export default function HistoryScreen({ navigation }: any) {
     );
 
     let dotColor: string | null = null;
-    if (status === "present") dotColor = COLORS.success;
+    if (isHoliday && !rec) dotColor = "#eab308";
+    else if (status === "present") dotColor = COLORS.success;
     else if (status === "late") dotColor = COLORS.warning;
     else if (status === "absent") dotColor = COLORS.danger;
     else if (isToday && rec && !late) dotColor = COLORS.success;
@@ -479,6 +515,14 @@ export default function HistoryScreen({ navigation }: any) {
                 </Text>
                 <Text style={styles.badgeLabel}>Vắng</Text>
               </View>
+              {holidaysInMonth > 0 && (
+                <View style={[styles.badgeCard, { backgroundColor: "#fef9c3" }]}>
+                  <Text style={[styles.badgeNum, { color: "#ca8a04" }]}>
+                    {holidaysInMonth}
+                  </Text>
+                  <Text style={styles.badgeLabel}>Ngày lễ</Text>
+                </View>
+              )}
             </View>
 
             {/* DOW headers */}
@@ -516,6 +560,7 @@ export default function HistoryScreen({ navigation }: any) {
                 { color: COLORS.success, label: "Đúng giờ" },
                 { color: COLORS.warning, label: "Đi muộn" },
                 { color: COLORS.danger, label: "Vắng mặt" },
+                { color: "#eab308", label: "Ngày lễ" },
               ].map((l, i) => (
                 <View key={i} style={styles.legendItem}>
                   <View
