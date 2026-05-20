@@ -223,6 +223,17 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
 
               {/* ── Phê duyệt giải trình + Badge ── */}
               <NavLink
+                to="/admin/nhan-su/ngay-le"
+                className={({ isActive }) =>
+                  isActive
+                    ? "admin-sidebar__sublink admin-sidebar__sublink--active"
+                    : "admin-sidebar__sublink"
+                }
+              >
+                Ngày lễ
+              </NavLink>
+
+              <NavLink
                 to="/admin/nhan-su/phe-duyet"
                 className={({ isActive }) =>
                   isActive
