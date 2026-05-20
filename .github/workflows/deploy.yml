@@ -59,3 +59,26 @@ jobs:
 
       - name: Copy frontend to IIS
         run: xcopy /E /Y /I /Q frontend\dist C:\HCNS_MT\frontend
+
+  deploy-mobile:
+    runs-on: self-hosted
+    needs: deploy-frontend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+        shell: powershell
+
+      - name: Install mobile dependencies
+        working-directory: ./mobile
+        run: npm install
+        shell: powershell
+
+      - name: EAS OTA Update
+        working-directory: ./mobile
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: eas update --branch preview --message "CI deploy from main (${{ github.sha }})" --non-interactive
+        shell: powershell
