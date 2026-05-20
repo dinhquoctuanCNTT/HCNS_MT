@@ -49,7 +49,8 @@ export async function approveExplanation(req, res) {
   try {
     const { id } = req.params;
     const { adminNote } = req.body;
-    await explanationService.approveExplanation(id, adminNote);
+    const adminId = req.user.id;
+    await explanationService.approveExplanation({ id, adminId, adminNote });
     res.json({ message: "Đã duyệt đơn giải trình" });
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -60,7 +61,8 @@ export async function rejectExplanation(req, res) {
   try {
     const { id } = req.params;
     const { adminNote } = req.body;
-    await explanationService.rejectExplanation(id, adminNote);
+    const adminId = req.user.id;
+    await explanationService.rejectExplanation({ id, adminId, adminNote });
     res.json({ message: "Đã từ chối đơn giải trình" });
   } catch (err) {
     res.status(400).json({ message: err.message });

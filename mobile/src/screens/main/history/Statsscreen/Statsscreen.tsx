@@ -13,7 +13,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { HistoryStackParamList } from "../types";
 import { attendanceApi } from "../../../../api/attendanceApi";
 import { isLate, fmtTime, DOW_FULL, dowIdx } from "../helpers";
-import styles, { COLORS, H_PAD } from "./Statsscreen.style";
+import styles, { COLORS } from "./Statsscreen.style";
 
 type Props = NativeStackScreenProps<HistoryStackParamList, "Stats">;
 
@@ -281,16 +281,23 @@ export default function StatsScreen({ navigation }: Props) {
     let n = 0;
     const last = new Date(year, month + 1, 0).getDate();
     for (let d = 1; d <= last; d++) {
-      const date = new Date(year, month, d);
-      if (date > today) break;
-      if (date.getDay() !== 0) n++;
+      if (new Date(year, month, d).getDay() !== 0) n++;
     }
     return n;
-  }, [year, month, today]);
+  }, [year, month]);
 
   const totalPresent = records.filter((r) => r.check_in).length;
   const totalLate = records.filter(isLate).length;
   const totalOnTime = totalPresent - totalLate;
+
+  const totalLateMinutes = useMemo(
+    () => records.reduce((sum, r) => sum + (r.late_minutes ?? (r.check_in ? calcLateMins(r.check_in) : 0)), 0),
+    [records],
+  );
+  const totalEarlyMinutes = useMemo(
+    () => records.reduce((sum, r) => sum + (r.early_minutes ?? (r.check_out ? calcEarlyMins(r.check_out) : 0)), 0),
+    [records],
+  );
   console.log(
     "[ISLATE]",
     records.map((r) => ({
@@ -298,8 +305,6 @@ export default function StatsScreen({ navigation }: Props) {
       late: isLate(r),
     })),
   );
-  const missCheckout = records.filter((r) => r.check_in && !r.check_out).length;
-
   const { leaveDays, absentDays } = useMemo(() => {
     let leave = 0;
     let absent = 0;
@@ -330,20 +335,6 @@ export default function StatsScreen({ navigation }: Props) {
     return { leaveDays: leave, absentDays: absent };
   }, [records, leaveRecords, year, month, today]);
 
-  const totalHours = useMemo(() => {
-    let mins = 0;
-    records.forEach((r) => {
-      if (r.check_in && r.check_out) {
-        const inISO = r.check_in.endsWith("Z") ? r.check_in : r.check_in + "Z";
-        const outISO = r.check_out.endsWith("Z")
-          ? r.check_out
-          : r.check_out + "Z";
-        mins +=
-          (new Date(outISO).getTime() - new Date(inISO).getTime()) / 60000;
-      }
-    });
-    return Math.round(mins / 60);
-  }, [records]);
 
   // ── Biểu đồ tuần — dùng UTC ──────────────────────────────────────────────
   const weeks = useMemo(() => getWeeksOfMonth(year, month), [year, month]);
@@ -527,23 +518,25 @@ export default function StatsScreen({ navigation }: Props) {
                 <View style={styles.overviewCard}>
                   <Text style={styles.overviewIcon}>⏰</Text>
                   <Text style={styles.overviewValueWarning}>
-                    {stats?.total_late ?? totalLate}
-                  </Text>{" "}
+                    {totalLateMinutes}
+                    <Text style={{ fontSize: 11 }}>p</Text>
+                  </Text>
                   <Text style={styles.overviewLabel}>Đi muộn</Text>
+                </View>
+                <View style={styles.overviewCard}>
+                  <Text style={styles.overviewIcon}>🏃</Text>
+                  <Text style={styles.overviewValueWarning}>
+                    {totalEarlyMinutes}
+                    <Text style={{ fontSize: 11 }}>p</Text>
+                  </Text>
+                  <Text style={styles.overviewLabel}>Về sớm</Text>
                 </View>
                 <View style={styles.overviewCard}>
                   <Text style={styles.overviewIcon}>🏖️</Text>
                   <Text style={styles.overviewValueDanger}>
                     {stats?.total_absent ?? leaveDays + absentDays}
                   </Text>
-                  <Text style={styles.overviewLabel}>Số nghỉ</Text>
-                </View>
-                <View style={styles.overviewCard}>
-                  <Text style={styles.overviewIcon}>🕐</Text>
-                  <Text style={styles.overviewValue}>
-                    {stats?.total_work_hours ?? totalHours}h
-                  </Text>{" "}
-                  <Text style={styles.overviewLabel}>Tổng giờ</Text>
+                  <Text style={styles.overviewLabel}>Ngày nghỉ</Text>
                 </View>
               </View>
             </View>

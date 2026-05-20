@@ -79,12 +79,10 @@ export default function HistoryScreen({ navigation }: any) {
     let n = 0;
     const last = new Date(year, month + 1, 0).getDate();
     for (let d = 1; d <= last; d++) {
-      const date = new Date(year, month, d);
-      if (date > today) break;
-      if (date.getDay() !== 0) n++;
+      if (new Date(year, month, d).getDay() !== 0) n++;
     }
     return n;
-  }, [year, month, today]);
+  }, [year, month]);
 
   const explainDays = useMemo(() => {
     const list: DayDetail[] = [];

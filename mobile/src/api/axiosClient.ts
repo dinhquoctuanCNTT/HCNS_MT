@@ -22,4 +22,15 @@ axiosClient.interceptors.request.use((config) => {
   return config;
 });
 
+axiosClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      const { logout } = require("../store/slices/authSlice");
+      store.dispatch(logout());
+    }
+    return Promise.reject(error);
+  },
+);
+
 export default axiosClient;

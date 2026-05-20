@@ -3,6 +3,9 @@ import {
   View, ActivityIndicator, Alert, Modal,
   Text, TouchableOpacity, Linking, StyleSheet,
 } from "react-native";
+
+// Prevent OS font-size settings from breaking layout on all devices
+(Text as any).defaultProps = { ...(Text as any).defaultProps, allowFontScaling: false };
 import { Provider, useDispatch } from "react-redux";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Updates from "expo-updates";

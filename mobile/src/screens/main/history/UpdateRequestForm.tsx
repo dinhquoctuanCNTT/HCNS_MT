@@ -235,6 +235,7 @@ export default function UpdateRequestForm({ route, navigation }: Props) {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
+        onScrollBeginDrag={Keyboard.dismiss}
       >
         {/* ── Thông tin gốc ── */}
         <View style={fs.section}>
