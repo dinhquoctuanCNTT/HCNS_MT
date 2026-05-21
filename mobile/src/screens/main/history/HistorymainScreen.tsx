@@ -649,7 +649,7 @@ export default function HistoryMainScreen({ navigation }: Props) {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: H_PAD, paddingVertical: 8, gap: 8 }}
+          contentContainerStyle={{ paddingHorizontal: H_PAD, paddingVertical: 8, gap: 8, alignItems: "center" }}
           style={{ backgroundColor: "#fff", borderBottomWidth: 1, borderBottomColor: "#e8ecf2" }}
         >
           <TouchableOpacity
