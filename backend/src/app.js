@@ -15,6 +15,8 @@ import supportRoutes from "./modules/support/support.routes.js";
 import explanationRoutes from "./modules/explanation/explanation.routes.js";
 import shiftRoutes from "./modules/shift/shift.routes.js";
 import holidaysRoutes from "./modules/holidays/holidays.routes.js";
+import leaveRoutes from "./modules/leave/leave.routes.js";
+import overtimeRoutes from "./modules/overtime/overtime.routes.js";
 import authMiddleware from "./middlewares/auth.middleware.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -51,7 +53,9 @@ app.use("/api/setting", settingsRoutes);
 app.use("/api/support", supportRoutes);
 app.use("/api/explanations", authMiddleware, explanationRoutes);
 app.use("/api/shifts", authMiddleware, shiftRoutes);
-app.use("/api/holidays", holidaysRoutes);
+app.use("/api/holidays",  holidaysRoutes);
+app.use("/api/leaves",   leaveRoutes);
+app.use("/api/overtime", overtimeRoutes);
 
 // ---- Serve Frontend ----
 const frontendPath =

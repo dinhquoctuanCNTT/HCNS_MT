@@ -327,3 +327,119 @@ export async function sendTaskCompletedEmail({
   });
   console.log(`📧 Gửi email hoàn thành → ${to}`);
 }
+
+// ── Email cảnh báo nghỉ không phép ───────────────────────
+export async function sendAbsenceWarningEmail({ to, employeeName, absenceDate, warningCount }) {
+  const isFirst = warningCount === 1;
+  const subject = isFirst
+    ? `[Cảnh báo] Nghỉ không phép ngày ${absenceDate}`
+    : `[Vi phạm] Nghỉ không phép lần ${warningCount} - Xem xét kỷ luật`;
+
+  await transporter.sendMail({
+    from: '"P.HCNS - MT Holdings" <dinhtuna30@gmail.com>',
+    to,
+    subject,
+    html: `
+      <div style="font-family:sans-serif;max-width:560px;margin:auto;border:1px solid #f0f0f0;border-radius:12px;overflow:hidden;">
+        <div style="background:${isFirst ? "#f59e0b" : "#ef4444"};padding:24px;text-align:center;">
+          <h2 style="color:#fff;margin:0;font-size:20px;font-weight:600;">
+            ${isFirst ? "⚠️ Cảnh báo nghỉ không phép" : "🚨 Vi phạm - Xem xét kỷ luật"}
+          </h2>
+        </div>
+        <div style="padding:28px 24px;">
+          <p style="font-size:15px;color:#333;">Xin chào <strong>${employeeName}</strong>,</p>
+          <p style="font-size:14px;color:#555;">
+            Phòng HCNS ghi nhận bạn <strong>nghỉ không phép</strong> vào ngày <strong>${absenceDate}</strong>.
+          </p>
+          <div style="background:${isFirst ? "#fffbeb" : "#fff5f5"};border-left:4px solid ${isFirst ? "#f59e0b" : "#ef4444"};border-radius:4px;padding:16px;margin:20px 0;">
+            <p style="margin:0;font-size:14px;color:#111;">
+              Đây là lần vi phạm thứ <strong>${warningCount}</strong> trong tháng này.
+            </p>
+            ${!isFirst ? `<p style="margin:8px 0 0;font-size:13px;color:#ef4444;font-weight:600;">
+              Trường hợp này sẽ được xem xét xử lý kỷ luật theo quy định công ty.
+            </p>` : ""}
+          </div>
+          <p style="font-size:13px;color:#666;">
+            Nếu có lý do chính đáng, vui lòng liên hệ ngay với Phòng HCNS để giải trình.
+          </p>
+        </div>
+        <div style="padding:16px 24px;background:#fafafa;border-top:1px solid #f0f0f0;text-align:center;">
+          <small style="color:#888;font-size:12px;">© MT Holdings — Phòng Hành chính Nhân sự</small>
+        </div>
+      </div>
+    `,
+  });
+  console.log(`📧 Gửi cảnh báo nghỉ không phép → ${to}`);
+}
+
+// ── Email nhắc HCNS hoàn thiện bảng công ─────────────────
+export async function sendHcnsReminderEmail({ to, month, year }) {
+  await transporter.sendMail({
+    from: '"Hệ thống HCNS - MT Holdings" <dinhtuna30@gmail.com>',
+    to,
+    subject: `[Nhắc nhở] Hoàn thiện bảng chấm công tháng ${month}/${year} trước 12h ngày 3`,
+    html: `
+      <div style="font-family:sans-serif;max-width:560px;margin:auto;border:1px solid #f0f0f0;border-radius:12px;overflow:hidden;">
+        <div style="background:#2563eb;padding:24px;text-align:center;">
+          <h2 style="color:#fff;margin:0;font-size:20px;font-weight:600;">📋 Nhắc nhở hoàn thiện bảng công</h2>
+        </div>
+        <div style="padding:28px 24px;">
+          <p style="font-size:15px;color:#333;">Xin chào,</p>
+          <p style="font-size:14px;color:#555;">
+            Đây là nhắc nhở tự động: bạn cần hoàn thiện <strong>bảng chấm công tháng ${month}/${year}</strong>
+            (bao gồm đầy đủ giải trình và xác nhận công với CBNV).
+          </p>
+          <div style="background:#eff6ff;border-left:4px solid #2563eb;border-radius:4px;padding:16px;margin:20px 0;">
+            <p style="margin:0;font-size:14px;font-weight:600;color:#1d4ed8;">
+              ⏰ Deadline: Trước 12:00 ngày 03/${String(month + 1).padStart(2,"0")}/${year}
+            </p>
+          </div>
+          <p style="font-size:13px;color:#666;">
+            Vui lòng đăng nhập hệ thống để kiểm tra và xác nhận các trường hợp còn thiếu.
+          </p>
+        </div>
+        <div style="padding:16px 24px;background:#fafafa;border-top:1px solid #f0f0f0;text-align:center;">
+          <small style="color:#888;font-size:12px;">© MT Holdings — Hệ thống HCNS tự động</small>
+        </div>
+      </div>
+    `,
+  });
+  console.log(`📧 Gửi nhắc HCNS tháng ${month}/${year} → ${to}`);
+}
+
+// ── Email thông báo đơn nghỉ phép ────────────────────────
+export async function sendLeaveRequestEmail({ to, employeeName, fromDate, toDate, totalDays, leaveType, status, note }) {
+  const statusMap = {
+    tbp_approved: { text: "Trưởng BP đã duyệt (chờ HCNS)", color: "#f59e0b" },
+    approved:     { text: "Đã được duyệt hoàn toàn",        color: "#22c55e" },
+    rejected:     { text: "Bị từ chối",                     color: "#ef4444" },
+  };
+  const s = statusMap[status] ?? { text: status, color: "#6b7280" };
+
+  await transporter.sendMail({
+    from: '"P.HCNS - MT Holdings" <dinhtuna30@gmail.com>',
+    to,
+    subject: `[Đơn nghỉ phép] ${s.text}`,
+    html: `
+      <div style="font-family:sans-serif;max-width:560px;margin:auto;border:1px solid #f0f0f0;border-radius:12px;overflow:hidden;">
+        <div style="background:${s.color};padding:24px;text-align:center;">
+          <h2 style="color:#fff;margin:0;font-size:20px;font-weight:600;">Đơn nghỉ phép: ${s.text}</h2>
+        </div>
+        <div style="padding:28px 24px;">
+          <p style="font-size:15px;color:#333;">Xin chào <strong>${employeeName}</strong>,</p>
+          <div style="background:#f9fafb;border-radius:8px;padding:16px;margin:16px 0;">
+            <p style="margin:0 0 8px;font-size:14px;"><strong>Loại nghỉ:</strong> ${leaveType}</p>
+            <p style="margin:0 0 8px;font-size:14px;"><strong>Từ ngày:</strong> ${fromDate}</p>
+            <p style="margin:0 0 8px;font-size:14px;"><strong>Đến ngày:</strong> ${toDate}</p>
+            <p style="margin:0;font-size:14px;"><strong>Số ngày:</strong> ${totalDays} ngày</p>
+          </div>
+          ${note ? `<p style="font-size:13px;color:#555;font-style:italic;">Ghi chú: ${note}</p>` : ""}
+        </div>
+        <div style="padding:16px 24px;background:#fafafa;border-top:1px solid #f0f0f0;text-align:center;">
+          <small style="color:#888;font-size:12px;">© MT Holdings — Phòng Hành chính Nhân sự</small>
+        </div>
+      </div>
+    `,
+  });
+  console.log(`📧 Gửi thông báo đơn nghỉ phép → ${to}`);
+}
