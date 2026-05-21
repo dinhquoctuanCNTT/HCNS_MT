@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { HistoryStackParamList } from "../types";
 import { attendanceApi } from "../../../../api/attendanceApi";
-import { isLate, fmtTime, DOW_FULL, dowIdx } from "../helpers";
+import { isLate, fmtTime, DOW_FULL, dowIdx, calcLateMins, calcEarlyMins } from "../helpers";
 import styles, { COLORS } from "./Statsscreen.style";
 
 type Props = NativeStackScreenProps<HistoryStackParamList, "Stats">;
@@ -48,17 +48,6 @@ function getUTCYear(iso: string) {
 }
 
 // ── Tính phút muộn/sớm ────────────────────────────────────────────────────────
-function calcLateMins(checkIn: string): number {
-  const timePart = checkIn.split("T")[1] ?? "";
-  const [h, m] = timePart.split(":").map(Number);
-  return Math.max(0, h * 60 + m - (8 * 60 + 5));
-}
-
-function calcEarlyMins(checkOut: string): number {
-  const timePart = checkOut.split("T")[1] ?? "";
-  const [h, m] = timePart.split(":").map(Number);
-  return Math.max(0, 17 * 60 + 30 - (h * 60 + m));
-}
 
 function getWeeksOfMonth(year: number, month: number) {
   const last = new Date(year, month + 1, 0).getDate();

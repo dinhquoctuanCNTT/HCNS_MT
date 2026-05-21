@@ -50,8 +50,8 @@ export default function PheDuyetGiaiTrinhPage() {
       };
       const res = await axiosClient.get("/api/explanations", { params });
       setData(res.data || []);
-    } catch (e: any) {
-      console.error(e);
+    } catch {
+      // silent
     } finally {
       setLoading(false);
     }
@@ -325,8 +325,8 @@ export default function PheDuyetGiaiTrinhPage() {
                   </span>
                 </div>
               </th>
-              <th>Trạng thái</th>
-              <th>Hành động</th>
+              <th>Phê duyệt của cấp trên</th>
+              <th>Ghi chú</th>
             </tr>
           </thead>
           <tbody>

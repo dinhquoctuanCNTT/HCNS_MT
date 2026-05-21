@@ -15,6 +15,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
 import { attendanceApi } from "../../../api/attendanceApi";
 import styles, { COLORS, BLUE } from "./HomeScreen.style";
+import { calcLateMins, calcEarlyMins } from "../history/helpers";
 
 // ─── Icons ───────────────────────────────────────────────────────────────────
 function CopyIcon() {
@@ -223,21 +224,8 @@ export default function HomeScreen({ navigation }: any) {
   const avatarUrl   = (user as any)?.avatar_url;
   const branchName  = todayRecord?.branch_name ?? null;
 
-  const lateMinutes = checkInFmt
-    ? (() => {
-        const d = new Date(todayRecord.check_in);
-        const m = d.getHours() * 60 + d.getMinutes() - (8 * 60 + 5);
-        return m > 0 ? m : 0;
-      })()
-    : 0;
-
-  const earlyMinutes = checkOutFmt
-    ? (() => {
-        const d = new Date(todayRecord.check_out);
-        const m = 17 * 60 + 30 - (d.getHours() * 60 + d.getMinutes());
-        return m > 0 ? m : 0;
-      })()
-    : 0;
+  const lateMinutes  = checkInFmt  ? calcLateMins(todayRecord.check_in)   : 0;
+  const earlyMinutes = checkOutFmt ? calcEarlyMins(todayRecord.check_out) : 0;
 
   const otMinutes = checkOutFmt
     ? (() => {

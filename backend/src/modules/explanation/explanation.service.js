@@ -87,16 +87,23 @@ export async function getUserExplanations(userId) {
   return result.recordset;
 }
 
-// ── Admin: lấy tất cả đơn ───────────────────────────────────────────────────
-export async function getAllExplanations({ status, page = 1, limit = 20 }) {
+// ── Admin/DeptHead: lấy danh sách đơn ──────────────────────────────────────
+export async function getAllExplanations({ status, page = 1, limit = 20, departmentId = null }) {
   const pool = await getPool();
   const offset = (page - 1) * limit;
 
-  const result = await pool
-    .request()
+  const req = pool.request()
     .input("status", status ?? null)
     .input("limit", limit)
-    .input("offset", offset).query(`
+    .input("offset", offset);
+
+  let where = "WHERE (@status IS NULL OR ac.status = @status)";
+  if (departmentId) {
+    req.input("deptId", departmentId);
+    where += " AND u.department_id = @deptId";
+  }
+
+  const result = await req.query(`
       SELECT
         ac.id,
         ac.status,
@@ -113,28 +120,31 @@ export async function getAllExplanations({ status, page = 1, limit = 20 }) {
       FROM attendance_corrections ac
       JOIN attendance_logs al ON ac.attendance_log_id = al.id
       JOIN users u ON ac.requested_by = u.id
-      WHERE (@status IS NULL OR ac.status = @status)
+      ${where}
       ORDER BY ac.created_at DESC
       OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY
     `);
   return result.recordset;
 }
 
-// ── Admin: duyệt đơn ────────────────────────────────────────────────────────
-export async function approveExplanation({ id, adminId, adminNote }) {
+// ── Admin/DeptHead: duyệt đơn ───────────────────────────────────────────────
+export async function approveExplanation({ id, approverId, adminNote, departmentId = null }) {
   const pool = await getPool();
 
-  // Lấy thông tin đơn
+  // Lấy thông tin đơn kèm department của nhân viên
   const corrRes = await pool.request().input("id", id).query(`
-      SELECT ac.*, al.user_id
+      SELECT ac.*, al.user_id, u.department_id
       FROM attendance_corrections ac
       JOIN attendance_logs al ON ac.attendance_log_id = al.id
+      JOIN users u ON al.user_id = u.id
       WHERE ac.id = @id
     `);
 
   const corr = corrRes.recordset[0];
   if (!corr) throw new Error("Không tìm thấy đơn");
   if (corr.status !== "pending") throw new Error("Đơn đã được xử lý");
+  if (departmentId && corr.department_id !== departmentId)
+    throw new Error("Bạn không có quyền duyệt đơn của nhân viên ngoài bộ phận");
 
   // Cập nhật attendance_log
   await pool
@@ -155,46 +165,58 @@ export async function approveExplanation({ id, adminId, adminNote }) {
   await pool
     .request()
     .input("id", id)
-    .input("adminId", adminId)
+    .input("approverId", approverId)
     .input("adminNote", adminNote ?? null).query(`
       UPDATE attendance_corrections
-      SET status = 'approved', approved_by = @adminId,
+      SET status = 'approved', approved_by = @approverId,
           admin_note = @adminNote, reviewed_at = SYSDATETIME()
       WHERE id = @id
     `);
 }
 
-// ── Admin: từ chối đơn ──────────────────────────────────────────────────────
-export async function rejectExplanation({ id, adminId, adminNote }) {
+// ── Admin/DeptHead: từ chối đơn ─────────────────────────────────────────────
+export async function rejectExplanation({ id, approverId, adminNote, departmentId = null }) {
   const pool = await getPool();
 
-  const corr = await pool
-    .request()
-    .input("id", id)
-    .query(`SELECT status FROM attendance_corrections WHERE id = @id`);
+  const corrRes = await pool.request().input("id", id).query(`
+      SELECT ac.status, u.department_id
+      FROM attendance_corrections ac
+      JOIN attendance_logs al ON ac.attendance_log_id = al.id
+      JOIN users u ON al.user_id = u.id
+      WHERE ac.id = @id
+    `);
 
-  if (!corr.recordset[0]) throw new Error("Không tìm thấy đơn");
-  if (corr.recordset[0].status !== "pending")
-    throw new Error("Đơn đã được xử lý");
+  const corr = corrRes.recordset[0];
+  if (!corr) throw new Error("Không tìm thấy đơn");
+  if (corr.status !== "pending") throw new Error("Đơn đã được xử lý");
+  if (departmentId && corr.department_id !== departmentId)
+    throw new Error("Bạn không có quyền từ chối đơn của nhân viên ngoài bộ phận");
 
   await pool
     .request()
     .input("id", id)
-    .input("adminId", adminId)
+    .input("approverId", approverId)
     .input("adminNote", adminNote ?? null).query(`
       UPDATE attendance_corrections
-      SET status = 'rejected', approved_by = @adminId,
+      SET status = 'rejected', approved_by = @approverId,
           admin_note = @adminNote, reviewed_at = SYSDATETIME()
       WHERE id = @id
     `);
 }
 
-//---Đem đơn pending -------------------------------------
-export async function getPendingCount() {
+// ── Đếm đơn pending ─────────────────────────────────────────────────────────
+export async function getPendingCount({ departmentId = null } = {}) {
   const pool = await getPool();
-  const result = await pool.request().query(`
-    SELECT COUNT(*) AS count
-      FROM attendance_corrections
-      WHERE status = 'pending'`);
+  const req = pool.request();
+  let query = `SELECT COUNT(*) AS count FROM attendance_corrections ac`;
+  if (departmentId) {
+    req.input("deptId", departmentId);
+    query += ` JOIN attendance_logs al ON ac.attendance_log_id = al.id
+               JOIN users u ON al.user_id = u.id
+               WHERE ac.status = 'pending' AND u.department_id = @deptId`;
+  } else {
+    query += ` WHERE ac.status = 'pending'`;
+  }
+  const result = await req.query(query);
   return result.recordset[0].count;
 }

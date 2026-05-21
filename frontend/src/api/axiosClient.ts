@@ -24,7 +24,7 @@ axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error.response?.status;
-    if (status === 401) {
+    if (status === 401 && window.location.pathname !== "/login") {
       localStorage.clear();
       window.location.href = "/login";
     }

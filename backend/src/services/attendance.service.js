@@ -157,6 +157,29 @@ export async function registerFace(userId, base64Image) {
   return { success: true, message: "Đăng ký khuôn mặt thành công" };
 }
 
+// ── Hằng số giờ làm việc ─────────────────────────────────────────────────────
+const WORK_START  = 8 * 60 + 5;   // 8:05
+const LUNCH_START = 12 * 60;       // 12:00
+const LUNCH_END   = 13 * 60 + 30; // 13:30
+const WORK_END    = 17 * 60 + 30; // 17:30
+
+// Số phút của khoảng [a, b] nằm trong giờ nghỉ trưa 12:00–13:30
+function lunchOverlap(a, b) {
+  return Math.max(0, Math.min(b, LUNCH_END) - Math.max(a, LUNCH_START));
+}
+
+// Tính phút muộn — không tính khoảng 12:00–13:30
+function calcLateMins(checkInMins) {
+  if (checkInMins <= WORK_START) return 0;
+  return Math.max(0, checkInMins - WORK_START - lunchOverlap(WORK_START, checkInMins));
+}
+
+// Tính phút về sớm — không tính khoảng 12:00–13:30
+function calcEarlyMins(checkOutMins) {
+  if (checkOutMins >= WORK_END) return 0;
+  return Math.max(0, WORK_END - checkOutMins - lunchOverlap(checkOutMins, WORK_END));
+}
+
 // ── Check-in ──────────────────────────────────────────────────────────────────
 export async function checkIn(
   userId,
@@ -255,7 +278,7 @@ export async function checkIn(
     checkInTime.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }),
   );
   const checkInTotalMins = checkInVN.getHours() * 60 + checkInVN.getMinutes();
-  const lateMins = Math.max(0, checkInTotalMins - (8 * 60 + 5));
+  const lateMins = calcLateMins(checkInTotalMins);
   if (lateMins > 0) {
     await pool
       .request()
@@ -270,15 +293,16 @@ export async function checkIn(
   // 7. Upload ảnh bất đồng bộ — không block response
   uploadAttendanceImage(base64Image, "attendance/checkin", makePublicId(userId, "checkin"))
     .then((imageUrl) => {
-      if (!imageUrl) return;
+      if (!imageUrl) { console.warn("[Cloudinary] imageUrl trả về null/undefined"); return; }
       pool.request()
         .input("userId", sql.Int, userId)
         .input("date", sql.Date, today)
         .input("imageUrl", sql.NVarChar(500), imageUrl)
         .query(`UPDATE Attendance SET check_in_image_url = @imageUrl WHERE user_id = @userId AND date = @date`)
-        .catch((e) => console.warn("[Cloudinary] DB update failed:", e.message));
+        .then(() => console.log(`[Cloudinary] check-in image saved for user ${userId}`))
+        .catch((e) => console.error("[Cloudinary] DB update failed:", e.message));
     })
-    .catch((err) => console.warn(`[Cloudinary] Upload failed:`, err.message));
+    .catch((err) => console.error(`[Cloudinary] Upload failed for user ${userId}:`, err.message, err.http_code || ""));
 
   return {
     action: "check_in",
@@ -377,10 +401,8 @@ export async function checkOut(
   const checkOutVN = new Date(
     checkOutTime.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }),
   );
-  const checkOutTotalMins =
-    checkOutVN.getHours() * 60 + checkOutVN.getMinutes();
-  const endMins = 17 * 60 + 30;
-  const earlyMins = Math.max(0, endMins - checkOutTotalMins);
+  const checkOutTotalMins = checkOutVN.getHours() * 60 + checkOutVN.getMinutes();
+  const earlyMins = calcEarlyMins(checkOutTotalMins);
 
   // Lưu early_minutes nếu có về sớm với giờ làm việc
   if (earlyMins > 0) {

@@ -374,7 +374,6 @@ export default StyleSheet.create({
   dayNum: { fontSize: 13, fontWeight: "700" },
   dayNumWhite: { color: "#fff" },
   dayNumDark: { color: "#111827" },
-  dayNumRed: { color: "#ef4444" },
   dayNumGray: { color: "#d1d5db" },
   dayNumAmber: { fontSize: 13, fontWeight: "600", color: COLORS.warning },
   dayNumMuted: { fontSize: 13, color: "#94a3b8" },

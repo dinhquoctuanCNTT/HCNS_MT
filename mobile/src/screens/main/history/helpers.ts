@@ -40,6 +40,34 @@ export function dowIdx(d: Date) {
   return j === 0 ? 6 : j - 1;
 }
 
+// ── Hằng số giờ làm việc ────────────────────────────────────────────────────
+const WORK_START  = 8 * 60 + 5;    // 8:05
+const LUNCH_START = 12 * 60;        // 12:00
+const LUNCH_END   = 13 * 60 + 30;  // 13:30
+const WORK_END    = 17 * 60 + 30;  // 17:30
+
+function toMins(iso: string): number {
+  const t = iso.split("T")[1] ?? iso;
+  const [h, m] = t.split(":").map(Number);
+  return (h || 0) * 60 + (m || 0);
+}
+
+function lunchOverlap(a: number, b: number): number {
+  return Math.max(0, Math.min(b, LUNCH_END) - Math.max(a, LUNCH_START));
+}
+
+export function calcLateMins(checkIn: string): number {
+  const mins = toMins(checkIn);
+  if (mins <= WORK_START) return 0;
+  return Math.max(0, mins - WORK_START - lunchOverlap(WORK_START, mins));
+}
+
+export function calcEarlyMins(checkOut: string): number {
+  const mins = toMins(checkOut);
+  if (mins >= WORK_END) return 0;
+  return Math.max(0, WORK_END - mins - lunchOverlap(mins, WORK_END));
+}
+
 export function isLate(r: any) {
   if (!r?.check_in) return false;
   const parts = r.check_in.split("T");
