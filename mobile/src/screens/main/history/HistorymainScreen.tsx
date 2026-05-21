@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo, useCallback } from "react";
 import {
   View,
   Text,
+  TextStyle,
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
@@ -246,7 +247,7 @@ export default function HistoryMainScreen({ navigation }: Props) {
     const rec = recMap.get(day);
 
     // Màu số ngày
-    let numStyle = styles.dayNumDefault;
+    let numStyle: TextStyle = styles.dayNumDefault;
     if (isSun) numStyle = styles.dayNumRed;
     else if (isFuture) numStyle = styles.dayNumFuture;
     else if (status === "today") numStyle = styles.dayNumToday;
@@ -648,38 +649,21 @@ export default function HistoryMainScreen({ navigation }: Props) {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{
-            paddingHorizontal: H_PAD,
-            paddingVertical: 8,
-            gap: 8,
-          }}
-          style={{
-            backgroundColor: "#fff",
-            borderBottomWidth: 1,
-            borderBottomColor: "#e8ecf2",
-            maxHeight: 50,
-          }}
+          contentContainerStyle={{ paddingHorizontal: H_PAD, paddingVertical: 8, gap: 8 }}
+          style={{ backgroundColor: "#fff", borderBottomWidth: 1, borderBottomColor: "#e8ecf2" }}
         >
           <TouchableOpacity
             style={{
-              paddingHorizontal: 12,
-              paddingVertical: 5,
+              paddingHorizontal: 14,
+              paddingVertical: 6,
               borderRadius: 20,
-              backgroundColor:
-                selectedWeek === null ? COLORS.primary : "#f1f5f9",
+              backgroundColor: selectedWeek === null ? COLORS.primary : "#f1f5f9",
+              borderWidth: 1,
+              borderColor: selectedWeek === null ? COLORS.primary : "#e2e8f0",
             }}
-            onPress={() => {
-              setSelectedWeek(null);
-              setPage(1);
-            }}
+            onPress={() => { setSelectedWeek(null); setPage(1); }}
           >
-            <Text
-              style={{
-                fontSize: 12,
-                fontWeight: "600",
-                color: selectedWeek === null ? "#fff" : "#111827",
-              }}
-            >
+            <Text style={{ fontSize: 12, fontWeight: "600", color: selectedWeek === null ? "#fff" : "#64748b" }}>
               Tất cả
             </Text>
           </TouchableOpacity>
@@ -687,24 +671,16 @@ export default function HistoryMainScreen({ navigation }: Props) {
             <TouchableOpacity
               key={i}
               style={{
-                paddingHorizontal: 12,
-                paddingVertical: 5,
+                paddingHorizontal: 14,
+                paddingVertical: 6,
                 borderRadius: 20,
-                backgroundColor:
-                  selectedWeek === i ? COLORS.primary : "#f1f5f9",
+                backgroundColor: selectedWeek === i ? COLORS.primary : "#f1f5f9",
+                borderWidth: 1,
+                borderColor: selectedWeek === i ? COLORS.primary : "#e2e8f0",
               }}
-              onPress={() => {
-                setSelectedWeek(i);
-                setPage(1);
-              }}
+              onPress={() => { setSelectedWeek(i); setPage(1); }}
             >
-              <Text
-                style={{
-                  fontSize: 12,
-                  fontWeight: "600",
-                  color: selectedWeek === i ? "#fff" : "#111827",
-                }}
-              >
+              <Text style={{ fontSize: 12, fontWeight: "600", color: selectedWeek === i ? "#fff" : "#64748b" }}>
                 {w.label}
               </Text>
             </TouchableOpacity>
@@ -862,7 +838,7 @@ export default function HistoryMainScreen({ navigation }: Props) {
                 Các ngày cần giải trình
               </Text>
               <TouchableOpacity 
-                style={{ backgroundColor: "#eff6ff", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderSize: 1, borderColor: "#3b82f6" }}
+                style={{ backgroundColor: "#eff6ff", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: "#3b82f6" }}
                 onPress={() => navigation.navigate("ExplanationHistory")}
               >
                 <Text style={{ fontSize: 12, fontWeight: "700", color: "#2563eb" }}>Lịch sử đơn ›</Text>
