@@ -29,7 +29,7 @@ export default function NgayLePage() {
     try {
       setLoading(true);
       const res = await axiosClient.get(`/holidays?year=${year}`);
-      setHolidays(res.data);
+      setHolidays(Array.isArray(res.data) ? res.data : res.data?.data ?? []);
     } catch {
       setHolidays([]);
     } finally {
