@@ -155,15 +155,12 @@ export default function WorkflowPage() {
         onApplyServerFilter={applyServerFilter}
         onClearFilters={clearFilters}
         onProjectChange={(id) => setProjectId(id)}
-        // create task
         onCreateTask={() => handleOpenCreate(null)}
         onAddTaskFromColumn={handleOpenCreate}
-        // click task -> open detail
         onTaskClick={(task) => {
           setSelectedTask(task);
           setOpenDetail(true);
         }}
-        // drag drop
         onMoveTask={moveTaskToColumn}
         onReorderTask={reorderTasksInColumn}
         onMoveBetweenColumns={moveTaskBetweenColumns}
@@ -172,7 +169,6 @@ export default function WorkflowPage() {
         onTabChange={handleTabChange}
       />
 
-      {/* CREATE MODAL */}
       {openCreate && (
         <TaskModal
           task={null}

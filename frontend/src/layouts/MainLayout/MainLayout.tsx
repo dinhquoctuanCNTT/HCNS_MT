@@ -13,7 +13,7 @@ const MainLayout = ({ children }: PropsWithChildren) => {
     <div className="main-layout">
       <header className="main-topbar">
         <div className="main-topbar-brand" onClick={() => navigate("/")}>
-          Orix Pet
+          MT holding
         </div>
         <div className="main-topbar-right">
           <span>

@@ -1,9 +1,3 @@
-// ============================================================
-//  TaskReporterInfo.tsx
-//  Đặt tại: frontend/src/workflow/components/issue/TaskReporterInfo.tsx
-//
-//  Hiển thị: người giao việc + người thực hiện + deadline badge
-// ============================================================
 
 import { useOverdueStatus } from "../../hooks/useOverdueStatus";
 import { getRoleLabel, getRoleColor } from "../../../auth/auth.permissions";
