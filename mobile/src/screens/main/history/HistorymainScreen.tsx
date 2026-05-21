@@ -652,9 +652,10 @@ export default function HistoryMainScreen({ navigation }: Props) {
           <TouchableOpacity
             style={{
               flex: 1,
-              paddingVertical: 6,
-              borderRadius: 20,
+              height: 32,
+              borderRadius: 16,
               alignItems: "center",
+              justifyContent: "center",
               backgroundColor: selectedWeek === null ? COLORS.primary : "#f1f5f9",
               borderWidth: 1,
               borderColor: selectedWeek === null ? COLORS.primary : "#e2e8f0",
@@ -670,9 +671,10 @@ export default function HistoryMainScreen({ navigation }: Props) {
               key={i}
               style={{
                 flex: 1,
-                paddingVertical: 6,
-                borderRadius: 20,
+                height: 32,
+                borderRadius: 16,
                 alignItems: "center",
+                justifyContent: "center",
                 backgroundColor: selectedWeek === i ? COLORS.primary : "#f1f5f9",
                 borderWidth: 1,
                 borderColor: selectedWeek === i ? COLORS.primary : "#e2e8f0",
