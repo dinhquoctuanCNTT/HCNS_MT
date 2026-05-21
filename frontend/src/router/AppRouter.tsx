@@ -20,6 +20,8 @@ import LichSuChamCongPage from "../features/admin/nhansu/pages/LichSuChamCongPag
 import PheDuyetGiaiTrinhPage from "../features/admin/nhansu/pages/PheDuyetGiaiTrinhPage";
 import NhanVienPage from "../features/admin/nhansu/pages/Nhanvienpage";
 import NgayLePage from "../features/admin/nhansu/pages/NgayLePage";
+import NgayPhepPage from "../features/admin/nhansu/pages/NgayPhepPage";
+import LamThemGioPage from "../features/admin/nhansu/pages/LamThemGioPage";
 
 const UnauthorizedPage = () => {
   return (
@@ -74,6 +76,8 @@ const AppRouter = () => {
             <Route path="nhan-su/nhan-vien" element={<NhanVienPage />} />
             <Route path="nhan-su/lich-su" element={<LichSuChamCongPage />} />
             <Route path="nhan-su/ngay-le" element={<NgayLePage />} />
+            <Route path="nhan-su/nghi-phep" element={<NgayPhepPage />} />
+            <Route path="nhan-su/lam-them-gio" element={<LamThemGioPage />} />
             <Route
               path="nhan-su/phe-duyet"
               element={<PheDuyetGiaiTrinhPage />}

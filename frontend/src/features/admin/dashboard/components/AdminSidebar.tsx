@@ -234,6 +234,28 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
               </NavLink>
 
               <NavLink
+                to="/admin/nhan-su/nghi-phep"
+                className={({ isActive }) =>
+                  isActive
+                    ? "admin-sidebar__sublink admin-sidebar__sublink--active"
+                    : "admin-sidebar__sublink"
+                }
+              >
+                Nghỉ phép
+              </NavLink>
+
+              <NavLink
+                to="/admin/nhan-su/lam-them-gio"
+                className={({ isActive }) =>
+                  isActive
+                    ? "admin-sidebar__sublink admin-sidebar__sublink--active"
+                    : "admin-sidebar__sublink"
+                }
+              >
+                Làm thêm giờ
+              </NavLink>
+
+              <NavLink
                 to="/admin/nhan-su/phe-duyet"
                 className={({ isActive }) =>
                   isActive
