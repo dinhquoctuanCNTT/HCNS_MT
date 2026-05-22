@@ -2,7 +2,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useMemo, useState, useEffect } from "react";
 import logoMT from "../../../../assets/Logo MT Holdings New-01.png";
 import { usePendingCount } from "../../../../context/PendingCountContext";
-import { GitBranch, Users, Settings, Calculator, GraduationCap, ShoppingCart } from "lucide-react";
+import { GitBranch, Users, Settings, Calculator, GraduationCap, ShoppingCart, Radio } from "lucide-react";
 
 type AdminSidebarProps = {
   isOpen: boolean;
@@ -28,10 +28,15 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
     return location.pathname.startsWith("/admin/dao-tao");
   }, [location.pathname]);
 
+  const isTruyenThongGroupActive = useMemo(() => {
+    return location.pathname.startsWith("/admin/truyen-thong");
+  }, [location.pathname]);
+
   const [openWorkflow, setOpenWorkflow] = useState(isWorkflowGroupActive);
   const [openNhanSu, setOpenNhanSu] = useState(false);
   const [openKeToan, setOpenKeToan] = useState(false);
   const [openDaoTao, setOpenDaoTao] = useState(false);
+  const [openTruyenThong, setOpenTruyenThong] = useState(false);
 
   useEffect(() => {
     if (isWorkflowGroupActive) setOpenWorkflow(true);
@@ -335,6 +340,53 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
                 { to: "/admin/dao-tao/hoat-dong-dao-tao",   label: "5. Hoạt động đào tạo" },
                 { to: "/admin/dao-tao/danh-gia-ket-qua",    label: "6. Đánh giá/kết quả" },
                 { to: "/admin/dao-tao/mth-lien-ket",        label: "7. MTH - Đào tạo liên kết" },
+              ].map(({ to, label }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  className={({ isActive }) =>
+                    isActive
+                      ? "admin-sidebar__sublink admin-sidebar__sublink--active"
+                      : "admin-sidebar__sublink"
+                  }
+                >
+                  {label}
+                </NavLink>
+              ))}
+            </div>
+          )}
+
+          {/* ── TRUYỀN THÔNG ── */}
+          <button
+            type="button"
+            className={
+              isTruyenThongGroupActive
+                ? "admin-sidebar__groupTrigger admin-sidebar__groupTrigger--active"
+                : "admin-sidebar__groupTrigger"
+            }
+            onClick={() => setOpenTruyenThong((prev) => !prev)}
+          >
+            <span className="admin-sidebar__groupLeft">
+              <span className="admin-sidebar__icon"><Radio size={18} /></span>
+              {isOpen && <span>Truyền thông</span>}
+            </span>
+            {isOpen && (
+              <span className="admin-sidebar__caret">
+                {openTruyenThong ? "▼" : "▶"}
+              </span>
+            )}
+          </button>
+
+          {isOpen && openTruyenThong && (
+            <div className="admin-sidebar__submenu">
+              {[
+                { to: "/admin/truyen-thong/nhan-su-360",        label: "1. Nhân sự 360" },
+                { to: "/admin/truyen-thong/chien-luoc",         label: "2. Chiến lược - Chiến dịch" },
+                { to: "/admin/truyen-thong/nguyen-lieu",        label: "3. Quản lý nguyên liệu" },
+                { to: "/admin/truyen-thong/cong-cu",            label: "4. Quản lý công cụ truyền thông" },
+                { to: "/admin/truyen-thong/thuong-hieu",        label: "5. Quản lý thương hiệu" },
+                { to: "/admin/truyen-thong/thiet-bi-dung-cu",   label: "6. Quản lý thiết bị dụng cụ" },
+                { to: "/admin/truyen-thong/cai-dat-quan-tri",   label: "7. Cài đặt quản trị" },
               ].map(({ to, label }) => (
                 <NavLink
                   key={to}

@@ -104,6 +104,15 @@ const AppRouter = () => {
             <Route path="dao-tao/danh-gia-ket-qua"    element={<KeToanPage title="Đánh giá/kết quả đào tạo" />} />
             <Route path="dao-tao/mth-lien-ket"        element={<KeToanPage title="MTH - Đào tạo liên kết" />} />
             <Route path="phan-mem-mua-hang" element={<KeToanPage title="Phần mềm mua hàng Server" />} />
+
+            {/* ── Truyền thông ── */}
+            <Route path="truyen-thong/nhan-su-360"       element={<KeToanPage title="Nhân sự 360" />} />
+            <Route path="truyen-thong/chien-luoc"        element={<KeToanPage title="Chiến lược - Chiến dịch" />} />
+            <Route path="truyen-thong/nguyen-lieu"       element={<KeToanPage title="Quản lý nguyên liệu" />} />
+            <Route path="truyen-thong/cong-cu"           element={<KeToanPage title="Quản lý công cụ truyền thông" />} />
+            <Route path="truyen-thong/thuong-hieu"       element={<KeToanPage title="Quản lý thương hiệu" />} />
+            <Route path="truyen-thong/thiet-bi-dung-cu"  element={<KeToanPage title="Quản lý thiết bị dụng cụ" />} />
+            <Route path="truyen-thong/cai-dat-quan-tri"  element={<KeToanPage title="Cài đặt quản trị" />} />
           </Route>
         </Route>
       </Routes>
