@@ -106,7 +106,15 @@ const AppRouter = () => {
             <Route path="phan-mem-mua-hang" element={<KeToanPage title="Phần mềm mua hàng Server" />} />
 
             {/* ── Truyền thông ── */}
-            <Route path="truyen-thong/nhan-su-360"       element={<KeToanPage title="Nhân sự 360" />} />
+            <Route path="truyen-thong/nhan-su-360/thong-tin"      element={<KeToanPage title="1.1 Thông tin nhân sự" />} />
+            <Route path="truyen-thong/nhan-su-360/bmtcv-luong"   element={<KeToanPage title="1.2 BMTCV và lương P3" />} />
+            <Route path="truyen-thong/nhan-su-360/p3"            element={<KeToanPage title="1.3 P3" />} />
+            <Route path="truyen-thong/nhan-su-360/ke-hoach-nam"  element={<KeToanPage title="1.4 Kế hoạch năm" />} />
+            <Route path="truyen-thong/nhan-su-360/dao-tao"       element={<KeToanPage title="1.5 Đào tạo" />} />
+            <Route path="truyen-thong/nhan-su-360/bao-cao-ngay"  element={<KeToanPage title="1.6 Báo cáo ngày" />} />
+            <Route path="truyen-thong/nhan-su-360/ke-hoach-tuan" element={<KeToanPage title="1.7 Kế hoạch tuần" />} />
+            <Route path="truyen-thong/nhan-su-360/ke-hoach-thang"element={<KeToanPage title="1.8 Kế hoạch tháng" />} />
+            <Route path="truyen-thong/nhan-su-360/bao-cao-360"   element={<KeToanPage title="1.9 Báo cáo 360" />} />
             <Route path="truyen-thong/chien-luoc"        element={<KeToanPage title="Chiến lược - Chiến dịch" />} />
             <Route path="truyen-thong/nguyen-lieu"       element={<KeToanPage title="Quản lý nguyên liệu" />} />
             <Route path="truyen-thong/cong-cu"           element={<KeToanPage title="Quản lý công cụ truyền thông" />} />

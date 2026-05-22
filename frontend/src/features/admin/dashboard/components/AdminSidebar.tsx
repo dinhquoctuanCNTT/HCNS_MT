@@ -37,6 +37,7 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
   const [openKeToan, setOpenKeToan] = useState(false);
   const [openDaoTao, setOpenDaoTao] = useState(false);
   const [openTruyenThong, setOpenTruyenThong] = useState(false);
+  const [openTTNhanSu, setOpenTTNhanSu] = useState(false);
 
   useEffect(() => {
     if (isWorkflowGroupActive) setOpenWorkflow(true);
@@ -379,8 +380,45 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
 
           {isOpen && openTruyenThong && (
             <div className="admin-sidebar__submenu">
+              {/* cấp 2: Nhân sự 360 có sub-item */}
+              <button
+                type="button"
+                className="admin-sidebar__sublink"
+                style={{ width: "100%", textAlign: "left", background: "none", border: "none",
+                  display: "flex", justifyContent: "space-between", cursor: "pointer", padding: "6px 12px" }}
+                onClick={() => setOpenTTNhanSu(p => !p)}
+              >
+                <span>1. Nhân sự 360</span>
+                <span style={{ fontSize: 10 }}>{openTTNhanSu ? "▼" : "▶"}</span>
+              </button>
+
+              {openTTNhanSu && (
+                <div style={{ paddingLeft: 12 }}>
+                  {[
+                    { to: "/admin/truyen-thong/nhan-su-360/thong-tin",     label: "1.1 Thông tin nhân sự" },
+                    { to: "/admin/truyen-thong/nhan-su-360/bmtcv-luong",   label: "1.2 BMTCV và lương P3" },
+                    { to: "/admin/truyen-thong/nhan-su-360/p3",            label: "1.3 P3" },
+                    { to: "/admin/truyen-thong/nhan-su-360/ke-hoach-nam",  label: "1.4 Kế hoạch năm" },
+                    { to: "/admin/truyen-thong/nhan-su-360/dao-tao",       label: "1.5 Đào tạo" },
+                    { to: "/admin/truyen-thong/nhan-su-360/bao-cao-ngay",  label: "1.6 Báo cáo ngày" },
+                    { to: "/admin/truyen-thong/nhan-su-360/ke-hoach-tuan", label: "1.7 Kế hoạch tuần" },
+                    { to: "/admin/truyen-thong/nhan-su-360/ke-hoach-thang",label: "1.8 Kế hoạch tháng" },
+                    { to: "/admin/truyen-thong/nhan-su-360/bao-cao-360",   label: "1.9 Báo cáo 360" },
+                  ].map(({ to, label }) => (
+                    <NavLink key={to} to={to}
+                      className={({ isActive }) =>
+                        isActive
+                          ? "admin-sidebar__sublink admin-sidebar__sublink--active"
+                          : "admin-sidebar__sublink"
+                      }
+                    >
+                      {label}
+                    </NavLink>
+                  ))}
+                </div>
+              )}
+
               {[
-                { to: "/admin/truyen-thong/nhan-su-360",        label: "1. Nhân sự 360" },
                 { to: "/admin/truyen-thong/chien-luoc",         label: "2. Chiến lược - Chiến dịch" },
                 { to: "/admin/truyen-thong/nguyen-lieu",        label: "3. Quản lý nguyên liệu" },
                 { to: "/admin/truyen-thong/cong-cu",            label: "4. Quản lý công cụ truyền thông" },
