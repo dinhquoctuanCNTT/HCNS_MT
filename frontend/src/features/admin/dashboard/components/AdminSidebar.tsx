@@ -21,15 +21,11 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
   }, [location.pathname]);
 
   const [openWorkflow, setOpenWorkflow] = useState(isWorkflowGroupActive);
-  const [openNhanSu, setOpenNhanSu] = useState(isNhanSuGroupActive);
+  const [openNhanSu, setOpenNhanSu] = useState(false);
 
   useEffect(() => {
     if (isWorkflowGroupActive) setOpenWorkflow(true);
   }, [isWorkflowGroupActive]);
-
-  useEffect(() => {
-    if (isNhanSuGroupActive) setOpenNhanSu(true);
-  }, [isNhanSuGroupActive]);
 
   const isBoardActive =
     isWorkflowGroupActive && !location.search.includes("tab=history");
