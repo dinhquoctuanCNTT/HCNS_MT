@@ -2,14 +2,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useMemo, useState, useEffect } from "react";
 import logoMT from "../../../../assets/Logo MT Holdings New-01.png";
 import { usePendingCount } from "../../../../context/PendingCountContext";
-import {
-  LayoutDashboard,
-  GitBranch,
-  Users,
-  MessageSquare,
-  Inbox,
-  Settings,
-} from "lucide-react";
+import { GitBranch, Users, Settings } from "lucide-react";
 
 type AdminSidebarProps = {
   isOpen: boolean;
@@ -19,16 +12,6 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
   const location = useLocation();
   const { pendingCount } = usePendingCount();
 
-  const isDashboardGroupActive = useMemo(() => {
-    return (
-      location.pathname === "/admin" ||
-      location.pathname === "/admin/dashboard" ||
-      location.pathname === "/admin/default" ||
-      location.pathname === "/admin/crm" ||
-      location.pathname === "/admin/analytics"
-    );
-  }, [location.pathname]);
-
   const isWorkflowGroupActive = useMemo(() => {
     return location.pathname.includes("/admin/workflow");
   }, [location.pathname]);
@@ -37,7 +20,6 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
     return location.pathname.startsWith("/admin/nhan-su");
   }, [location.pathname]);
 
-  const [openDashboard, setOpenDashboard] = useState(true);
   const [openWorkflow, setOpenWorkflow] = useState(isWorkflowGroupActive);
   const [openNhanSu, setOpenNhanSu] = useState(isNhanSuGroupActive);
 
@@ -75,51 +57,6 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
       >
         {isOpen && <p className="admin-sidebar__section-label">MENU</p>}
         <div className="admin-sidebar__nav">
-          {/* ── DASHBOARD ── */}
-          <button
-            type="button"
-            className={
-              isDashboardGroupActive
-                ? "admin-sidebar__groupTrigger admin-sidebar__groupTrigger--active"
-                : "admin-sidebar__groupTrigger"
-            }
-            onClick={() => setOpenDashboard((prev) => !prev)}
-          >
-            <span className="admin-sidebar__groupLeft">
-              <span className="admin-sidebar__icon"><LayoutDashboard size={18} /></span>
-              {isOpen && <span>Dashboard</span>}
-            </span>
-            {isOpen && (
-              <span className="admin-sidebar__caret">
-                {openDashboard ? "▼" : "▶"}
-              </span>
-            )}
-          </button>
-
-          {isOpen && openDashboard && (
-            <div className="admin-sidebar__submenu">
-              <NavLink
-                to="/admin/default"
-                className={({ isActive }) =>
-                  isActive
-                    ? "admin-sidebar__sublink admin-sidebar__sublink--active"
-                    : "admin-sidebar__sublink"
-                }
-              >
-                Default
-              </NavLink>
-              <NavLink
-                to="/admin/crm"
-                className={({ isActive }) =>
-                  isActive
-                    ? "admin-sidebar__sublink admin-sidebar__sublink--active"
-                    : "admin-sidebar__sublink"
-                }
-              >
-                CRM
-              </NavLink>
-            </div>
-          )}
 
           {/* ── WORKFLOW ── */}
           <button
@@ -220,8 +157,6 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
               >
                 Lịch sử chấm công
               </NavLink>
-
-              {/* ── Phê duyệt giải trình + Badge ── */}
               <NavLink
                 to="/admin/nhan-su/ngay-le"
                 className={({ isActive }) =>
@@ -232,7 +167,6 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
               >
                 Ngày lễ
               </NavLink>
-
               <NavLink
                 to="/admin/nhan-su/nghi-phep"
                 className={({ isActive }) =>
@@ -243,7 +177,6 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
               >
                 Nghỉ phép
               </NavLink>
-
               <NavLink
                 to="/admin/nhan-su/lam-them-gio"
                 className={({ isActive }) =>
@@ -254,7 +187,6 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
               >
                 Làm thêm giờ
               </NavLink>
-
               <NavLink
                 to="/admin/nhan-su/phe-duyet"
                 className={({ isActive }) =>
@@ -295,7 +227,6 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
                   )}
                 </span>
               </NavLink>
-
               <NavLink
                 to="/admin/nhan-su/ca-lam-viec"
                 className={({ isActive }) =>
@@ -318,40 +249,6 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
               </NavLink>
             </div>
           )}
-        </div>
-
-        {/* ── SUPPORT ── */}
-        {isOpen && <p className="admin-sidebar__section-label">SUPPORT</p>}
-        <div className="admin-sidebar__nav">
-          <NavLink
-            to="/admin/messages"
-            className={({ isActive }) =>
-              isActive
-                ? "admin-sidebar__link admin-sidebar__link--active"
-                : "admin-sidebar__link"
-            }
-          >
-            <span className="admin-sidebar__groupLeft">
-              <span className="admin-sidebar__icon"><MessageSquare size={18} /></span>
-              {isOpen && <span>Tin nhắn</span>}
-            </span>
-            {isOpen && <span className="admin-sidebar__badge">5</span>}
-          </NavLink>
-
-          <NavLink
-            to="/admin/inbox"
-            className={({ isActive }) =>
-              isActive
-                ? "admin-sidebar__link admin-sidebar__link--active"
-                : "admin-sidebar__link"
-            }
-          >
-            <span className="admin-sidebar__groupLeft">
-              <span className="admin-sidebar__icon"><Inbox size={18} /></span>
-              {isOpen && <span>Hộp thư đến</span>}
-            </span>
-            {isOpen && <span className="admin-sidebar__badge">Pro</span>}
-          </NavLink>
         </div>
 
         {/* ── OTHERS ── */}
