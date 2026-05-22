@@ -385,7 +385,7 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
                 type="button"
                 className="admin-sidebar__sublink"
                 style={{ width: "100%", textAlign: "left", background: "none", border: "none",
-                  display: "flex", justifyContent: "space-between", cursor: "pointer", padding: "6px 12px" }}
+                  display: "flex", justifyContent: "space-between", cursor: "pointer" }}
                 onClick={() => setOpenTTNhanSu(p => !p)}
               >
                 <span>1. Nhân sự 360</span>
