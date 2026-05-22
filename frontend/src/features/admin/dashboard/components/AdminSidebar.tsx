@@ -2,7 +2,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useMemo, useState, useEffect } from "react";
 import logoMT from "../../../../assets/Logo MT Holdings New-01.png";
 import { usePendingCount } from "../../../../context/PendingCountContext";
-import { GitBranch, Users, Settings } from "lucide-react";
+import { GitBranch, Users, Settings, Calculator } from "lucide-react";
 
 type AdminSidebarProps = {
   isOpen: boolean;
@@ -20,8 +20,13 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
     return location.pathname.startsWith("/admin/nhan-su");
   }, [location.pathname]);
 
+  const isKeToanGroupActive = useMemo(() => {
+    return location.pathname.startsWith("/admin/ke-toan");
+  }, [location.pathname]);
+
   const [openWorkflow, setOpenWorkflow] = useState(isWorkflowGroupActive);
   const [openNhanSu, setOpenNhanSu] = useState(false);
+  const [openKeToan, setOpenKeToan] = useState(false);
 
   useEffect(() => {
     if (isWorkflowGroupActive) setOpenWorkflow(true);
@@ -243,6 +248,54 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
               >
                 Báo cáo
               </NavLink>
+            </div>
+          )}
+
+          {/* ── KẾ TOÁN & TÀI CHÍNH ── */}
+          <button
+            type="button"
+            className={
+              isKeToanGroupActive
+                ? "admin-sidebar__groupTrigger admin-sidebar__groupTrigger--active"
+                : "admin-sidebar__groupTrigger"
+            }
+            onClick={() => setOpenKeToan((prev) => !prev)}
+          >
+            <span className="admin-sidebar__groupLeft">
+              <span className="admin-sidebar__icon"><Calculator size={18} /></span>
+              {isOpen && <span>Kế toán & Tài chính</span>}
+            </span>
+            {isOpen && (
+              <span className="admin-sidebar__caret">
+                {openKeToan ? "▼" : "▶"}
+              </span>
+            )}
+          </button>
+
+          {isOpen && openKeToan && (
+            <div className="admin-sidebar__submenu">
+              {[
+                { to: "/admin/ke-toan/mtshop",     label: "MTSHOP" },
+                { to: "/admin/ke-toan/mtpsi",      label: "MTPSI" },
+                { to: "/admin/ke-toan/mtparts",    label: "MTPARTS" },
+                { to: "/admin/ke-toan/mth",        label: "MTH Phòng kế toán" },
+                { to: "/admin/ke-toan/mt-paint",   label: "MT Paint" },
+                { to: "/admin/ke-toan/mhm",        label: "MHM" },
+                { to: "/admin/ke-toan/bc-hop-nhat",label: "BC hợp nhất MT Holdings" },
+                { to: "/admin/ke-toan/bao-cao-360",label: "Báo cáo 360" },
+              ].map(({ to, label }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  className={({ isActive }) =>
+                    isActive
+                      ? "admin-sidebar__sublink admin-sidebar__sublink--active"
+                      : "admin-sidebar__sublink"
+                  }
+                >
+                  {label}
+                </NavLink>
+              ))}
             </div>
           )}
         </div>

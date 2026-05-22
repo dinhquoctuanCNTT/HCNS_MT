@@ -22,6 +22,7 @@ import NhanVienPage from "../features/admin/nhansu/pages/Nhanvienpage";
 import NgayLePage from "../features/admin/nhansu/pages/NgayLePage";
 import NgayPhepPage from "../features/admin/nhansu/pages/NgayPhepPage";
 import LamThemGioPage from "../features/admin/nhansu/pages/LamThemGioPage";
+import KeToanPage from "../features/admin/ketoan/pages/KeToanPage";
 
 const UnauthorizedPage = () => {
   return (
@@ -83,6 +84,16 @@ const AppRouter = () => {
               element={<PheDuyetGiaiTrinhPage />}
             />
             <Route path="nhan-su/bao-cao" element={<DashboardPage />} />
+
+            {/* ── Kế toán & Tài chính ── */}
+            <Route path="ke-toan/mtshop"      element={<KeToanPage title="MTSHOP" />} />
+            <Route path="ke-toan/mtpsi"       element={<KeToanPage title="MTPSI" />} />
+            <Route path="ke-toan/mtparts"     element={<KeToanPage title="MTPARTS" />} />
+            <Route path="ke-toan/mth"         element={<KeToanPage title="MTH Phòng kế toán" />} />
+            <Route path="ke-toan/mt-paint"    element={<KeToanPage title="MT Paint" />} />
+            <Route path="ke-toan/mhm"         element={<KeToanPage title="MHM" />} />
+            <Route path="ke-toan/bc-hop-nhat" element={<KeToanPage title="BC hợp nhất MT Holdings" />} />
+            <Route path="ke-toan/bao-cao-360" element={<KeToanPage title="Báo cáo 360" />} />
           </Route>
         </Route>
       </Routes>
