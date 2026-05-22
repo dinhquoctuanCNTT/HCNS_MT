@@ -2,7 +2,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useMemo, useState, useEffect } from "react";
 import logoMT from "../../../../assets/Logo MT Holdings New-01.png";
 import { usePendingCount } from "../../../../context/PendingCountContext";
-import { GitBranch, Users, Settings, Calculator, GraduationCap } from "lucide-react";
+import { GitBranch, Users, Settings, Calculator, GraduationCap, ShoppingCart } from "lucide-react";
 
 type AdminSidebarProps = {
   isOpen: boolean;
@@ -350,6 +350,21 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
               ))}
             </div>
           )}
+
+          {/* ── PHẦN MỀM MUA HÀNG SERVER ── */}
+          <NavLink
+            to="/admin/phan-mem-mua-hang"
+            className={({ isActive }) =>
+              isActive
+                ? "admin-sidebar__groupTrigger admin-sidebar__groupTrigger--active"
+                : "admin-sidebar__groupTrigger"
+            }
+          >
+            <span className="admin-sidebar__groupLeft">
+              <span className="admin-sidebar__icon"><ShoppingCart size={18} /></span>
+              {isOpen && <span>Phần mềm mua hàng</span>}
+            </span>
+          </NavLink>
         </div>
 
         {/* ── OTHERS ── */}

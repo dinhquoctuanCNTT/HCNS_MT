@@ -103,6 +103,7 @@ const AppRouter = () => {
             <Route path="dao-tao/hoat-dong-dao-tao"   element={<KeToanPage title="Quản lý hoạt động đào tạo" />} />
             <Route path="dao-tao/danh-gia-ket-qua"    element={<KeToanPage title="Đánh giá/kết quả đào tạo" />} />
             <Route path="dao-tao/mth-lien-ket"        element={<KeToanPage title="MTH - Đào tạo liên kết" />} />
+            <Route path="phan-mem-mua-hang" element={<KeToanPage title="Phần mềm mua hàng Server" />} />
           </Route>
         </Route>
       </Routes>
