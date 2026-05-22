@@ -83,7 +83,7 @@ const AppRouter = () => {
               path="nhan-su/phe-duyet"
               element={<PheDuyetGiaiTrinhPage />}
             />
-            <Route path="nhan-su/bao-cao" element={<DashboardPage />} />
+            <Route path="nhan-su/bao-cao" element={<KeToanPage title="Báo cáo" />} />
 
             {/* ── Kế toán & Tài chính ── */}
             <Route path="ke-toan/mtshop"      element={<KeToanPage title="MTSHOP" />} />
