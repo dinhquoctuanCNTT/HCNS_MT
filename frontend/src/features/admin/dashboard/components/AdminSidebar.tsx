@@ -2,7 +2,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useMemo, useState, useEffect } from "react";
 import logoMT from "../../../../assets/Logo MT Holdings New-01.png";
 import { usePendingCount } from "../../../../context/PendingCountContext";
-import { GitBranch, Users, Settings, Calculator } from "lucide-react";
+import { GitBranch, Users, Settings, Calculator, GraduationCap } from "lucide-react";
 
 type AdminSidebarProps = {
   isOpen: boolean;
@@ -24,9 +24,14 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
     return location.pathname.startsWith("/admin/ke-toan");
   }, [location.pathname]);
 
+  const isDaoTaoGroupActive = useMemo(() => {
+    return location.pathname.startsWith("/admin/dao-tao");
+  }, [location.pathname]);
+
   const [openWorkflow, setOpenWorkflow] = useState(isWorkflowGroupActive);
   const [openNhanSu, setOpenNhanSu] = useState(false);
   const [openKeToan, setOpenKeToan] = useState(false);
+  const [openDaoTao, setOpenDaoTao] = useState(false);
 
   useEffect(() => {
     if (isWorkflowGroupActive) setOpenWorkflow(true);
@@ -283,6 +288,53 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
                 { to: "/admin/ke-toan/mhm",        label: "MHM" },
                 { to: "/admin/ke-toan/bc-hop-nhat",label: "BC hợp nhất MT Holdings" },
                 { to: "/admin/ke-toan/bao-cao-360",label: "Báo cáo 360" },
+              ].map(({ to, label }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  className={({ isActive }) =>
+                    isActive
+                      ? "admin-sidebar__sublink admin-sidebar__sublink--active"
+                      : "admin-sidebar__sublink"
+                  }
+                >
+                  {label}
+                </NavLink>
+              ))}
+            </div>
+          )}
+
+          {/* ── ĐÀO TẠO ── */}
+          <button
+            type="button"
+            className={
+              isDaoTaoGroupActive
+                ? "admin-sidebar__groupTrigger admin-sidebar__groupTrigger--active"
+                : "admin-sidebar__groupTrigger"
+            }
+            onClick={() => setOpenDaoTao((prev) => !prev)}
+          >
+            <span className="admin-sidebar__groupLeft">
+              <span className="admin-sidebar__icon"><GraduationCap size={18} /></span>
+              {isOpen && <span>Đào tạo</span>}
+            </span>
+            {isOpen && (
+              <span className="admin-sidebar__caret">
+                {openDaoTao ? "▼" : "▶"}
+              </span>
+            )}
+          </button>
+
+          {isOpen && openDaoTao && (
+            <div className="admin-sidebar__submenu">
+              {[
+                { to: "/admin/dao-tao/so-do-to-chuc",       label: "1. Sơ đồ tổ chức" },
+                { to: "/admin/dao-tao/nhan-su-360",          label: "2. Nhân sự 360" },
+                { to: "/admin/dao-tao/quy-trinh-bieu-mau",  label: "3. Quy trình, biểu mẫu" },
+                { to: "/admin/dao-tao/quan-ly-tai-lieu",     label: "4. Quản lý tài liệu" },
+                { to: "/admin/dao-tao/hoat-dong-dao-tao",   label: "5. Hoạt động đào tạo" },
+                { to: "/admin/dao-tao/danh-gia-ket-qua",    label: "6. Đánh giá/kết quả" },
+                { to: "/admin/dao-tao/mth-lien-ket",        label: "7. MTH - Đào tạo liên kết" },
               ].map(({ to, label }) => (
                 <NavLink
                   key={to}

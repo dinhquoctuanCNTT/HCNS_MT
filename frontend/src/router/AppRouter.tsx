@@ -94,6 +94,15 @@ const AppRouter = () => {
             <Route path="ke-toan/mhm"         element={<KeToanPage title="MHM" />} />
             <Route path="ke-toan/bc-hop-nhat" element={<KeToanPage title="BC hợp nhất MT Holdings" />} />
             <Route path="ke-toan/bao-cao-360" element={<KeToanPage title="Báo cáo 360" />} />
+
+            {/* ── Đào tạo ── */}
+            <Route path="dao-tao/so-do-to-chuc"      element={<KeToanPage title="Sơ đồ tổ chức" />} />
+            <Route path="dao-tao/nhan-su-360"         element={<KeToanPage title="Nhân sự 360" />} />
+            <Route path="dao-tao/quy-trinh-bieu-mau"  element={<KeToanPage title="Quy trình, biểu mẫu phòng Đào Tạo" />} />
+            <Route path="dao-tao/quan-ly-tai-lieu"    element={<KeToanPage title="Quản lý Tài liệu đào tạo" />} />
+            <Route path="dao-tao/hoat-dong-dao-tao"   element={<KeToanPage title="Quản lý hoạt động đào tạo" />} />
+            <Route path="dao-tao/danh-gia-ket-qua"    element={<KeToanPage title="Đánh giá/kết quả đào tạo" />} />
+            <Route path="dao-tao/mth-lien-ket"        element={<KeToanPage title="MTH - Đào tạo liên kết" />} />
           </Route>
         </Route>
       </Routes>
