@@ -1,0 +1,32 @@
+.sidebar-logo {
+  width: 140px;
+  height: auto;
+  object-fit: contain;
+  filter: invert(1) hue-rotate(180deg);
+}
+
+.sidebar-nav-scroll {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.sidebar-subbtn {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  padding: 10px 20px 10px 56px;
+}
+
+.sidebar-sublevel {
+  padding-left: 12px;
+}
+
+.sidebar-caret-sm {
+  font-size: 10px;
+  flex-shrink: 0;
+}
