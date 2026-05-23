@@ -2,7 +2,15 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useMemo, useState, useEffect } from "react";
 import logoMT from "../../../../assets/Logo MT Holdings New-01.png";
 import { usePendingCount } from "../../../../context/PendingCountContext";
-import { GitBranch, Users, Settings, Calculator, GraduationCap, ShoppingCart, Radio } from "lucide-react";
+import {
+  GitBranch,
+  Users,
+  Settings,
+  Calculator,
+  GraduationCap,
+  ShoppingCart,
+  Radio,
+} from "lucide-react";
 
 type AdminSidebarProps = {
   isOpen: boolean;
@@ -70,7 +78,6 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
       >
         {isOpen && <p className="admin-sidebar__section-label">MENU</p>}
         <div className="admin-sidebar__nav">
-
           {/* ── WORKFLOW ── */}
           <button
             type="button"
@@ -82,7 +89,9 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
             onClick={() => setOpenWorkflow((prev) => !prev)}
           >
             <span className="admin-sidebar__groupLeft">
-              <span className="admin-sidebar__icon"><GitBranch size={18} /></span>
+              <span className="admin-sidebar__icon">
+                <GitBranch size={18} />
+              </span>
               {isOpen && <span>Workflow</span>}
             </span>
             {isOpen && (
@@ -128,7 +137,9 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
             onClick={() => setOpenNhanSu((prev) => !prev)}
           >
             <span className="admin-sidebar__groupLeft">
-              <span className="admin-sidebar__icon"><Users size={18} /></span>
+              <span className="admin-sidebar__icon">
+                <Users size={18} />
+              </span>
               {isOpen && <span>Nhân sự</span>}
             </span>
             {isOpen && (
@@ -274,7 +285,9 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
             onClick={() => setOpenKeToan((prev) => !prev)}
           >
             <span className="admin-sidebar__groupLeft">
-              <span className="admin-sidebar__icon"><Calculator size={18} /></span>
+              <span className="admin-sidebar__icon">
+                <Calculator size={18} />
+              </span>
               {isOpen && <span>Kế toán & Tài chính</span>}
             </span>
             {isOpen && (
@@ -287,14 +300,17 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
           {isOpen && openKeToan && (
             <div className="admin-sidebar__submenu">
               {[
-                { to: "/admin/ke-toan/mtshop",     label: "MTSHOP" },
-                { to: "/admin/ke-toan/mtpsi",      label: "MTPSI" },
-                { to: "/admin/ke-toan/mtparts",    label: "MTPARTS" },
-                { to: "/admin/ke-toan/mth",        label: "MTH Phòng kế toán" },
-                { to: "/admin/ke-toan/mt-paint",   label: "MT Paint" },
-                { to: "/admin/ke-toan/mhm",        label: "MHM" },
-                { to: "/admin/ke-toan/bc-hop-nhat",label: "BC hợp nhất MT Holdings" },
-                { to: "/admin/ke-toan/bao-cao-360",label: "Báo cáo 360" },
+                { to: "/admin/ke-toan/mtshop", label: "MTSHOP" },
+                { to: "/admin/ke-toan/mtpsi", label: "MTPSI" },
+                { to: "/admin/ke-toan/mtparts", label: "MTPARTS" },
+                { to: "/admin/ke-toan/mth", label: "MTH Phòng kế toán" },
+                { to: "/admin/ke-toan/mt-paint", label: "MT Paint" },
+                { to: "/admin/ke-toan/mhm", label: "MHM" },
+                {
+                  to: "/admin/ke-toan/bc-hop-nhat",
+                  label: "BC hợp nhất MT Holdings",
+                },
+                { to: "/admin/ke-toan/bao-cao-360", label: "Báo cáo 360" },
               ].map(({ to, label }) => (
                 <NavLink
                   key={to}
@@ -322,7 +338,9 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
             onClick={() => setOpenDaoTao((prev) => !prev)}
           >
             <span className="admin-sidebar__groupLeft">
-              <span className="admin-sidebar__icon"><GraduationCap size={18} /></span>
+              <span className="admin-sidebar__icon">
+                <GraduationCap size={18} />
+              </span>
               {isOpen && <span>Đào tạo</span>}
             </span>
             {isOpen && (
@@ -335,13 +353,31 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
           {isOpen && openDaoTao && (
             <div className="admin-sidebar__submenu">
               {[
-                { to: "/admin/dao-tao/so-do-to-chuc",       label: "1. Sơ đồ tổ chức" },
-                { to: "/admin/dao-tao/nhan-su-360",          label: "2. Nhân sự 360" },
-                { to: "/admin/dao-tao/quy-trinh-bieu-mau",  label: "3. Quy trình, biểu mẫu" },
-                { to: "/admin/dao-tao/quan-ly-tai-lieu",     label: "4. Quản lý tài liệu" },
-                { to: "/admin/dao-tao/hoat-dong-dao-tao",   label: "5. Hoạt động đào tạo" },
-                { to: "/admin/dao-tao/danh-gia-ket-qua",    label: "6. Đánh giá/kết quả" },
-                { to: "/admin/dao-tao/mth-lien-ket",        label: "7. MTH - Đào tạo liên kết" },
+                {
+                  to: "/admin/dao-tao/so-do-to-chuc",
+                  label: "1. Sơ đồ tổ chức",
+                },
+                { to: "/admin/dao-tao/nhan-su-360", label: "2. Nhân sự 360" },
+                {
+                  to: "/admin/dao-tao/quy-trinh-bieu-mau",
+                  label: "3. Quy trình, biểu mẫu",
+                },
+                {
+                  to: "/admin/dao-tao/quan-ly-tai-lieu",
+                  label: "4. Quản lý tài liệu",
+                },
+                {
+                  to: "/admin/dao-tao/hoat-dong-dao-tao",
+                  label: "5. Hoạt động đào tạo",
+                },
+                {
+                  to: "/admin/dao-tao/danh-gia-ket-qua",
+                  label: "6. Đánh giá/kết quả",
+                },
+                {
+                  to: "/admin/dao-tao/mth-lien-ket",
+                  label: "7. MTH - Đào tạo liên kết",
+                },
               ].map(({ to, label }) => (
                 <NavLink
                   key={to}
@@ -369,7 +405,9 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
             onClick={() => setOpenTruyenThong((prev) => !prev)}
           >
             <span className="admin-sidebar__groupLeft">
-              <span className="admin-sidebar__icon"><Radio size={18} /></span>
+              <span className="admin-sidebar__icon">
+                <Radio size={18} />
+              </span>
               {isOpen && <span>Truyền thông</span>}
             </span>
             {isOpen && (
@@ -385,9 +423,17 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
               <button
                 type="button"
                 className="admin-sidebar__sublink"
-                style={{ width: "100%", textAlign: "left", background: "none", border: "none",
-                  display: "flex", justifyContent: "space-between", cursor: "pointer", padding: "6px 12px" }}
-                onClick={() => setOpenTTNhanSu(p => !p)}
+                style={{
+                  width: "100%",
+                  textAlign: "left",
+                  background: "none",
+                  border: "none",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  cursor: "pointer",
+                  padding: "10px 20px 10px 56px",
+                }}
+                onClick={() => setOpenTTNhanSu((p) => !p)}
               >
                 <span>1. Nhân sự 360</span>
                 <span style={{ fontSize: 10 }}>{openTTNhanSu ? "▼" : "▶"}</span>
@@ -396,17 +442,46 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
               {openTTNhanSu && (
                 <div style={{ paddingLeft: 12 }}>
                   {[
-                    { to: "/admin/truyen-thong/nhan-su-360/thong-tin",     label: "1.1 Thông tin nhân sự" },
-                    { to: "/admin/truyen-thong/nhan-su-360/bmtcv-luong",   label: "1.2 BMTCV và lương P3" },
-                    { to: "/admin/truyen-thong/nhan-su-360/p3",            label: "1.3 P3" },
-                    { to: "/admin/truyen-thong/nhan-su-360/ke-hoach-nam",  label: "1.4 Kế hoạch năm" },
-                    { to: "/admin/truyen-thong/nhan-su-360/dao-tao",       label: "1.5 Đào tạo" },
-                    { to: "/admin/truyen-thong/nhan-su-360/bao-cao-ngay",  label: "1.6 Báo cáo ngày" },
-                    { to: "/admin/truyen-thong/nhan-su-360/ke-hoach-tuan", label: "1.7 Kế hoạch tuần" },
-                    { to: "/admin/truyen-thong/nhan-su-360/ke-hoach-thang",label: "1.8 Kế hoạch tháng" },
-                    { to: "/admin/truyen-thong/nhan-su-360/bao-cao-360",   label: "1.9 Báo cáo 360" },
+                    {
+                      to: "/admin/truyen-thong/nhan-su-360/thong-tin",
+                      label: "1.1 Thông tin nhân sự",
+                    },
+                    {
+                      to: "/admin/truyen-thong/nhan-su-360/bmtcv-luong",
+                      label: "1.2 BMTCV và lương P3",
+                    },
+                    {
+                      to: "/admin/truyen-thong/nhan-su-360/p3",
+                      label: "1.3 P3",
+                    },
+                    {
+                      to: "/admin/truyen-thong/nhan-su-360/ke-hoach-nam",
+                      label: "1.4 Kế hoạch năm",
+                    },
+                    {
+                      to: "/admin/truyen-thong/nhan-su-360/dao-tao",
+                      label: "1.5 Đào tạo",
+                    },
+                    {
+                      to: "/admin/truyen-thong/nhan-su-360/bao-cao-ngay",
+                      label: "1.6 Báo cáo ngày",
+                    },
+                    {
+                      to: "/admin/truyen-thong/nhan-su-360/ke-hoach-tuan",
+                      label: "1.7 Kế hoạch tuần",
+                    },
+                    {
+                      to: "/admin/truyen-thong/nhan-su-360/ke-hoach-thang",
+                      label: "1.8 Kế hoạch tháng",
+                    },
+                    {
+                      to: "/admin/truyen-thong/nhan-su-360/bao-cao-360",
+                      label: "1.9 Báo cáo 360",
+                    },
                   ].map(({ to, label }) => (
-                    <NavLink key={to} to={to}
+                    <NavLink
+                      key={to}
+                      to={to}
                       className={({ isActive }) =>
                         isActive
                           ? "admin-sidebar__sublink admin-sidebar__sublink--active"
@@ -423,24 +498,51 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
               <button
                 type="button"
                 className="admin-sidebar__sublink"
-                style={{ width: "100%", textAlign: "left", background: "none", border: "none",
-                  display: "flex", justifyContent: "space-between", cursor: "pointer" }}
-                onClick={() => setOpenTTChienLuoc(p => !p)}
+                style={{
+                  width: "100%",
+                  textAlign: "left",
+                  background: "none",
+                  border: "none",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  cursor: "pointer",
+                  padding: "10px 20px 10px 56px",
+                }}
+                onClick={() => setOpenTTChienLuoc((p) => !p)}
               >
                 <span>2. Chiến lược - Chiến dịch</span>
-                <span style={{ fontSize: 10 }}>{openTTChienLuoc ? "▼" : "▶"}</span>
+                <span style={{ fontSize: 10 }}>
+                  {openTTChienLuoc ? "▼" : "▶"}
+                </span>
               </button>
 
               {openTTChienLuoc && (
                 <div style={{ paddingLeft: 12 }}>
                   {[
-                    { to: "/admin/truyen-thong/chien-luoc/phan-tich-insight", label: "2.1 Phân tích Insight khách hàng" },
-                    { to: "/admin/truyen-thong/chien-luoc/chien-luoc",        label: "2.2 Chiến lược" },
-                    { to: "/admin/truyen-thong/chien-luoc/chien-dich",        label: "2.3 Chiến dịch" },
-                    { to: "/admin/truyen-thong/chien-luoc/du-an",             label: "2.4 Dự án" },
-                    { to: "/admin/truyen-thong/chien-luoc/bao-cao-360",       label: "2.5 Báo cáo 360" },
+                    {
+                      to: "/admin/truyen-thong/chien-luoc/phan-tich-insight",
+                      label: "2.1 Phân tích Insight khách hàng",
+                    },
+                    {
+                      to: "/admin/truyen-thong/chien-luoc/chien-luoc",
+                      label: "2.2 Chiến lược",
+                    },
+                    {
+                      to: "/admin/truyen-thong/chien-luoc/chien-dich",
+                      label: "2.3 Chiến dịch",
+                    },
+                    {
+                      to: "/admin/truyen-thong/chien-luoc/du-an",
+                      label: "2.4 Dự án",
+                    },
+                    {
+                      to: "/admin/truyen-thong/chien-luoc/bao-cao-360",
+                      label: "2.5 Báo cáo 360",
+                    },
                   ].map(({ to, label }) => (
-                    <NavLink key={to} to={to}
+                    <NavLink
+                      key={to}
+                      to={to}
                       className={({ isActive }) =>
                         isActive
                           ? "admin-sidebar__sublink admin-sidebar__sublink--active"
@@ -454,12 +556,26 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
               )}
 
               {[
-                { to: "/admin/truyen-thong/nguyen-lieu",        label: "3. Quản lý nguyên liệu" },
-                { to: "/admin/truyen-thong/nguyen-lieu",        label: "3. Quản lý nguyên liệu" },
-                { to: "/admin/truyen-thong/cong-cu",            label: "4. Quản lý công cụ truyền thông" },
-                { to: "/admin/truyen-thong/thuong-hieu",        label: "5. Quản lý thương hiệu" },
-                { to: "/admin/truyen-thong/thiet-bi-dung-cu",   label: "6. Quản lý thiết bị dụng cụ" },
-                { to: "/admin/truyen-thong/cai-dat-quan-tri",   label: "7. Cài đặt quản trị" },
+                {
+                  to: "/admin/truyen-thong/nguyen-lieu",
+                  label: "3. Quản lý nguyên liệu",
+                },
+                {
+                  to: "/admin/truyen-thong/cong-cu",
+                  label: "4. Quản lý công cụ truyền thông",
+                },
+                {
+                  to: "/admin/truyen-thong/thuong-hieu",
+                  label: "5. Quản lý thương hiệu",
+                },
+                {
+                  to: "/admin/truyen-thong/thiet-bi-dung-cu",
+                  label: "6. Quản lý thiết bị dụng cụ",
+                },
+                {
+                  to: "/admin/truyen-thong/cai-dat-quan-tri",
+                  label: "7. Cài đặt quản trị",
+                },
               ].map(({ to, label }) => (
                 <NavLink
                   key={to}
@@ -486,7 +602,9 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
             }
           >
             <span className="admin-sidebar__groupLeft">
-              <span className="admin-sidebar__icon"><ShoppingCart size={18} /></span>
+              <span className="admin-sidebar__icon">
+                <ShoppingCart size={18} />
+              </span>
               {isOpen && <span>Phần mềm mua hàng</span>}
             </span>
           </NavLink>
@@ -504,7 +622,9 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
             }
           >
             <span className="admin-sidebar__groupLeft">
-              <span className="admin-sidebar__icon"><Settings size={18} /></span>
+              <span className="admin-sidebar__icon">
+                <Settings size={18} />
+              </span>
               {isOpen && <span>Cấu hình</span>}
             </span>
           </NavLink>
