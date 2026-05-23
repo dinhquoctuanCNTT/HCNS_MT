@@ -49,6 +49,9 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
   const [openTTNhanSu, setOpenTTNhanSu] = useState(false);
   const [openTTChienLuoc, setOpenTTChienLuoc] = useState(false);
   const [openTTNguyenLieu, setOpenTTNguyenLieu] = useState(false);
+  const [openTTCongCu, setOpenTTCongCu] = useState(false);
+  const [openTTThuongHieu, setOpenTTThuongHieu] = useState(false);
+  const [openTTThietBi, setOpenTTThietBi] = useState(false);
 
 
   useEffect(() => {
@@ -596,22 +599,89 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
                 </div>
               )}
 
-              {[
-                { to: "/admin/truyen-thong/cong-cu",          label: "4. Quản lý công cụ truyền thông" },
-                { to: "/admin/truyen-thong/thuong-hieu",      label: "5. Quản lý thương hiệu" },
-                { to: "/admin/truyen-thong/thiet-bi-dung-cu", label: "6. Quản lý thiết bị dụng cụ" },
-                { to: "/admin/truyen-thong/cai-dat-quan-tri", label: "7. Cài đặt quản trị" },
-              ].map(({ to, label }) => (
-                <NavLink key={to} to={to}
-                  className={({ isActive }) =>
-                    isActive
-                      ? "admin-sidebar__sublink admin-sidebar__sublink--active"
-                      : "admin-sidebar__sublink"
-                  }
-                >
-                  {label}
-                </NavLink>
-              ))}
+              {/* cấp 2: Quản lý công cụ truyền thông */}
+              <button type="button" className="admin-sidebar__sublink"
+                style={{ width:"100%", textAlign:"left", background:"none", border:"none",
+                  display:"flex", justifyContent:"space-between", cursor:"pointer", padding:"10px 20px 10px 56px" }}
+                onClick={() => setOpenTTCongCu(p => !p)}>
+                <span>4. Quản lý công cụ truyền thông</span>
+                <span style={{ fontSize:10 }}>{openTTCongCu ? "▼" : "▶"}</span>
+              </button>
+              {openTTCongCu && (
+                <div style={{ paddingLeft: 12 }}>
+                  {[
+                    { to: "/admin/truyen-thong/cong-cu/kenh-truyen-thong", label: "4.1 Kênh truyền thông" },
+                    { to: "/admin/truyen-thong/cong-cu/website-seo",       label: "4.2 Website và SEO" },
+                    { to: "/admin/truyen-thong/cong-cu/mang-xa-hoi",       label: "4.3 Mạng xã hội" },
+                    { to: "/admin/truyen-thong/cong-cu/zalo-oa",           label: "4.4 Zalo OA" },
+                    { to: "/admin/truyen-thong/cong-cu/email-marketing",   label: "4.5 Email Marketing" },
+                    { to: "/admin/truyen-thong/cong-cu/khach-hang-tiem-nang", label: "4.6 Khách hàng tiềm năng" },
+                    { to: "/admin/truyen-thong/cong-cu/bao-cao-360",       label: "4.7 Báo cáo 360" },
+                  ].map(({ to, label }) => (
+                    <NavLink key={to} to={to}
+                      className={({ isActive }) => isActive
+                        ? "admin-sidebar__sublink admin-sidebar__sublink--active"
+                        : "admin-sidebar__sublink"}>
+                      {label}
+                    </NavLink>
+                  ))}
+                </div>
+              )}
+
+              {/* cấp 2: Quản lý thương hiệu */}
+              <button type="button" className="admin-sidebar__sublink"
+                style={{ width:"100%", textAlign:"left", background:"none", border:"none",
+                  display:"flex", justifyContent:"space-between", cursor:"pointer", padding:"10px 20px 10px 56px" }}
+                onClick={() => setOpenTTThuongHieu(p => !p)}>
+                <span>5. Quản lý thương hiệu</span>
+                <span style={{ fontSize:10 }}>{openTTThuongHieu ? "▼" : "▶"}</span>
+              </button>
+              {openTTThuongHieu && (
+                <div style={{ paddingLeft: 12 }}>
+                  {[
+                    { to: "/admin/truyen-thong/thuong-hieu/thuong-hieu", label: "5.1 Thương hiệu" },
+                    { to: "/admin/truyen-thong/thuong-hieu/bao-cao-360", label: "5.2 Báo cáo 360" },
+                  ].map(({ to, label }) => (
+                    <NavLink key={to} to={to}
+                      className={({ isActive }) => isActive
+                        ? "admin-sidebar__sublink admin-sidebar__sublink--active"
+                        : "admin-sidebar__sublink"}>
+                      {label}
+                    </NavLink>
+                  ))}
+                </div>
+              )}
+
+              {/* cấp 2: Quản lý thiết bị dụng cụ */}
+              <button type="button" className="admin-sidebar__sublink"
+                style={{ width:"100%", textAlign:"left", background:"none", border:"none",
+                  display:"flex", justifyContent:"space-between", cursor:"pointer", padding:"10px 20px 10px 56px" }}
+                onClick={() => setOpenTTThietBi(p => !p)}>
+                <span>6. Quản lý thiết bị dụng cụ</span>
+                <span style={{ fontSize:10 }}>{openTTThietBi ? "▼" : "▶"}</span>
+              </button>
+              {openTTThietBi && (
+                <div style={{ paddingLeft: 12 }}>
+                  {[
+                    { to: "/admin/truyen-thong/thiet-bi-dung-cu/quan-ly", label: "6.1 Quản lý thiết bị dụng cụ" },
+                    { to: "/admin/truyen-thong/thiet-bi-dung-cu/bao-cao-360", label: "6.2 Báo cáo 360" },
+                  ].map(({ to, label }) => (
+                    <NavLink key={to} to={to}
+                      className={({ isActive }) => isActive
+                        ? "admin-sidebar__sublink admin-sidebar__sublink--active"
+                        : "admin-sidebar__sublink"}>
+                      {label}
+                    </NavLink>
+                  ))}
+                </div>
+              )}
+
+              <NavLink to="/admin/truyen-thong/cai-dat-quan-tri"
+                className={({ isActive }) => isActive
+                  ? "admin-sidebar__sublink admin-sidebar__sublink--active"
+                  : "admin-sidebar__sublink"}>
+                7. Cài đặt quản trị
+              </NavLink>
             </div>
           )}
 

@@ -126,9 +126,17 @@ const AppRouter = () => {
             <Route path="truyen-thong/nguyen-lieu/su-kien"     element={<KeToanPage title="3.4 Sự kiện" />} />
             <Route path="truyen-thong/nguyen-lieu/tem-nhan"    element={<KeToanPage title="3.5 Tem nhãn, bao bì" />} />
             <Route path="truyen-thong/nguyen-lieu/bao-cao-360" element={<KeToanPage title="3.6 Báo cáo 360" />} />
-            <Route path="truyen-thong/cong-cu"           element={<KeToanPage title="Quản lý công cụ truyền thông" />} />
-            <Route path="truyen-thong/thuong-hieu"       element={<KeToanPage title="Quản lý thương hiệu" />} />
-            <Route path="truyen-thong/thiet-bi-dung-cu"  element={<KeToanPage title="Quản lý thiết bị dụng cụ" />} />
+            <Route path="truyen-thong/cong-cu/kenh-truyen-thong"    element={<KeToanPage title="4.1 Kênh truyền thông" />} />
+            <Route path="truyen-thong/cong-cu/website-seo"         element={<KeToanPage title="4.2 Website và SEO" />} />
+            <Route path="truyen-thong/cong-cu/mang-xa-hoi"         element={<KeToanPage title="4.3 Mạng xã hội" />} />
+            <Route path="truyen-thong/cong-cu/zalo-oa"             element={<KeToanPage title="4.4 Zalo OA" />} />
+            <Route path="truyen-thong/cong-cu/email-marketing"     element={<KeToanPage title="4.5 Email Marketing" />} />
+            <Route path="truyen-thong/cong-cu/khach-hang-tiem-nang"element={<KeToanPage title="4.6 Khách hàng tiềm năng" />} />
+            <Route path="truyen-thong/cong-cu/bao-cao-360"         element={<KeToanPage title="4.7 Báo cáo 360" />} />
+            <Route path="truyen-thong/thuong-hieu/thuong-hieu"     element={<KeToanPage title="5.1 Thương hiệu" />} />
+            <Route path="truyen-thong/thuong-hieu/bao-cao-360"     element={<KeToanPage title="5.2 Báo cáo 360" />} />
+            <Route path="truyen-thong/thiet-bi-dung-cu/quan-ly"    element={<KeToanPage title="6.1 Quản lý thiết bị dụng cụ" />} />
+            <Route path="truyen-thong/thiet-bi-dung-cu/bao-cao-360"element={<KeToanPage title="6.2 Báo cáo 360" />} />
             <Route path="truyen-thong/cai-dat-quan-tri"  element={<KeToanPage title="Cài đặt quản trị" />} />
           </Route>
         </Route>
