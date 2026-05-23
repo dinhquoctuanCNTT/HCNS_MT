@@ -120,7 +120,12 @@ const AppRouter = () => {
             <Route path="truyen-thong/chien-luoc/chien-dich"        element={<KeToanPage title="2.3 Chiến dịch" />} />
             <Route path="truyen-thong/chien-luoc/du-an"             element={<KeToanPage title="2.4 Dự án" />} />
             <Route path="truyen-thong/chien-luoc/bao-cao-360"       element={<KeToanPage title="2.5 Báo cáo 360" />} />
-            <Route path="truyen-thong/nguyen-lieu"       element={<KeToanPage title="Quản lý nguyên liệu" />} />
+            <Route path="truyen-thong/nguyen-lieu/video"       element={<KeToanPage title="3.1 Video" />} />
+            <Route path="truyen-thong/nguyen-lieu/hinh-anh"    element={<KeToanPage title="3.2 Hình ảnh" />} />
+            <Route path="truyen-thong/nguyen-lieu/content"     element={<KeToanPage title="3.3 Content" />} />
+            <Route path="truyen-thong/nguyen-lieu/su-kien"     element={<KeToanPage title="3.4 Sự kiện" />} />
+            <Route path="truyen-thong/nguyen-lieu/tem-nhan"    element={<KeToanPage title="3.5 Tem nhãn, bao bì" />} />
+            <Route path="truyen-thong/nguyen-lieu/bao-cao-360" element={<KeToanPage title="3.6 Báo cáo 360" />} />
             <Route path="truyen-thong/cong-cu"           element={<KeToanPage title="Quản lý công cụ truyền thông" />} />
             <Route path="truyen-thong/thuong-hieu"       element={<KeToanPage title="Quản lý thương hiệu" />} />
             <Route path="truyen-thong/thiet-bi-dung-cu"  element={<KeToanPage title="Quản lý thiết bị dụng cụ" />} />

@@ -11,6 +11,7 @@ import {
   ShoppingCart,
   Radio,
 } from "lucide-react";
+import Button from "../../../../shared/ui/Button/Button";
 
 type AdminSidebarProps = {
   isOpen: boolean;
@@ -47,6 +48,8 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
   const [openTruyenThong, setOpenTruyenThong] = useState(false);
   const [openTTNhanSu, setOpenTTNhanSu] = useState(false);
   const [openTTChienLuoc, setOpenTTChienLuoc] = useState(false);
+  const [openTTNguyenLieu, setOpenTTNguyenLieu] = useState(false);
+
 
   useEffect(() => {
     if (isWorkflowGroupActive) setOpenWorkflow(true);
@@ -555,31 +558,51 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
                 </div>
               )}
 
+              {/* cấp 2: Quản lý nguyên liệu */}
+              <button
+                type="button"
+                className="admin-sidebar__sublink"
+                style={{
+                  width: "100%", textAlign: "left", background: "none", border: "none",
+                  display: "flex", justifyContent: "space-between", cursor: "pointer",
+                  padding: "10px 20px 10px 56px",
+                }}
+                onClick={() => setOpenTTNguyenLieu(p => !p)}
+              >
+                <span>3. Quản lý nguyên liệu</span>
+                <span style={{ fontSize: 10 }}>{openTTNguyenLieu ? "▼" : "▶"}</span>
+              </button>
+
+              {openTTNguyenLieu && (
+                <div style={{ paddingLeft: 12 }}>
+                  {[
+                    { to: "/admin/truyen-thong/nguyen-lieu/video",       label: "3.1 Video" },
+                    { to: "/admin/truyen-thong/nguyen-lieu/hinh-anh",    label: "3.2 Hình ảnh" },
+                    { to: "/admin/truyen-thong/nguyen-lieu/content",     label: "3.3 Content" },
+                    { to: "/admin/truyen-thong/nguyen-lieu/su-kien",     label: "3.4 Sự kiện" },
+                    { to: "/admin/truyen-thong/nguyen-lieu/tem-nhan",    label: "3.5 Tem nhãn, bao bì" },
+                    { to: "/admin/truyen-thong/nguyen-lieu/bao-cao-360", label: "3.6 Báo cáo 360" },
+                  ].map(({ to, label }) => (
+                    <NavLink key={to} to={to}
+                      className={({ isActive }) =>
+                        isActive
+                          ? "admin-sidebar__sublink admin-sidebar__sublink--active"
+                          : "admin-sidebar__sublink"
+                      }
+                    >
+                      {label}
+                    </NavLink>
+                  ))}
+                </div>
+              )}
+
               {[
-                {
-                  to: "/admin/truyen-thong/nguyen-lieu",
-                  label: "3. Quản lý nguyên liệu",
-                },
-                {
-                  to: "/admin/truyen-thong/cong-cu",
-                  label: "4. Quản lý công cụ truyền thông",
-                },
-                {
-                  to: "/admin/truyen-thong/thuong-hieu",
-                  label: "5. Quản lý thương hiệu",
-                },
-                {
-                  to: "/admin/truyen-thong/thiet-bi-dung-cu",
-                  label: "6. Quản lý thiết bị dụng cụ",
-                },
-                {
-                  to: "/admin/truyen-thong/cai-dat-quan-tri",
-                  label: "7. Cài đặt quản trị",
-                },
+                { to: "/admin/truyen-thong/cong-cu",          label: "4. Quản lý công cụ truyền thông" },
+                { to: "/admin/truyen-thong/thuong-hieu",      label: "5. Quản lý thương hiệu" },
+                { to: "/admin/truyen-thong/thiet-bi-dung-cu", label: "6. Quản lý thiết bị dụng cụ" },
+                { to: "/admin/truyen-thong/cai-dat-quan-tri", label: "7. Cài đặt quản trị" },
               ].map(({ to, label }) => (
-                <NavLink
-                  key={to}
-                  to={to}
+                <NavLink key={to} to={to}
                   className={({ isActive }) =>
                     isActive
                       ? "admin-sidebar__sublink admin-sidebar__sublink--active"
