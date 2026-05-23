@@ -115,7 +115,11 @@ const AppRouter = () => {
             <Route path="truyen-thong/nhan-su-360/ke-hoach-tuan" element={<KeToanPage title="1.7 Kế hoạch tuần" />} />
             <Route path="truyen-thong/nhan-su-360/ke-hoach-thang"element={<KeToanPage title="1.8 Kế hoạch tháng" />} />
             <Route path="truyen-thong/nhan-su-360/bao-cao-360"   element={<KeToanPage title="1.9 Báo cáo 360" />} />
-            <Route path="truyen-thong/chien-luoc"        element={<KeToanPage title="Chiến lược - Chiến dịch" />} />
+            <Route path="truyen-thong/chien-luoc/phan-tich-insight" element={<KeToanPage title="2.1 Phân tích Insight khách hàng" />} />
+            <Route path="truyen-thong/chien-luoc/chien-luoc"        element={<KeToanPage title="2.2 Chiến lược" />} />
+            <Route path="truyen-thong/chien-luoc/chien-dich"        element={<KeToanPage title="2.3 Chiến dịch" />} />
+            <Route path="truyen-thong/chien-luoc/du-an"             element={<KeToanPage title="2.4 Dự án" />} />
+            <Route path="truyen-thong/chien-luoc/bao-cao-360"       element={<KeToanPage title="2.5 Báo cáo 360" />} />
             <Route path="truyen-thong/nguyen-lieu"       element={<KeToanPage title="Quản lý nguyên liệu" />} />
             <Route path="truyen-thong/cong-cu"           element={<KeToanPage title="Quản lý công cụ truyền thông" />} />
             <Route path="truyen-thong/thuong-hieu"       element={<KeToanPage title="Quản lý thương hiệu" />} />

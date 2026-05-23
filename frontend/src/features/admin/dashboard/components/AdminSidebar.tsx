@@ -38,6 +38,7 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
   const [openDaoTao, setOpenDaoTao] = useState(false);
   const [openTruyenThong, setOpenTruyenThong] = useState(false);
   const [openTTNhanSu, setOpenTTNhanSu] = useState(false);
+  const [openTTChienLuoc, setOpenTTChienLuoc] = useState(false);
 
   useEffect(() => {
     if (isWorkflowGroupActive) setOpenWorkflow(true);
@@ -385,7 +386,7 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
                 type="button"
                 className="admin-sidebar__sublink"
                 style={{ width: "100%", textAlign: "left", background: "none", border: "none",
-                  display: "flex", justifyContent: "space-between", cursor: "pointer" }}
+                  display: "flex", justifyContent: "space-between", cursor: "pointer", padding: "6px 12px" }}
                 onClick={() => setOpenTTNhanSu(p => !p)}
               >
                 <span>1. Nhân sự 360</span>
@@ -418,8 +419,42 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
                 </div>
               )}
 
+              {/* cấp 2: Chiến lược - Chiến dịch có sub-item */}
+              <button
+                type="button"
+                className="admin-sidebar__sublink"
+                style={{ width: "100%", textAlign: "left", background: "none", border: "none",
+                  display: "flex", justifyContent: "space-between", cursor: "pointer" }}
+                onClick={() => setOpenTTChienLuoc(p => !p)}
+              >
+                <span>2. Chiến lược - Chiến dịch</span>
+                <span style={{ fontSize: 10 }}>{openTTChienLuoc ? "▼" : "▶"}</span>
+              </button>
+
+              {openTTChienLuoc && (
+                <div style={{ paddingLeft: 12 }}>
+                  {[
+                    { to: "/admin/truyen-thong/chien-luoc/phan-tich-insight", label: "2.1 Phân tích Insight khách hàng" },
+                    { to: "/admin/truyen-thong/chien-luoc/chien-luoc",        label: "2.2 Chiến lược" },
+                    { to: "/admin/truyen-thong/chien-luoc/chien-dich",        label: "2.3 Chiến dịch" },
+                    { to: "/admin/truyen-thong/chien-luoc/du-an",             label: "2.4 Dự án" },
+                    { to: "/admin/truyen-thong/chien-luoc/bao-cao-360",       label: "2.5 Báo cáo 360" },
+                  ].map(({ to, label }) => (
+                    <NavLink key={to} to={to}
+                      className={({ isActive }) =>
+                        isActive
+                          ? "admin-sidebar__sublink admin-sidebar__sublink--active"
+                          : "admin-sidebar__sublink"
+                      }
+                    >
+                      {label}
+                    </NavLink>
+                  ))}
+                </div>
+              )}
+
               {[
-                { to: "/admin/truyen-thong/chien-luoc",         label: "2. Chiến lược - Chiến dịch" },
+                { to: "/admin/truyen-thong/nguyen-lieu",        label: "3. Quản lý nguyên liệu" },
                 { to: "/admin/truyen-thong/nguyen-lieu",        label: "3. Quản lý nguyên liệu" },
                 { to: "/admin/truyen-thong/cong-cu",            label: "4. Quản lý công cụ truyền thông" },
                 { to: "/admin/truyen-thong/thuong-hieu",        label: "5. Quản lý thương hiệu" },
