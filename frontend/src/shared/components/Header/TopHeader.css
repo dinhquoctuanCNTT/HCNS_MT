@@ -1,0 +1,311 @@
+/* ===== MISA AMIS TOP HEADER ===== */
+.misa-top-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.misa-header-container {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0 16px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* ===== LEFT SECTION ===== */
+.misa-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* App Launcher - 9 dots */
+.misa-app-launcher {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.misa-app-launcher:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.misa-app-launcher:active {
+  background: #e5e7eb;
+}
+
+/* Module Info */
+.misa-module-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.misa-module-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: #2563eb;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.misa-module-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  white-space: nowrap;
+}
+
+/* ===== CENTER SECTION ===== */
+.misa-header-center {
+  flex: 1;
+  max-width: 600px;
+  min-width: 200px;
+}
+
+.misa-search-bar {
+  position: relative;
+  width: 100%;
+}
+
+.misa-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.misa-search-input {
+  width: 100%;
+  height: 40px;
+  padding: 0 16px 0 40px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f9fafb;
+  font-size: 14px;
+  color: #111827;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.misa-search-input:hover {
+  background: #ffffff;
+  border-color: #d1d5db;
+}
+
+.misa-search-input:focus {
+  background: #ffffff;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.misa-search-input::placeholder {
+  color: #9ca3af;
+}
+
+/* ===== RIGHT SECTION ===== */
+.misa-header-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* Tool Buttons */
+.misa-tool-btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.misa-tool-btn:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.misa-tool-btn:active {
+  background: #e5e7eb;
+}
+
+/* Notification Button with Badge */
+.misa-notification-btn {
+  position: relative;
+}
+
+.misa-notification-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  background: #ef4444;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Training Button - Yellow Border */
+.misa-training-btn {
+  border: 2px solid #fbbf24;
+  color: #f59e0b;
+}
+
+.misa-training-btn:hover {
+  background: #fef3c7;
+  border-color: #f59e0b;
+  color: #d97706;
+}
+
+/* User Avatar */
+.misa-user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: 4px;
+  user-select: none;
+}
+
+.misa-user-avatar:hover {
+  opacity: 0.9;
+  transform: scale(1.05);
+}
+
+.misa-user-avatar:active {
+  transform: scale(0.98);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+  .misa-header-container {
+    gap: 12px;
+  }
+
+  .misa-header-center {
+    max-width: 500px;
+  }
+
+  .misa-module-name {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 768px) {
+  .misa-header-container {
+    padding: 0 12px;
+    gap: 8px;
+  }
+
+  .misa-header-left {
+    gap: 8px;
+  }
+
+  .misa-header-center {
+    max-width: 400px;
+    min-width: 150px;
+  }
+
+  .misa-search-input {
+    height: 36px;
+    font-size: 13px;
+  }
+
+  .misa-tool-btn,
+  .misa-app-launcher,
+  .misa-user-avatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .misa-module-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .misa-module-name {
+    font-size: 14px;
+  }
+
+  .misa-header-right {
+    gap: 2px;
+  }
+}
+
+@media (max-width: 640px) {
+  .misa-module-name {
+    display: none;
+  }
+
+  .misa-header-center {
+    max-width: none;
+  }
+
+  /* Hide some tool buttons on small screens */
+  .misa-tool-btn:nth-child(2),
+  .misa-tool-btn:nth-child(3),
+  .misa-tool-btn:nth-child(6) {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .misa-header-container {
+    padding: 0 8px;
+  }
+
+  .misa-search-input {
+    font-size: 12px;
+  }
+
+  /* Hide training button on very small screens */
+  .misa-training-btn {
+    display: none;
+  }
+}

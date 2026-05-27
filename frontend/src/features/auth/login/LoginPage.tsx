@@ -28,7 +28,7 @@ const LoginPage = () => {
       setLoading(true);
       const data = await authService.login(form);
       setAuth(data.token, data.user);
-      navigate("/admin/dashboard");
+      navigate("/admin");
     } catch (error: any) {
       const res = error?.response?.data;
       const status = error?.response?.status;

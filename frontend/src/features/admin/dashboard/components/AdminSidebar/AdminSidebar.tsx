@@ -96,7 +96,9 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
   return (
     <aside className={`admin-sidebar ${isOpen ? "open" : "closed"}`}>
       <div className="admin-sidebar__brand">
-        <img src={logoMT} alt="MT Holding" className="sidebar-logo" />
+        <NavLink to="/admin">
+          <img src={logoMT} alt="MT Holding" className="sidebar-logo" />
+        </NavLink>
       </div>
 
       <nav className="admin-sidebar__content sidebar-nav-scroll">

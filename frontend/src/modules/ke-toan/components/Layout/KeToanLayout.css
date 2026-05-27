@@ -1,0 +1,131 @@
+/* KeToanLayout.css */
+
+.misa-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  color: #a3b8cc;
+  text-decoration: none;
+  font-size: 14.5px;
+  font-weight: 500;
+  border-left: 4px solid transparent;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.misa-sidebar-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: #ffffff;
+}
+
+.misa-sidebar-item.active {
+  background: #0d2729;
+  color: #ffffff;
+  border-left-color: #00b4c5;
+  font-weight: 600;
+}
+
+.misa-btn-them-nhanh {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1.5px solid rgba(255, 255, 255, 0.55);
+  border-radius: 22px;
+  background: transparent;
+  color: #ffffff;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  width: calc(100% - 32px);
+  margin: 0 16px;
+}
+
+.misa-btn-them-nhanh:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: #ffffff;
+}
+
+.misa-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 18px 8px;
+  color: #627b8f;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.misa-topbar-icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 50%;
+  position: relative;
+  color: #55697d;
+  transition: background 0.2s;
+}
+
+.misa-topbar-icon-btn:hover {
+  background: #f1f5f9;
+}
+
+.misa-topbar-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  background: #ef4444;
+  color: white;
+  font-size: 9.5px;
+  font-weight: bold;
+  border-radius: 10px;
+  min-width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+.misa-sub-tab-item {
+  padding: 0 16px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #334155;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.2s;
+  border-bottom: 3px solid transparent;
+}
+
+.misa-sub-tab-item:hover {
+  background: rgba(0, 180, 197, 0.05);
+}
+
+.misa-sub-tab-item.active {
+  border-bottom-color: #00b4c5;
+  color: #00b4c5;
+  background: rgba(0, 180, 197, 0.08);
+}

@@ -1,0 +1,427 @@
+/* =====================================================
+   WORKFLOW HISTORY — IMPROVED UI
+   ===================================================== */
+
+.wfh {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  overflow: hidden;
+  min-height: 0;
+  color: #172b4d;
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+}
+
+/* ── Toolbar ── */
+.wfh__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;   
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px 20px;
+  border-bottom: 1px solid #e6eaf0;
+  background: #fafbfd;
+  flex-shrink: 0;
+}
+
+.wfh__toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.wfh__toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.wfh__count {
+  font-size: 13px;
+  color: #667085;
+  white-space: nowrap;
+}
+
+/* Chip */
+.wfh__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  background: #edfaf3;
+  color: #1a6b3c;
+  border: 1px solid #b0e8cc;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Search */
+.wfh__search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.wfh__search-icon {
+  position: absolute;
+  left: 10px;
+  pointer-events: none;
+}
+
+.wfh__search {
+  width: 260px;
+  max-width: 100%;
+  height: 34px;
+  padding: 0 12px 0 32px;
+  border: 1px solid #d7dde5;
+  border-radius: 7px;
+  font-size: 13px;
+  color: #172b4d;
+  background: #ffffff;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.wfh__search::placeholder { color: #aab4c0; }
+.wfh__search:hover { border-color: #b8c4d0; }
+.wfh__search:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* ── Table wrap ── */
+.wfh__table-wrap {
+  flex: 1;
+  overflow: auto;
+  min-height: 400px;
+}
+
+/* ── Table ── */
+.wfh__table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+
+/* ── Header ── */
+.wfh__th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #ffffff;
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e293b;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.wfh__th--type     { width: 52px;  text-align: center; }
+.wfh__th--key      { width: 140px; }
+.wfh__th--summary  { }
+.wfh__th--assignee { width: 170px; }
+.wfh__th--reporter { width: 170px; }
+.wfh__th--status   { width: 130px; }
+.wfh__th--date     { width: 130px; }
+
+/* ── Rows ── */
+.wfh__row { transition: background 0.12s; }
+
+.wfh__row:nth-child(odd) .wfh__td {
+  background: #f2f4f6;
+}
+.wfh__row:nth-child(even) .wfh__td {
+  background: #ffffff;
+}
+
+/* ── Cells ── */
+.wfh__td {
+  padding: 11px 14px;
+  vertical-align: middle;
+  font-size: 13px;
+  color: #172b4d;
+  border-bottom: 1px solid #eef2f6;
+  border-right: 1px solid #e6eaf0;
+  background: #ffffff;
+  transition: background 0.12s;
+}
+
+.wfh__td:last-child { border-right: none; }
+.wfh__th:last-child { border-right: none; }
+
+.wfh__th {
+  border-right: 1px solid #e6eaf0;
+}
+
+.wfh__td--type {
+  text-align: center;
+  width: 52px;
+}
+
+.wfh__type-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wfh__td--key {
+  width: 140px;
+  overflow: hidden;
+}
+
+.wfh__key-link {
+  color: #2563eb;
+  font-weight: 600;
+  font-size: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  cursor: pointer;
+  transition: color 0.12s;
+}
+
+.wfh__key-link:hover { color: #1d4ed8; text-decoration: underline; }
+
+.wfh__td--summary { overflow: hidden; }
+
+.wfh__summary-text {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+  color: #1e293b;
+  cursor: pointer;
+  transition: color 0.12s;
+}
+
+.wfh__summary-text:hover { color: #2563eb; }
+
+.wfh__td--assignee,
+.wfh__td--reporter { white-space: nowrap; overflow: hidden; }
+
+.wfh__td--status { white-space: nowrap; }
+
+/* ── Person ── */
+.wfh__person {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 100%;
+}
+
+.wfh__person-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  color: #344054;
+}
+
+/* ── Avatar ── */
+.wfh__avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.wfh__avatar--blue  { background: linear-gradient(135deg, #60a5fa, #2563eb); }
+.wfh__avatar--green { background: linear-gradient(135deg, #4ade80, #16a34a); }
+
+/* ── Status badge ── */
+.wfh__status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 999px;
+  border: 1px solid;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ── Date cell ── */
+.wfh__td--date { width: 130px; }
+
+.wfh__date {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #667085;
+  font-size: 12px;
+}
+
+/* ── Empty value ── */
+.wfh__empty-val { color: #c0c8d4; font-size: 13px; }
+
+/* ── Empty state ── */
+.wfh__empty-row td {
+  padding: 0;
+  border-bottom: 0;
+  background: #ffffff !important;
+}
+
+.wfh__empty {
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 48px 20px;
+  text-align: center;
+}
+
+.wfh__empty-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.wfh__empty-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.wfh__empty-sub {
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+/* ── Loading ── */
+.wf-page-loading {
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #667085;
+  font-size: 14px;
+}
+
+.wf-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #dbe3ec;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: wf-spin 0.75s linear infinite;
+}
+
+@keyframes wf-spin { to { transform: rotate(360deg); } }
+
+/* ── Pagination ── */
+.wfh__pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 20px;
+  border-top: 1px solid #e6eaf0;
+  background: #fafbfd;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.wfh__page-info {
+  font-size: 13px;
+  color: #667085;
+  white-space: nowrap;
+}
+
+.wfh__pages {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.wfh__page-btn {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 9px;
+  border: 1px solid #d7dde5;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wfh__page-btn:hover:not(:disabled) {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+
+.wfh__page-btn:disabled {
+  color: #c0c8d4;
+  cursor: not-allowed;
+  border-color: #eef2f6;
+  background: #fafbfd;
+}
+
+.wfh__page-btn--active {
+  background: #2563eb;
+  color: #ffffff !important;
+  border-color: #2563eb;
+}
+
+.wfh__page-btn--active:hover {
+  background: #1d4ed8 !important;
+}
+
+.wfh__page-ellipsis {
+  padding: 0 4px;
+  color: #94a3b8;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1100px) {
+  .wfh__th--reporter,
+  .wfh__td--reporter { display: none; }
+}
+
+@media (max-width: 860px) {
+  .wfh__toolbar { align-items: flex-start; }
+  .wfh__search  { width: 100%; min-width: 0; }
+  .wfh__pagination { flex-direction: column; align-items: flex-start; }
+  .wfh__th--assignee,
+  .wfh__td--assignee { display: none; }
+}

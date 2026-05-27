@@ -1,0 +1,501 @@
+
+:root {
+  --wf-blue:         #0052cc;
+  --wf-blue-hover:   #0747a6;
+  --wf-blue-light:   #deebff;
+  --wf-blue-mid:     #4c9aff;
+  --wf-text:         #172b4d;
+  --wf-text-sub:     #5e6c84;
+  --wf-text-muted:   #97a0af;
+  --wf-border:       #dfe1e6;
+  --wf-border-hover: #b3bac5;
+  --wf-bg:           #f4f5f7;
+  --wf-surface:      #ffffff;
+  --wf-red:          #de350b;
+  --wf-red-bg:       #ffebe6;
+  --wf-radius:       4px;
+  --wf-radius-md:    6px;
+  --wf-radius-lg:    8px;
+  --wf-shadow-modal: 0 8px 32px rgba(9, 30, 66, 0.2), 0 0 0 1px rgba(9, 30, 66, 0.08);
+}
+
+/* ── Backdrop ── */
+.ci-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(9, 30, 66, 0.54);
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: ci-fade 0.15s ease;
+}
+
+@keyframes ci-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Modal box ── */
+.ci-modal {
+  background: var(--wf-surface);
+  border-radius: var(--wf-radius-lg);
+  box-shadow: var(--wf-shadow-modal);
+  width: 100%;
+  max-width: 620px;
+  max-height: calc(100vh - 40px);
+  display: flex;
+  flex-direction: column;
+  animation: ci-rise 0.18s cubic-bezier(0.2, 0, 0, 1);
+}
+
+@keyframes ci-rise {
+  from { transform: translateY(10px); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+
+/* ── Header ── */
+.ci-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--wf-border);
+  flex-shrink: 0;
+  gap: 12px;
+}
+
+.ci-header__title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--wf-text);
+  margin: 0;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.ci-header__project {
+  font-size: 12px;
+  color: var(--wf-text-sub);
+  margin-top: 2px;
+}
+
+.ci-close {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border: none;
+  background: transparent;
+  border-radius: var(--wf-radius-md);
+  cursor: pointer;
+  color: var(--wf-text-sub);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: background 0.12s, color 0.12s;
+}
+
+.ci-close:hover {
+  background: var(--wf-bg);
+  color: var(--wf-text);
+}
+
+/* ── Body scroll area ── */
+.ci-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ci-body::-webkit-scrollbar { width: 4px; }
+.ci-body::-webkit-scrollbar-thumb {
+  background: var(--wf-border);
+  border-radius: 2px;
+}
+
+/* ── Form field wrapper ── */
+.ci-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ci-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--wf-text-sub);
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+
+/* ── Status pill button ── */
+.ci-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px 0 10px;
+  border: 1.5px solid var(--wf-border);
+  border-radius: 20px;
+  background: var(--wf-surface);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--wf-text);
+  font-family: inherit;
+  transition: border-color 0.12s, background 0.12s;
+  white-space: nowrap;
+}
+
+.ci-status-pill:hover {
+  border-color: var(--wf-border-hover);
+  background: var(--wf-bg);
+}
+
+.ci-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ci-status-chevron {
+  color: var(--wf-text-sub);
+  font-size: 10px;
+  margin-left: 2px;
+}
+
+/* ── Title input (large) ── */
+.ci-title-input {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--wf-text);
+  font-family: inherit;
+  border: 2px solid var(--wf-border);
+  border-radius: var(--wf-radius-md);
+  padding: 10px 12px;
+  outline: none;
+  transition: border-color 0.14s, box-shadow 0.14s;
+  background: var(--wf-surface);
+}
+
+.ci-title-input:hover { border-color: var(--wf-border-hover); }
+
+.ci-title-input:focus {
+  border-color: var(--wf-blue);
+  box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.16);
+}
+
+.ci-title-input::placeholder {
+  color: var(--wf-text-muted);
+  font-weight: 400;
+}
+
+/* ── Textarea ── */
+.ci-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--wf-text);
+  border: 2px solid var(--wf-border);
+  border-radius: var(--wf-radius-md);
+  padding: 10px 12px;
+  min-height: 100px;
+  resize: vertical;
+  outline: none;
+  line-height: 1.55;
+  transition: border-color 0.14s, box-shadow 0.14s;
+  background: var(--wf-surface);
+}
+
+.ci-textarea:hover { border-color: var(--wf-border-hover); }
+
+.ci-textarea:focus {
+  border-color: var(--wf-blue);
+  box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.16);
+}
+
+.ci-textarea::placeholder { color: var(--wf-text-muted); }
+
+/* ── Select (all dropdowns in form) ── */
+.ci-select {
+  width: 100%;
+  box-sizing: border-box;
+  border: 2px solid var(--wf-border);
+  border-radius: var(--wf-radius-md);
+  padding: 8px 30px 8px 10px;
+  font-size: 14px;
+  color: var(--wf-text);
+  font-family: inherit;
+  background: var(--wf-surface)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235e6c84' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    no-repeat right 10px center;
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.14s, box-shadow 0.14s;
+}
+
+.ci-select:hover { border-color: var(--wf-border-hover); }
+
+.ci-select:focus {
+  border-color: var(--wf-blue);
+  box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.16);
+}
+
+/* ── Upload zone ── */
+.ci-upload-zone {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 2px dashed var(--wf-border);
+  border-radius: var(--wf-radius-lg);
+  cursor: pointer;
+  background: #fafbfc;
+  transition: border-color 0.15s, background 0.15s;
+  user-select: none;
+}
+
+.ci-upload-zone:hover {
+  border-color: var(--wf-blue-mid);
+  background: var(--wf-blue-light);
+}
+
+.ci-upload-zone--active {
+  border-color: var(--wf-blue);
+  background: var(--wf-blue-light);
+}
+
+.ci-upload-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--wf-radius-lg);
+  background: #e8edf2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--wf-text-sub);
+  font-size: 18px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.ci-upload-zone:hover .ci-upload-icon {
+  background: var(--wf-blue-light);
+  color: var(--wf-blue);
+}
+
+.ci-upload-text strong {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--wf-text);
+  display: block;
+  margin-bottom: 2px;
+}
+
+.ci-upload-text span {
+  font-size: 12px;
+  color: var(--wf-text-muted);
+}
+
+/* ── Uploaded file list ── */
+.ci-file-list {
+  margin-top: 8px;
+  border: 1px solid var(--wf-border);
+  border-radius: var(--wf-radius-md);
+  overflow: hidden;
+}
+
+.ci-file-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-bottom: 1px solid #f4f5f7;
+  background: var(--wf-surface);
+  transition: background 0.1s;
+}
+
+.ci-file-item:last-child { border-bottom: none; }
+.ci-file-item:hover      { background: #fafbfc; }
+
+.ci-file-icon { font-size: 16px; flex-shrink: 0; }
+
+.ci-file-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--wf-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ci-file-size {
+  font-size: 11px;
+  color: var(--wf-text-muted);
+  flex-shrink: 0;
+}
+
+.ci-file-remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--wf-text-muted);
+  width: 24px;
+  height: 24px;
+  border-radius: var(--wf-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: background 0.12s, color 0.12s;
+  flex-shrink: 0;
+}
+
+.ci-file-remove:hover {
+  background: var(--wf-red-bg);
+  color: var(--wf-red);
+}
+
+/* ── Assignee row ── */
+.ci-assignee-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ci-assignee-row .ci-select {
+  flex: 1;
+  max-width: 240px;
+}
+
+.ci-assign-me {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--wf-blue);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  padding: 0;
+  white-space: nowrap;
+  transition: color 0.12s;
+}
+
+.ci-assign-me:hover {
+  color: var(--wf-blue-hover);
+  text-decoration: underline;
+}
+
+/* ── 2-column row (Priority + Type) ── */
+.ci-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* ── Footer ── */
+.ci-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-top: 1px solid var(--wf-border);
+  flex-shrink: 0;
+  background: #fafbfc;
+  border-radius: 0 0 var(--wf-radius-lg) var(--wf-radius-lg);
+  gap: 12px;
+}
+
+.ci-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: var(--wf-text-sub);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.ci-checkbox-label input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  border: 1.5px solid var(--wf-border-hover);
+  border-radius: 3px;
+  cursor: pointer;
+  accent-color: var(--wf-blue);
+  flex-shrink: 0;
+}
+
+.ci-footer-btns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Buttons ── */
+.ci-btn {
+  height: 34px;
+  padding: 0 16px;
+  border-radius: var(--wf-radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.12s;
+  white-space: nowrap;
+}
+
+.ci-btn--cancel {
+  background: var(--wf-bg);
+  color: var(--wf-text-sub);
+  border: 1px solid var(--wf-border);
+}
+
+.ci-btn--cancel:hover {
+  background: var(--wf-border);
+  color: var(--wf-text);
+}
+
+.ci-btn--submit {
+  background: var(--wf-blue);
+  color: #fff;
+  min-width: 80px;
+}
+
+.ci-btn--submit:hover:not(:disabled) {
+  background: var(--wf-blue-hover);
+}
+
+.ci-btn--submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+  .ci-backdrop  { padding: 0; align-items: flex-end; }
+  .ci-modal     { border-radius: 12px 12px 0 0; max-height: 94vh; }
+  .ci-two-col   { grid-template-columns: 1fr; gap: 12px; }
+  .ci-body      { padding: 16px; gap: 14px; }
+  .ci-footer    { padding: 12px 16px; }
+  .ci-header    { padding: 14px 16px; }
+}

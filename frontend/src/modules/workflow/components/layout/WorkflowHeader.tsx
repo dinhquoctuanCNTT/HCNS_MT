@@ -1,0 +1,84 @@
+import WorkflowProjectSwitcher from "./WorkflowProjectSwitcher";
+
+type ProjectOption = {
+  id: number;
+  name: string;
+  code?: string;
+  key?: string;
+};
+
+type ProjectInfo = {
+  id: number;
+  name: string;
+  code?: string;
+  key?: string;
+  boardName?: string;
+  description?: string;
+} | null;
+
+export type WorkflowTab = "board" | "history";
+
+type Props = {
+  project: ProjectInfo;
+  projects?: ProjectOption[];
+  projectId?: number;
+  onProjectChange: (projectId: number) => void;
+  onOpenCreate: () => void;
+  activeTab: WorkflowTab;
+  onTabChange: (tab: WorkflowTab) => void;
+};
+
+export default function WorkflowHeader({
+  project,
+  projects = [],
+  projectId,
+  onProjectChange,
+  activeTab,
+}: Props) {
+  const projectKey = project?.code ?? project?.key ?? "N/A";
+  const boardName = project?.boardName ?? "Board";
+
+  return (
+    <div className="workflow-header">
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 16,
+          padding: "12px 20px",
+          borderBottom: "1px solid #f0f0f0",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <div>
+            <div
+              style={{
+                fontSize: 13,
+                color: "#444",
+                fontWeight: 500,
+              }}
+            >
+              {boardName} • Key: {projectKey}
+            </div>
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            flexShrink: 0,
+          }}
+        >
+          <WorkflowProjectSwitcher
+            projects={projects}
+            value={projectId}
+            onChange={onProjectChange}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}

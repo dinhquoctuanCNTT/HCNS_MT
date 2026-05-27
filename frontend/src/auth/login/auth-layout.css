@@ -1,0 +1,88 @@
+/* ── Layout ── */
+.auth-layout {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 520px 1fr;
+}
+
+/* ── Nửa trái ── */
+.auth-layout-left {
+  position: relative;
+  background-image: url("https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1200&q=80");
+  background-size: cover;
+  background-position: center;
+}
+
+.auth-layout-left::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    150deg,
+    rgba(40, 60, 180, 0.72) 0%,
+    rgba(100, 40, 180, 0.65) 100%
+  );
+}
+
+.auth-left-content {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 52px 44px;
+}
+
+.auth-left-title {
+  font-size: 30px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.35;
+  letter-spacing: 0.5px;
+  margin: 0 0 14px 0;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.auth-left-sub {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.75);
+  letter-spacing: 2px;
+  margin: 0;
+}
+
+/* ── Nửa phải ── */
+.auth-layout-right {
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 40px 60px;
+}
+
+.auth-right-wrapper {
+  width: 100%;
+  max-width: 540px;
+}
+
+/* ── Footer ── */
+.auth-footer {
+  position: absolute;
+  bottom: 20px;
+  left: 0; right: 0;
+  text-align: center;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .auth-layout {
+    grid-template-columns: 1fr;
+  }
+  .auth-layout-left { display: none; }
+  .auth-layout-right { padding: 40px 24px; }
+}

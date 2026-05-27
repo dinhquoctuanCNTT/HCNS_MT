@@ -1,0 +1,35 @@
+/* ===== TRUYEN THONG LAYOUT ===== */
+.truyen-thong-layout {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f0f2f5;
+  overflow: hidden;
+}
+
+/* ===== MAIN CONTENT ===== */
+.truyen-thong-content {
+  flex: 1;
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Scrollbar Styling */
+.truyen-thong-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.truyen-thong-content::-webkit-scrollbar-track {
+  background: #f0f2f5;
+}
+
+.truyen-thong-content::-webkit-scrollbar-thumb {
+  background: #bcc0c4;
+  border-radius: 4px;
+}
+
+.truyen-thong-content::-webkit-scrollbar-thumb:hover {
+  background: #8a8d91;
+}

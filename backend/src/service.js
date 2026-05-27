@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import app from "./app.js";
-import { connectDB } from "./config/db.js";
-import { startOverdueJob } from "./jobs/overdue.job.js";
+import { connectDB } from "./shared/config/db.js";
+import { startOverdueJob } from "./shared/jobs/overdue.job.js";
 
 dotenv.config();
 

@@ -1,0 +1,158 @@
+.ls-page {
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  padding: 20px 24px 40px;
+  background: #f8fafc;
+  min-height: 100vh;
+  color: #0f172a;
+}
+
+/* ── Header ── */
+.ls-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.ls-breadcrumb { font-size: 12px; color: #64748b; margin-bottom: 4px; }
+.ls-breadcrumb span { color: #0f172a; font-weight: 600; }
+.ls-title { font-size: 20px; font-weight: 800; color: #0f172a; margin: 0; }
+
+/* ── Buttons ── */
+.ls-btn {
+  padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
+  cursor: pointer; border: none; transition: all 0.2s; white-space: nowrap;
+}
+.ls-btn--primary { background: #4f46e5; color: #fff; }
+.ls-btn--primary:hover { background: #4338ca; }
+
+/* ── Filter Bar ── */
+.ls-filter-bar {
+  display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap;
+  background: #fff; padding: 14px 16px; border-radius: 10px;
+  border: 1px solid #e2e8f0; margin-bottom: 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.ls-filter-group {
+  display: flex; flex-direction: column; gap: 4px;
+}
+.ls-filter-group label {
+  font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.4px;
+}
+.ls-filter-group input,
+.ls-filter-group select {
+  padding: 7px 10px; border-radius: 7px; border: 1px solid #cbd5e1;
+  font-size: 13px; color: #0f172a; outline: none; background: #fff;
+  min-width: 140px; transition: border-color 0.2s;
+}
+.ls-filter-group input:focus,
+.ls-filter-group select:focus { border-color: #4f46e5; }
+.ls-search input {
+  padding: 7px 12px; border-radius: 7px; border: 1px solid #cbd5e1;
+  font-size: 13px; outline: none; min-width: 220px;
+}
+.ls-search input:focus { border-color: #4f46e5; }
+
+/* ── Summary ── */
+.ls-summary-row {
+  display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px;
+}
+.ls-summary-chip {
+  display: flex; flex-direction: column; align-items: center;
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
+  padding: 10px 20px; min-width: 100px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.ls-summary-val   { font-size: 24px; font-weight: 800; color: #0f172a; line-height: 1.2; }
+.ls-summary-label { font-size: 11px; color: #64748b; margin-top: 2px; }
+.ls-summary-chip--green  .ls-summary-val { color: #16a34a; }
+.ls-summary-chip--orange .ls-summary-val { color: #ea580c; }
+.ls-summary-chip--red    .ls-summary-val { color: #dc2626; }
+.ls-summary-chip--yellow .ls-summary-val { color: #d97706; }
+
+/* ── Table ── */
+.ls-table-wrap {
+  background: #fff; border-radius: 12px; border: 1px solid #e2e8f0;
+  overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.04); margin-bottom: 16px;
+}
+.ls-table { width: 100%; border-collapse: collapse; }
+.ls-table thead tr { background: #f8fafc; }
+.ls-table th {
+  padding: 11px 14px; text-align: left; font-size: 11px; font-weight: 700;
+  color: #64748b; border-bottom: 1px solid #e2e8f0;
+  text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;
+}
+.ls-table td { padding: 12px 14px; border-bottom: 1px solid #f8fafc; vertical-align: middle; }
+.ls-table tr:last-child td { border-bottom: none; }
+.ls-table tr:hover td { background: #f8fafc; }
+.ls-row--absent td { background: #fff5f5 !important; }
+
+.ls-td-num  { color: #94a3b8; font-weight: 700; font-size: 12px; width: 40px; }
+.ls-td-sub  { color: #64748b; font-size: 12px; }
+.ls-td-date { font-weight: 600; color: #374151; white-space: nowrap; }
+.ls-td-time { font-weight: 700; color: #0f172a; font-size: 14px; }
+.ls-time--late { color: #ea580c !important; }
+
+/* ── Avatar ── */
+.ls-nv-cell { display: flex; align-items: center; gap: 10px; }
+.ls-avatar {
+  width: 32px; height: 32px; border-radius: 50%; background: #6366f1;
+  color: #fff; font-size: 12px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.ls-nv-name { font-size: 13px; font-weight: 600; color: #0f172a; }
+.ls-nv-code { font-size: 11px; color: #94a3b8; }
+
+/* ── Badges ── */
+.ls-badge {
+  display: inline-block; padding: 3px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 700; white-space: nowrap;
+}
+.ls-badge--ok      { background: #dcfce7; color: #16a34a; }
+.ls-badge--late    { background: #fef3c7; color: #d97706; }
+.ls-badge--absent  { background: #fee2e2; color: #dc2626; }
+.ls-badge--missing { background: #fff7ed; color: #ea580c; }
+.ls-badge--pending { background: #ede9fe; color: #7c3aed; }
+
+.ls-min-badge {
+  background: #fef3c7; color: #d97706; padding: 2px 8px;
+  border-radius: 20px; font-size: 11px; font-weight: 700;
+}
+
+.ls-btn-explain {
+  padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700;
+  background: #ede9fe; color: #7c3aed; border: none; cursor: pointer;
+  transition: background 0.15s;
+}
+.ls-btn-explain:hover { background: #ddd6fe; }
+
+.ls-ok-check { color: #16a34a; font-size: 16px; font-weight: 700; }
+
+/* ── Loading / Empty ── */
+.ls-loading, .ls-empty {
+  text-align: center; padding: 40px; color: #94a3b8; font-size: 14px;
+}
+.ls-error {
+  background: #fee2e2; color: #dc2626; padding: 10px 16px;
+  border-radius: 8px; margin-bottom: 12px; font-size: 13px;
+}
+
+/* ── Pagination ── */
+.ls-pagination {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 10px;
+}
+.ls-pag-info { font-size: 13px; color: #64748b; }
+.ls-pag-btns { display: flex; gap: 4px; }
+.ls-pag-btn {
+  width: 32px; height: 32px; border-radius: 7px; border: 1px solid #e2e8f0;
+  background: #fff; font-size: 13px; font-weight: 600; color: #374151;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.ls-pag-btn:hover:not(:disabled) { background: #f1f5f9; border-color: #cbd5e1; }
+.ls-pag-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.ls-pag-btn--active { background: #4f46e5; color: #fff; border-color: #4f46e5; }
+
+@media (max-width: 900px) {
+  .ls-filter-bar { flex-direction: column; align-items: stretch; }
+  .ls-filter-group input, .ls-filter-group select { min-width: unset; width: 100%; }
+  .ls-table-wrap { overflow-x: auto; }
+}

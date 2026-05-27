@@ -1,0 +1,380 @@
+/* Main Feed Container */
+.main-feed-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Card Base Style */
+.card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #f0f0f0;
+  padding: 16px;
+}
+
+/* 1. Quick Actions Card */
+.quick-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.action-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.action-button:hover {
+  opacity: 0.8;
+}
+
+.action-icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.action-icon-circle.blue {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.action-icon-circle.dashed {
+  border: 2px dashed #d1d5db;
+  color: #9ca3af;
+}
+
+.action-icon-circle.dashed:hover {
+  border-color: #9ca3af;
+}
+
+.action-text {
+  text-align: center;
+}
+
+.action-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.action-subtitle {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* 2. Post Composer Card */
+.composer-input-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.avatar.yellow {
+  background: #eab308;
+}
+
+.avatar.pink {
+  background: #ec4899;
+}
+
+.avatar.blue {
+  background: #3b82f6;
+}
+
+.avatar.purple {
+  background: #a855f7;
+}
+
+.composer-input {
+  flex: 1;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 9999px;
+  padding: 8px 16px;
+  font-size: 14px;
+  outline: none;
+  transition: background 0.2s;
+}
+
+.composer-input:focus {
+  background: #e5e7eb;
+}
+
+.divider {
+  border-top: 1px solid #f3f4f6;
+  margin: 12px 0;
+}
+
+.composer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.composer-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.composer-btn:hover {
+  background: #f9fafb;
+}
+
+.composer-btn.primary {
+  background: #eff6ff;
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.composer-btn.primary:hover {
+  background: #dbeafe;
+}
+
+/* 3. Birthday Card */
+.birthday-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.birthday-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.gift-icon {
+  color: #ec4899;
+}
+
+.birthday-title {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.birthday-today {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.birthday-today:hover {
+  color: #1d4ed8;
+}
+
+.birthday-empty {
+  font-size: 14px;
+  color: #9ca3af;
+}
+
+/* 4. Filter Bar */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: #6b7280;
+  font-size: 14px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.filter-btn:hover {
+  color: #374151;
+}
+
+.filter-active {
+  font-weight: 600;
+  color: #374151;
+}
+
+/* 5. Post Card */
+.post-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.post-author {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.author-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.author-name {
+  color: #2563eb;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.author-name:hover {
+  text-decoration: underline;
+}
+
+.post-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.more-btn {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.more-btn:hover {
+  color: #6b7280;
+}
+
+/* AI Summary */
+.ai-summary {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 12px;
+  padding: 16px;
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.ai-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.ai-close-btn:hover {
+  color: #6b7280;
+}
+
+.ai-title {
+  color: #1d4ed8;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.ai-content {
+  color: #374151;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Post Content */
+.post-content {
+  color: #1f2937;
+  line-height: 1.6;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Interaction Bar */
+.interaction-bar {
+  display: flex;
+  justify-content: space-around;
+  padding-top: 8px;
+}
+
+.interaction-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 16px;
+  border-radius: 8px;
+  background: none;
+  border: none;
+  color: #6b7280;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.interaction-btn:hover {
+  background: #f9fafb;
+}
+
+.interaction-btn span {
+  color: #6b7280;
+}

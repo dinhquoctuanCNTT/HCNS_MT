@@ -12,7 +12,19 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
-    "strict": true
+    "strict": true,
+    "baseUrl": ".",
+    "paths": {
+      "@auth/*":    ["src/auth/*"],
+      "@modules/*": ["src/modules/*"],
+      "@shell/*":   ["src/shell/*"],
+      "@shared/*":  ["src/shared/*"],
+      "@api/*":     ["src/api/*"],
+      "@assets/*":  ["src/assets/*"],
+      "@data/*":    ["src/data/*"],
+      "@router/*":  ["src/router/*"],
+      "@context/*": ["src/context/*"]
+    }
   },
   "include": ["src"]
 }
