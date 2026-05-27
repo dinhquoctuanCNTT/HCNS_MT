@@ -1,0 +1,142 @@
+/* ── DASHBOARD LAYOUT ── */
+.dashboard {
+  padding: 10px 12px;
+  max-width: 1400px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* ── HEADER ── */
+.dashboard__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dashboard__title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.dashboard__controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dashboard__label {
+  font-size: 13.5px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.dashboard__select {
+  appearance: none;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 6px 36px 6px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  cursor: pointer;
+  outline: none;
+  min-width: 90px;
+  transition: border-color 0.2s;
+}
+
+.dashboard__select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+}
+
+.dashboard__icon {
+  color: #94a3b8;
+  transition: color 0.2s;
+}
+
+.dashboard__icon:hover {
+  color: #64748b;
+}
+
+/* ── GRID ── */
+.dashboard__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+/* ── CARD ── */
+.dashboard__card {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  transition: box-shadow 0.2s;
+}
+
+.dashboard__card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+}
+
+/* ── CARD HEADER ── */
+.dashboard__card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.dashboard__card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.dashboard__card-filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dashboard__filter-label {
+  font-size: 12.5px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.dashboard__card-body {
+  flex: 1;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .dashboard__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .dashboard {
+    padding: 16px;
+  }
+  .dashboard__title {
+    font-size: 20px;
+  }
+}

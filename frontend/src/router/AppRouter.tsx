@@ -20,6 +20,7 @@ import phanMemMuaHangRoutes from "./routes/phan-mem-mua-hang.routes";
 import banHangRoutes from "./routes/ban-hang.routes";
 import truyenThongRoutes from "./routes/truyen-thong.routes";
 import workflowRoutes from "./routes/workflow.routes";
+import muaHangRoutes from "./routes/mua-hang.routes";
 
 const UnauthorizedPage = () => (
   <div className="page-center">
@@ -58,6 +59,7 @@ const AppRouter = () => {
 
             {keToanRoutes}
             {truyenThongRoutes}
+            {muaHangRoutes}
 
             <Route element={<AdminLayout />}>
               <Route path="crm" element={<CRMPage />} />

@@ -1,387 +1,221 @@
-/* =============================================
-   MUA HANG LAYOUT — PLAIN CSS (BEM Convention)
-   =============================================
 
-   Block:     .mua-hang-layout
-   Elements:  __sidebar, __home-section, __home-btn,
-              __home-icon, __nav, __menu, __menu-item,
-              __menu-link, __menu-icon, __menu-text,
-              __sidebar-footer, __module-label, __main
-   Modifiers: --active
-   ============================================= */
-
-/* ─── GOOGLE FONT ─── */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
-
-/* ─── CSS CUSTOM PROPERTIES ─── */
-:root {
-  --mh-sidebar-width: 260px;
-  --mh-bg-page: #f4f6f9;
-  --mh-bg-sidebar: #ffffff;
-  --mh-border-sidebar: #e2e8f0;
-
-  /* Cyan accent */
-  --mh-cyan: #00d0e6;
-  --mh-cyan-10: rgba(0, 208, 230, 0.1);
-  --mh-cyan-15: rgba(0, 208, 230, 0.15);
-
-  /* Blue accent (active) */
-  --mh-blue: #2563eb;
-  --mh-blue-bg: #eff6ff;
-  --mh-blue-bg-hover: #dbeafe;
-  --mh-blue-dark: #1d4ed8;
-
-  /* Text */
-  --mh-text-muted: #64748b;
-  --mh-text-default: #475569;
-  --mh-text-faint: #94a3b8;
-
-  /* Misc */
-  --mh-hover-bg: #f8fafc;
-  --mh-radius-sm: 8px;
-  --mh-transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* =============================================
-   LAYOUT CONTAINER
-   ============================================= */
-
-.mua-hang-layout {
-  display: flex;
-  width: 100%;
+/* ---------- Layout container ---------- */
+.amis-layout {
+  width: 100vw;
   height: 100vh;
-  background-color: var(--mh-bg-page);
   overflow: hidden;
-  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, sans-serif;
-}
-
-/* =============================================
-   SIDEBAR
-   ============================================= */
-
-.mua-hang-layout__sidebar {
-  width: var(--mh-sidebar-width);
-  height: 100vh;
-  background-color: var(--mh-bg-sidebar);
-  border-right: 1px solid var(--mh-border-sidebar);
+  background-color: #f4f6f9; /* light gray background */
   display: flex;
   flex-direction: column;
-  flex-shrink: 0;
-  overflow: hidden;
-  position: relative;
-  z-index: 10;
-  box-shadow: 1px 0 6px rgba(0, 0, 0, 0.03);
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
-/* ─── HOME SECTION ─── */
-
-.mua-hang-layout__home-section {
-  padding: 28px 0 24px;
+/* ---------- Top Header ---------- */
+.amis-top-header {
+  height: 56px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
   display: flex;
-  justify-content: center;
   align-items: center;
-  border-bottom: 1px solid #f1f5f9;
+  justify-content: space-between;
+  padding: 0 16px;
   flex-shrink: 0;
 }
 
-/* ─── HOME BUTTON (circle 44×44) ─── */
-
-.mua-hang-layout__home-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 2px solid var(--mh-cyan);
-  background-color: transparent;
+.amis-top-header__left,
+.amis-top-header__center,
+.amis-top-header__right {
   display: flex;
   align-items: center;
-  justify-content: center;
+}
+
+/* left block */
+.amis-top-header__app-switcher {
+  color: #6b7280; /* gray */
+  margin-right: 12px;
   cursor: pointer;
-  text-decoration: none;
-  transition: background-color var(--mh-transition),
-    transform var(--mh-transition),
-    box-shadow var(--mh-transition);
-  position: relative;
+}
+
+.amis-top-header__logo {
+  width: 36px;
+  height: 36px;
+  background-color: #00d0e6; /* MISA blue */
+  border-radius: 6px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 12px;
+}
+.amis-top-header__logo-text {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 20px;
+}
+
+.amis-top-header__title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937; /* dark text */
+  margin-right: 12px;
+}
+
+.amis-top-header__company {
+  display: flex;
+  align-items: center;
+  color: #6b7280;
+  font-size: 14px;
+  cursor: pointer;
+}
+.amis-top-header__company span {
+  margin-right: 4px;
+}
+.amis-top-header__chevron {
+  width: 10px;
+  height: 6px;
+  fill: none;
+  stroke: currentColor;
+}
+
+/* center – search */
+.amis-top-header__search {
+  width: 320px;
+  height: 36px;
+  background-color: #f3f4f6; /* very light gray */
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+}
+.amis-top-header__search-icon {
+  color: #9ca3af; /* muted gray */
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+.amis-top-header__search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  color: #374151;
   outline: none;
 }
+.amis-top-header__search-input::placeholder {
+  color: #9ca3af;
+}
 
-.mua-hang-layout__home-btn::before {
-  content: "";
+/* right – icons */
+.amis-top-header__icon {
+  color: #6b7280;
+  margin-left: 16px;
+  cursor: pointer;
+}
+.amis-top-header__icon-wrapper {
+  position: relative;
+  margin-left: 16px;
+}
+.amis-top-header__badge {
   position: absolute;
-  inset: -4px;
+  top: -4px;
+  right: -4px;
+  background-color: #ff3b30; /* bright red */
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 600;
+  width: 16px;
+  height: 16px;
+  line-height: 16px;
+  text-align: center;
   border-radius: 50%;
-  border: 2px solid transparent;
-  transition: border-color var(--mh-transition);
+  border: 1px solid #ffffff; /* white border */
 }
 
-.mua-hang-layout__home-btn:hover {
-  background-color: var(--mh-cyan-10);
-  box-shadow: 0 0 0 4px var(--mh-cyan-10);
-}
-
-.mua-hang-layout__home-btn:active {
-  transform: scale(0.95);
-}
-
-.mua-hang-layout__home-btn:focus-visible {
-  outline: 2px solid var(--mh-cyan);
-  outline-offset: 3px;
-}
-
-/* ─── HOME ICON (pentagon house SVG) ─── */
-
-.mua-hang-layout__home-icon {
-  color: var(--mh-cyan);
-  transition: transform var(--mh-transition);
-  display: block;
-}
-
-.mua-hang-layout__home-btn:hover .mua-hang-layout__home-icon {
-  transform: scale(1.15);
-}
-
-/* =============================================
-   NAVIGATION MENU
-   ============================================= */
-
-.mua-hang-layout__nav {
+/* ---------- Body (Sidebar + Content) ---------- */
+.amis-body {
   flex: 1;
-  padding: 20px 12px;
-  overflow-y: auto;
-  overflow-x: hidden;
+  display: flex;
+  overflow: hidden;
 }
 
-/* Hide scrollbar for nav (clean look) */
-.mua-hang-layout__nav::-webkit-scrollbar {
-  width: 4px;
-}
-.mua-hang-layout__nav::-webkit-scrollbar-track {
-  background: transparent;
-}
-.mua-hang-layout__nav::-webkit-scrollbar-thumb {
-  background: #e2e8f0;
-  border-radius: 2px;
-}
-.mua-hang-layout__nav::-webkit-scrollbar-thumb:hover {
-  background: #cbd5e1;
-}
-
-.mua-hang-layout__menu {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+/* Sidebar */
+.amis-sidebar {
+  width: 240px;
+  background-color: #ffffff;
+  border-right: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-}
-
-.mua-hang-layout__menu-item {
-  margin: 0;
-  padding: 0;
-}
-
-/* ─── MENU LINK (default state) ─── */
-
-.mua-hang-layout__menu-link {
-  display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 11px 16px;
-  border-radius: var(--mh-radius-sm);
-  text-decoration: none;
-  color: var(--mh-text-muted);
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  cursor: pointer;
-  transition: background-color var(--mh-transition),
-    color var(--mh-transition),
-    transform 0.15s ease;
-  position: relative;
-  user-select: none;
-}
-
-/* Hover state */
-.mua-hang-layout__menu-link:hover {
-  background-color: var(--mh-hover-bg);
-  color: var(--mh-text-default);
-}
-
-/* ─── MENU LINK — ACTIVE MODIFIER ─── */
-
-.mua-hang-layout__menu-link--active {
-  background-color: var(--mh-blue-bg);
-  color: var(--mh-blue);
-  font-weight: 600;
-}
-
-/* Active left indicator bar */
-.mua-hang-layout__menu-link--active::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 60%;
-  border-radius: 0 3px 3px 0;
-  background-color: var(--mh-blue);
-}
-
-.mua-hang-layout__menu-link--active:hover {
-  background-color: var(--mh-blue-bg-hover);
-  color: var(--mh-blue-dark);
-}
-
-/* ─── MENU ICON ─── */
-
-.mua-hang-layout__menu-icon {
+  padding-top: 24px;
   flex-shrink: 0;
-  transition: transform var(--mh-transition),
-    color var(--mh-transition);
 }
 
-.mua-hang-layout__menu-link--active .mua-hang-layout__menu-icon {
-  color: var(--mh-blue);
-}
-
-.mua-hang-layout__menu-link:hover .mua-hang-layout__menu-icon {
-  transform: translateX(2px);
-}
-
-.mua-hang-layout__menu-link--active:hover .mua-hang-layout__menu-icon {
-  transform: translateX(0);
-}
-
-/* ─── MENU TEXT ─── */
-
-.mua-hang-layout__menu-text {
-  flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.4;
-}
-
-/* =============================================
-   SIDEBAR FOOTER
-   ============================================= */
-
-.mua-hang-layout__sidebar-footer {
-  padding: 16px 12px;
-  border-top: 1px solid #f1f5f9;
+.amis-sidebar__home-btn {
+  width: 44px;
+  height: 44px;
   display: flex;
-  align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  align-items: center;
+  border: 2px solid #00d0e6; /* cyan border */
+  border-radius: 50%;
+  color: #00d0e6;
+  margin-bottom: 32px;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+.amis-sidebar__home-btn:hover {
+  background-color: rgba(0, 208, 230, 0.1);
+  transform: scale(1.05);
+}
+.amis-sidebar__home-icon {
+  /* keep cyan color */
 }
 
-.mua-hang-layout__module-label {
-  font-size: 11px;
+.amis-sidebar__nav {
+  width: 100%;
+}
+
+.amis-sidebar__item {
+  width: 100%;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  color: #374151;
+  text-decoration: none;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+}
+.amis-sidebar__item:hover {
+  background-color: #f3f4f6; /* light hover */
+}
+
+.amis-sidebar__item--active {
+  background-color: #e6fbfc; /* teal‑light */
+  color: #00a3ba; /* teal dark */
   font-weight: 600;
-  color: var(--mh-text-faint);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+}
+.amis-sidebar__item--active .amis-sidebar__item-icon {
+  color: #00a3ba;
 }
 
-/* =============================================
-   MAIN CONTENT AREA
-   ============================================= */
+.amis-sidebar__item-icon {
+  margin-right: 8px;
+  color: inherit;
+}
 
-.mua-hang-layout__main {
+.amis-sidebar__item-label {
   flex: 1;
-  height: 100vh;
+}
+
+/* Main content */
+.amis-content {
+  flex: 1;
   overflow-y: auto;
-  overflow-x: hidden;
-  background-color: var(--mh-bg-page);
+  padding: 6px;
 }
 
-/* Main scrollbar */
-.mua-hang-layout__main::-webkit-scrollbar {
-  width: 6px;
+/* Ensure scrollbars are subtle */
+.amis-content::-webkit-scrollbar {
+  width: 8px;
 }
-.mua-hang-layout__main::-webkit-scrollbar-track {
-  background: transparent;
+.amis-content::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.15);
+  border-radius: 4px;
 }
-.mua-hang-layout__main::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
-}
-.mua-hang-layout__main::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-/* =============================================
-   ACCESSIBILITY
-   ============================================= */
-
-.mua-hang-layout__menu-link:focus-visible {
-  outline: 2px solid var(--mh-blue);
-  outline-offset: 2px;
-}
-
-/* =============================================
-   RESPONSIVE DESIGN
-   ============================================= */
-
-@media (max-width: 768px) {
-  .mua-hang-layout__sidebar {
-    position: fixed;
-    left: -260px;
-    top: 0;
-    z-index: 1000;
-    transition: left 0.3s ease;
-    box-shadow: 4px 0 16px rgba(0, 0, 0, 0.12);
-  }
-
-  .mua-hang-layout__sidebar--open {
-    left: 0;
-  }
-
-  .mua-hang-layout__main {
-    width: 100%;
-  }
-}
-
-/* =============================================
-   PRINT STYLES
-   ============================================= */
-
-@media print {
-  .mua-hang-layout__sidebar {
-    display: none;
-  }
-
-  .mua-hang-layout__main {
-    width: 100%;
-    height: auto;
-    overflow: visible;
-  }
-}
-
-/* =============================================
-   ANIMATION KEYFRAMES
-   ============================================= */
-
-@keyframes mh-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.mua-hang-layout__menu-item {
-  animation: mh-fade-in 0.35s ease both;
-}
-
-.mua-hang-layout__menu-item:nth-child(1) { animation-delay: 0.04s; }
-.mua-hang-layout__menu-item:nth-child(2) { animation-delay: 0.08s; }
-.mua-hang-layout__menu-item:nth-child(3) { animation-delay: 0.12s; }
-.mua-hang-layout__menu-item:nth-child(4) { animation-delay: 0.16s; }
-.mua-hang-layout__menu-item:nth-child(5) { animation-delay: 0.20s; }
-.mua-hang-layout__menu-item:nth-child(6) { animation-delay: 0.24s; }
-.mua-hang-layout__menu-item:nth-child(7) { animation-delay: 0.28s; }

@@ -1,0 +1,116 @@
+/* MuaHangLayout BEM CSS */
+
+/* Root layout */
+.mua-hang-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+  color: #1f2937; /* Gray 800 */
+}
+
+/* Header */
+.mua-hang-layout__header {
+  height: 64px; /* Fixed height */
+  background: #fff;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.mua-hang-layout__title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Body flex container */
+.mua-hang-layout__body {
+  display: flex;
+  flex: 1;
+  background: #f4f6f9; /* super light gray */
+}
+
+/* Sidebar */
+.mua-hang-layout__sidebar {
+  width: 260px;
+  background: #fff;
+  border-right: 1px solid #e5e7eb; /* light gray */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 24px;
+}
+
+.mua-hang-layout__home-btn {
+  width: 44px;
+  height: 44px;
+  border: 2px solid #00d0e6; /* cyan */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #00d0e6;
+  margin-bottom: 24px;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.mua-hang-layout__home-btn:hover {
+  background-color: rgba(0, 208, 230, 0.1);
+  transform: scale(1.05);
+}
+
+/* Navigation */
+.mua-hang-layout__nav {
+  width: 100%;
+}
+
+.mua-hang-layout__nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.mua-hang-layout__nav-item {
+  width: 100%;
+}
+
+.mua-hang-layout__nav-link {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  color: #4b5563; /* dark gray */
+  text-decoration: none;
+  font-size: 14px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.mua-hang-layout__nav-link:hover {
+  background-color: #f9fafb; /* light hover */
+}
+
+.mua-hang-layout__nav-item--active .mua-hang-layout__nav-link {
+  background-color: #e0f2fe; /* light cyan bg */
+  color: #0369a1; /* cyan teal */
+  font-weight: 600;
+}
+
+.mua-hang-layout__nav-item--active .mua-hang-layout__nav-icon {
+  color: #0369a1;
+}
+
+.mua-hang-layout__nav-icon {
+  margin-right: 8px;
+  color: inherit; /* inherit color from link */
+}
+
+/* Content area */
+.mua-hang-layout__content {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+}
