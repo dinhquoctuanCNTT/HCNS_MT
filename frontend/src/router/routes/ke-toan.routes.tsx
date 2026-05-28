@@ -2,7 +2,7 @@ import { Route, Navigate, Outlet } from "react-router-dom";
 import KeToanPage from "@modules/ke-toan/pages/KeToanPage";
 import KeToanDashboardPage from "@modules/ke-toan/pages/KeToanDashboardPage";
 import KeToanLayout from "@modules/ke-toan/components/Layout";
-
+import BaoCaoPage from "@modules/ke-toan/pages/BaoCao";
 const KeToanLayoutWrapper = () => (
   <KeToanLayout>
     <Outlet />
@@ -18,6 +18,8 @@ const keToanRoutes = [
   <Route key="kt-layout-group" path="ke-toan" element={<KeToanLayoutWrapper />}>
     <Route index element={<Navigate to="dashboard" replace />} />
     <Route path="dashboard" element={<KeToanDashboardPage />} />
+    <Route path="bao-cao" element={<BaoCaoPage />} />
+
     <Route path="ban-hang" element={<KeToanPage title="Kế Toán Bán Hàng" />} />
     <Route path="mua-hang" element={<KeToanPage title="Kế Toán Mua Hàng" />} />
     <Route
