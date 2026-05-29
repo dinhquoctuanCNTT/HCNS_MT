@@ -79,6 +79,7 @@ jobs:
       - name: Init git for EAS
         working-directory: ./mobile
         run: |
+          git config --global --add safe.directory C:/actions-runner/_work/HCNS_MT/HCNS_MT/mobile
           git init
           git add .
           git commit -m "deploy"
