@@ -1,11 +1,35 @@
 import axiosClient from "./axiosClient";
 
 export const attendanceApi = {
-  checkIn: (image: string, latitude?: number, longitude?: number) =>
-    axiosClient.post("/attendance/check-in", { image, latitude, longitude }),
+  checkIn: (
+    image: string,
+    latitude?: number,
+    longitude?: number,
+    address?: string,
+    timestamp?: string,
+  ) =>
+    axiosClient.post("/attendance/check-in", {
+      image,
+      latitude,
+      longitude,
+      address,
+      timestamp,
+    }),
 
-  checkOut: (image: string, latitude?: number, longitude?: number) =>
-    axiosClient.post("/attendance/check-out", { image, latitude, longitude }),
+  checkOut: (
+    image: string,
+    latitude?: number,
+    longitude?: number,
+    address?: string,
+    timestamp?: string,
+  ) =>
+    axiosClient.post("/attendance/check-out", {
+      image,
+      latitude,
+      longitude,
+      address,
+      timestamp,
+    }),
 
   registerFace: (image: string) =>
     axiosClient.post("/attendance/register-face", { image }),

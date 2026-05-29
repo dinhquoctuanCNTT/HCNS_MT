@@ -17,8 +17,7 @@ export default function AppNavigator() {
       </NavigationContainer>
     );
 
-  // Đã đăng nhập → MainStack
-  // MainStack tự xử lý redirect sang RegisterFace nếu chưa đăng ký khuôn mặt
+
   return (
     <NavigationContainer>
       <MainStack />

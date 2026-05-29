@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import axiosClient from "@api/axiosClient";
-import { useAuth } from "@auth/authContext";
+import { useAuthStore } from "@auth/auth.store";
 import "../styles/nhanVien.css";
 
 interface Employee {
@@ -137,7 +137,7 @@ function ConfirmModal({
 }
 
 export default function NhanVienPage() {
-  const { user } = useAuth();
+  const { user } = useAuthStore();
 
   const [employees,    setEmployees]    = useState<Employee[]>([]);
   const [listTotal,    setListTotal]    = useState(0);

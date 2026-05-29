@@ -13,7 +13,6 @@ router.get("/history", attendanceController.getHistory);
 router.post("/check-out", attendanceController.checkOut);
 router.get("/leave", attendanceController.getLeaveRequests);
 router.post("/leave", attendanceController.createLeaveRequest);
-router.get("/history/admin", attendanceController.getHistoryAdmin);
 
 // ============ ADMIN ROUTES ============
 router.get("/stats", attendanceController.getAttendanceStats);
@@ -33,10 +32,10 @@ router.put(
   requireRole("admin"),
   attendanceController.rejectLeaveRequest,
 );
-
 router.get(
   "/history/admin",
   requireRole("admin"),
   attendanceController.getHistoryAdmin,
 );
+
 export default router;

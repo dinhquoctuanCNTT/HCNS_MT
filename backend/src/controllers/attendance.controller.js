@@ -14,11 +14,13 @@ export async function registerFace(req, res) {
 
 export async function checkIn(req, res) {
   try {
-    const { image, latitude, longitude } = req.body;
+    const { image, latitude, longitude, address, timestamp } = req.body; // ✅ thêm address, timestamp
     if (!image) return res.status(400).json({ message: "Thiếu ảnh" });
     const result = await attendanceService.checkIn(req.user.id, image, {
       latitude,
       longitude,
+      address, // ✅
+      timestamp, // ✅
     });
     res.json(result);
   } catch (err) {
@@ -29,11 +31,13 @@ export async function checkIn(req, res) {
 
 export async function checkOut(req, res) {
   try {
-    const { image, latitude, longitude } = req.body;
+    const { image, latitude, longitude, address, timestamp } = req.body; // ✅ thêm address, timestamp
     if (!image) return res.status(400).json({ message: "Thiếu ảnh" });
     const result = await attendanceService.checkOut(req.user.id, image, {
       latitude,
       longitude,
+      address, // ✅
+      timestamp, // ✅
     });
     res.json(result);
   } catch (err) {
@@ -98,25 +102,27 @@ export async function getHistoryAdmin(req, res) {
     const limitInt = parseInt(limit);
     const offset = (pageInt - 1) * limitInt;
 
-    // Build shared where clause and a helper to add inputs to any request
     let where = "WHERE 1=1";
     const addInputs = (req) => {
-      if (from)         req.input("from", from);
-      if (to)           req.input("to", to);
-      if (userId)       req.input("userId", parseInt(userId));
+      if (from) req.input("from", from);
+      if (to) req.input("to", to);
+      if (userId) req.input("userId", parseInt(userId));
       if (departmentId) req.input("deptId", parseInt(departmentId));
-      if (branchId)     req.input("branchId", parseInt(branchId));
+      if (branchId) req.input("branchId", parseInt(branchId));
     };
 
-    if (from)         where += " AND a.date >= @from";
-    if (to)           where += " AND a.date <= @to";
-    if (userId)       where += " AND a.user_id = @userId";
+    if (from) where += " AND a.date >= @from";
+    if (to) where += " AND a.date <= @to";
+    if (userId) where += " AND a.user_id = @userId";
     if (departmentId) where += " AND u.department_id = @deptId";
-    if (branchId)     where += " AND u.branch_id = @branchId";
-    if (status === "late")    where += " AND a.late_minutes > 0";
-    if (status === "absent")  where += " AND a.check_in IS NULL";
-    if (status === "normal")  where += " AND a.check_in IS NOT NULL AND (a.late_minutes IS NULL OR a.late_minutes = 0)";
-    if (status === "missing") where += " AND a.check_in IS NOT NULL AND a.check_out IS NULL";
+    if (branchId) where += " AND u.branch_id = @branchId";
+    if (status === "late") where += " AND a.late_minutes > 0";
+    if (status === "absent") where += " AND a.check_in IS NULL";
+    if (status === "normal")
+      where +=
+        " AND a.check_in IS NOT NULL AND (a.late_minutes IS NULL OR a.late_minutes = 0)";
+    if (status === "missing")
+      where += " AND a.check_in IS NOT NULL AND a.check_out IS NULL";
 
     const baseJoin = `
       FROM Attendance a
@@ -126,7 +132,6 @@ export async function getHistoryAdmin(req, res) {
       ${where}
     `;
 
-    // Count — separate request
     const countReq = pool.request();
     addInputs(countReq);
     const countRes = await countReq
@@ -134,8 +139,10 @@ export async function getHistoryAdmin(req, res) {
       .catch(() => ({ recordset: [{ total: 0 }] }));
     const total = countRes.recordset[0]?.total || 0;
 
-    // Data — separate request
-    const dataReq = pool.request().input("limitN", limitInt).input("offsetN", offset);
+    const dataReq = pool
+      .request()
+      .input("limitN", limitInt)
+      .input("offsetN", offset);
     addInputs(dataReq);
     const result = await dataReq.query(`
       SELECT
@@ -148,6 +155,8 @@ export async function getHistoryAdmin(req, res) {
         a.note,
         a.check_in_image_url,
         a.check_out_image_url,
+        a.check_in_address,   -- ✅ thêm
+        a.check_out_address,  -- ✅ thêm
         CASE
           WHEN a.check_in IS NULL THEN 'absent'
           WHEN a.late_minutes > 0 THEN 'late'
@@ -237,16 +246,15 @@ export async function getLeaveStats(req, res) {
   try {
     const pool = await getPool();
     const { date } = req.query;
-    const month = date ? date.slice(0, 7) : new Date().toISOString().slice(0, 7);
+    const month = date
+      ? date.slice(0, 7)
+      : new Date().toISOString().slice(0, 7);
     const [y, m] = month.split("-");
     const from = `${y}-${m}-01`;
     const last = new Date(parseInt(y), parseInt(m), 0).getDate();
     const to = `${y}-${m}-${String(last).padStart(2, "0")}`;
 
-    const result = await pool
-      .request()
-      .input("from", from)
-      .input("to", to)
+    const result = await pool.request().input("from", from).input("to", to)
       .query(`
         SELECT
           ISNULL(leave_type, N'Không xác định') AS leave_type,
