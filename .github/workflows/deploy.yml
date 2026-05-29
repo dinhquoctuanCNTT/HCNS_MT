@@ -76,6 +76,14 @@ jobs:
         run: npm install
         shell: powershell
 
+      - name: Init git for EAS
+        working-directory: ./mobile
+        run: |
+          git init
+          git add .
+          git commit -m "deploy"
+        shell: powershell
+
       - name: EAS OTA Update
         working-directory: ./mobile
         env:
