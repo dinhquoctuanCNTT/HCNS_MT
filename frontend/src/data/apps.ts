@@ -60,7 +60,7 @@ export const ALL_APPS: AppModule[] = [
     icon: ShoppingCart,
     label: "Mua hàng",
     color: "linear-gradient(135deg,#f59e0b,#b45309)",
-    href: "/admin/mua-hang",
+    href: "/admin/phan-mem-mua-hang",
     category: "Kinh doanh",
   },
   {

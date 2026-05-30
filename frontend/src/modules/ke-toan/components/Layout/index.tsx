@@ -48,6 +48,116 @@ export default function KeToanLayout({ children }: KeToanLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeSubTab, setActiveSubTab] = useState("Bán hàng");
 
+  // Company groups state
+  const [openCompany, setOpenCompany] = useState<Record<string, boolean>>({});
+  const toggleCompany = (key: string) =>
+    setOpenCompany((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  const COMPANIES = [
+    {
+      key: "mtshop", label: "MTSHOP",
+      items: [
+        { to: "/admin/ke-toan/mtshop/quy-trinh",          label: "1. Quy trình phòng kế toán" },
+        { to: "/admin/ke-toan/mtshop/quy-tien-mat",       label: "2. Quỹ tiền mặt và ngân hàng" },
+        { to: "/admin/ke-toan/mtshop/tong-hop-chi-phi",   label: "3. Tổng hợp các chi phí" },
+        { to: "/admin/ke-toan/mtshop/cong-no-phai-thu",   label: "4. Công nợ phải thu" },
+        { to: "/admin/ke-toan/mtshop/cong-no-phai-tra",   label: "5. Công nợ phải trả" },
+        { to: "/admin/ke-toan/mtshop/kho-hang-hoa",       label: "6. Kho hàng hóa" },
+        { to: "/admin/ke-toan/mtshop/bao-cao-tai-chinh",  label: "7. Báo cáo tài chính hàng tháng" },
+        { to: "/admin/ke-toan/mtshop/bao-cao-vat",        label: "8. Báo cáo VAT(NBo)" },
+      ],
+    },
+    {
+      key: "mtpsi", label: "MTPSI",
+      items: [
+        { to: "/admin/ke-toan/mtpsi/quy-trinh",          label: "1. Quy trình phòng kế toán" },
+        { to: "/admin/ke-toan/mtpsi/quy-tien-mat",       label: "2. Quỹ tiền mặt và ngân hàng" },
+        { to: "/admin/ke-toan/mtpsi/tong-hop-chi-phi",   label: "3. Tổng hợp các chi phí" },
+        { to: "/admin/ke-toan/mtpsi/cong-no-phai-thu",   label: "4. Công nợ phải thu" },
+        { to: "/admin/ke-toan/mtpsi/cong-no-phai-tra",   label: "5. Công nợ phải trả" },
+        { to: "/admin/ke-toan/mtpsi/kho-hang-hoa",       label: "6. Kho hàng hóa" },
+        { to: "/admin/ke-toan/mtpsi/bao-cao-tai-chinh",  label: "7. Báo cáo tài chính hàng tháng" },
+        { to: "/admin/ke-toan/mtpsi/bao-cao-vat",        label: "8. Báo cáo VAT(NBo)" },
+        { to: "/admin/ke-toan/mtpsi/hop-dong-thi-cong",  label: "9. Các mẫu hợp đồng thi công" },
+        { to: "/admin/ke-toan/mtpsi/theo-doi-cong-trinh",label: "10. Theo dõi các công trình" },
+        { to: "/admin/ke-toan/mtpsi/thue",               label: "11. Thuế" },
+      ],
+    },
+    {
+      key: "mtparts", label: "MTPARTS",
+      items: [
+        { to: "/admin/ke-toan/mtparts/quy-trinh",         label: "1. Quy trình phòng kế toán" },
+        { to: "/admin/ke-toan/mtparts/quy-tien-mat",      label: "2. Quỹ tiền mặt và ngân hàng" },
+        { to: "/admin/ke-toan/mtparts/tong-hop-chi-phi",  label: "3. Tổng hợp các chi phí" },
+        { to: "/admin/ke-toan/mtparts/cong-no-phai-thu",  label: "4. Công nợ phải thu" },
+        { to: "/admin/ke-toan/mtparts/cong-no-phai-tra",  label: "5. Công nợ phải trả" },
+        { to: "/admin/ke-toan/mtparts/kho-hang-hoa",      label: "6. Kho hàng hóa" },
+        { to: "/admin/ke-toan/mtparts/bao-cao-tai-chinh", label: "7. Báo cáo tài chính hàng tháng" },
+        { to: "/admin/ke-toan/mtparts/bao-cao-vat",       label: "8. Báo cáo VAT(NBo)" },
+        { to: "/admin/ke-toan/mtparts/thue",              label: "9. Thuế" },
+      ],
+    },
+    {
+      key: "mth", label: "MTH Phòng kế toán",
+      items: [
+        { to: "/admin/ke-toan/mth/tu-tai-lieu",     label: "1. Tủ tài liệu phòng kế toán" },
+        { to: "/admin/ke-toan/mth/dao-tao-kt",      label: "2. Đào tạo KT" },
+        { to: "/admin/ke-toan/mth/cong-viec-ktv",   label: "3. Công việc của kế toán viên" },
+        { to: "/admin/ke-toan/mth/tai-lieu-dao-tao",label: "4. Tài liệu đào tạo KTBH và Kho" },
+        { to: "/admin/ke-toan/mth/hop-giao-ban",    label: "Họp giao ban" },
+      ],
+    },
+    {
+      key: "mt-paint", label: "MT Paint",
+      items: [
+        { to: "/admin/ke-toan/mt-paint/quy-trinh",          label: "1. Quy trình phòng kế toán MT" },
+        { to: "/admin/ke-toan/mt-paint/quy-tien-mat",       label: "2. Quỹ tiền mặt và chuyển khoản" },
+        { to: "/admin/ke-toan/mt-paint/tong-hop-chi-phi",   label: "3. Tổng hợp các chi phí" },
+        { to: "/admin/ke-toan/mt-paint/cong-no-phai-thu",   label: "5. Công nợ phải thu" },
+        { to: "/admin/ke-toan/mt-paint/kho-pha-le",         label: "6. Kho pha lẻ" },
+        { to: "/admin/ke-toan/mt-paint/bao-cao-tai-chinh",  label: "7. Báo cáo tài chính hàng tháng" },
+        { to: "/admin/ke-toan/mt-paint/kho-hang-hoa",       label: "8. Kho hàng hóa" },
+        { to: "/admin/ke-toan/mt-paint/hoa-don-vat",        label: "9. Hóa đơn VAT" },
+        { to: "/admin/ke-toan/mt-paint/cong-no-trong-nuoc", label: "10. Công nợ phải trả trong nước" },
+        { to: "/admin/ke-toan/mt-paint/cong-no-nuoc-ngoai", label: "11. Công nợ phải trả nước ngoài" },
+        { to: "/admin/ke-toan/mt-paint/ngan-sach",          label: "12. Ngân sách" },
+        { to: "/admin/ke-toan/mt-paint/bao-cao-bi",         label: "13. Học làm báo cáo BI" },
+        { to: "/admin/ke-toan/mt-paint/hang-hu-hong",       label: "14. Hồ sơ hàng hư hỏng hàng năm" },
+        { to: "/admin/ke-toan/mt-paint/du-lieu-pm",         label: "15. Dữ liệu pm" },
+        { to: "/admin/ke-toan/mt-paint/thue",               label: "16. Thuế MT Paint" },
+        { to: "/admin/ke-toan/mt-paint/doi-chieu-136-336",  label: "17. Báo cáo đối chiếu 136 và 336" },
+      ],
+    },
+    {
+      key: "mhm", label: "MHM",
+      items: [
+        { to: "/admin/ke-toan/mhm/quy-trinh",           label: "1. Quy trình phòng kế toán" },
+        { to: "/admin/ke-toan/mhm/quy-tien-mat",        label: "2. Quỹ tiền mặt và ngân hàng" },
+        { to: "/admin/ke-toan/mhm/cong-no-phai-thu",    label: "3. Công nợ phải thu" },
+        { to: "/admin/ke-toan/mhm/cong-no-phai-tra",    label: "4. Công nợ phải trả" },
+        { to: "/admin/ke-toan/mhm/chi-phi-cong-cu",     label: "5. Chi phí đầu tư thiết bị công cụ" },
+        { to: "/admin/ke-toan/mhm/chi-phi-kinh-doanh",  label: "6. Chi phí kinh doanh" },
+        { to: "/admin/ke-toan/mhm/chi-phi-san-xuat",    label: "7. Chi phí sản xuất" },
+        { to: "/admin/ke-toan/mhm/chi-phi-van-hanh",    label: "8. Chi phí vận hành" },
+        { to: "/admin/ke-toan/mhm/kho",                 label: "9. Kho" },
+        { to: "/admin/ke-toan/mhm/bao-cao-thue",        label: "10. Báo cáo thuế" },
+        { to: "/admin/ke-toan/mhm/hoa-don",             label: "11. Hóa đơn đầu vào và đầu ra" },
+        { to: "/admin/ke-toan/mhm/bao-cao-tai-chinh",   label: "12. Báo cáo tài chính hàng tháng" },
+        { to: "/admin/ke-toan/mhm/ke-hoach-ban-hang",   label: "13. Kế hoạch bán hàng" },
+        { to: "/admin/ke-toan/mhm/theo-doi-boc-tach",   label: "14. Theo dõi khác - bóc tách chi phí" },
+        { to: "/admin/ke-toan/mhm/tinh-gia-von",        label: "15. Tính giá vốn MHM" },
+        { to: "/admin/ke-toan/mhm/thue",                label: "16. Thuế" },
+      ],
+    },
+    {
+      key: "bao-cao", label: "Báo cáo tổng hợp",
+      items: [
+        { to: "/admin/ke-toan/bc-hop-nhat",  label: "BC hợp nhất MT Holdings" },
+        { to: "/admin/ke-toan/bao-cao-360",  label: "Báo cáo 360" },
+      ],
+    },
+  ];
+
   // Define sidebar menu items matching MISA style
   const sidebarItems = [
     {
@@ -627,6 +737,75 @@ export default function KeToanLayout({ children }: KeToanLayoutProps) {
                       </span>
                     )}
                   </Link>
+                );
+              })}
+            </div>
+
+            {/* ── CÔNG TY section ── */}
+            {sidebarOpen && (
+              <div className="misa-sidebar-header" style={{ marginTop: "8px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                  <span>CÔNG TY</span>
+                  <ChevronDown size={12} color="#627b8f" />
+                </div>
+              </div>
+            )}
+            <div style={{ display: "flex", flexDirection: "column", gap: "2px", paddingBottom: "20px" }}>
+              {COMPANIES.map((company) => {
+                const isAnyActive = company.items.some(
+                  (item) => location.pathname === item.to
+                );
+                const isOpen = openCompany[company.key];
+                return (
+                  <div key={company.key}>
+                    <button
+                      onClick={() => toggleCompany(company.key)}
+                      title={!sidebarOpen ? company.label : undefined}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        width: "calc(100% - 16px)",
+                        margin: "1px 8px",
+                        padding: "7px 10px",
+                        background: isAnyActive ? "rgba(0,180,197,0.12)" : "none",
+                        border: "none",
+                        borderRadius: "8px",
+                        color: isAnyActive ? "#00b4c5" : "#a3b8cc",
+                        cursor: "pointer",
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        transition: "background 0.15s",
+                      }}
+                    >
+                      <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {sidebarOpen ? company.label : company.label.slice(0, 2)}
+                      </span>
+                      {sidebarOpen && (
+                        <span style={{ fontSize: "10px", flexShrink: 0, marginLeft: "4px" }}>
+                          {isOpen ? "▼" : "▶"}
+                        </span>
+                      )}
+                    </button>
+                    {sidebarOpen && isOpen && (
+                      <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
+                        {company.items.map((item) => {
+                          const active = location.pathname === item.to;
+                          return (
+                            <Link
+                              key={item.to}
+                              to={item.to}
+                              className={`misa-sidebar-item ${active ? "active" : ""}`}
+                              style={{ paddingLeft: "28px", fontSize: "12px" }}
+                            >
+                              <ChevronRight size={11} style={{ flexShrink: 0, opacity: 0.4 }} />
+                              <span style={{ flex: 1 }}>{item.label}</span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </div>
