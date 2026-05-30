@@ -84,7 +84,12 @@ jobs:
           git config user.email "actions@github.com"
           git config user.name "GitHub Actions"
           git add .
-          git commit -m "deploy"
+          $changes = git status --porcelain
+          if ($changes) {
+            git commit -m "deploy"
+          } else {
+            Write-Host "Nothing to commit, skipping."
+          }
         shell: powershell
 
       - name: EAS OTA Update
