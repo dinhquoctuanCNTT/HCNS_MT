@@ -7,6 +7,10 @@ import {
   useRef,
 } from "react";
 import axiosClient from "../api/axiosClient";
+import { useAuthStore } from "../features/auth/auth.store";
+
+// Only these roles can access the pending-count endpoint
+const ROLES_WITH_PENDING = ["admin", "director", "branch_manager", "department_head"];
 
 interface PendingCountContextType {
   pendingCount: number;
@@ -25,15 +29,17 @@ export function PendingCountProvider({
 }) {
   const [pendingCount, setPendingCount] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const { role } = useAuthStore();
 
   const refreshPendingCount = useCallback(async () => {
+    if (!role || !ROLES_WITH_PENDING.includes(role)) return;
     try {
       const res = await axiosClient.get("/api/explanations/pending-count");
       setPendingCount(res.data.count ?? 0);
     } catch {
       // silent fail
     }
-  }, []);
+  }, [role]);
 
   useEffect(() => {
     // Fetch ngay khi mount

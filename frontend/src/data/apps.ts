@@ -110,7 +110,7 @@ export const ALL_APPS: AppModule[] = [
     imgSrc: daoTaoImg,
     label: "Đào tạo",
     color: "linear-gradient(135deg,#22c55e,#15803d)",
-    href: "/admin/dao-tao/so-do-to-chuc/he-sinh-thai",
+    href: "/admin/dao-tao",
     category: "Nhân sự",
   },
   {

@@ -1,0 +1,152 @@
+/* ── DaoTao Layout CSS ── */
+
+/* Sidebar items */
+.dt-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 18px;
+  color: #a3b8cc;
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 500;
+  border-radius: 8px;
+  margin: 0 8px;
+  transition: all 0.15s;
+  cursor: pointer;
+}
+.dt-sidebar-item:hover {
+  background: rgba(255,255,255,0.07);
+  color: #e2eaf2;
+}
+.dt-sidebar-item.active {
+  background: rgba(34,197,94,0.15);
+  color: #86efac;
+}
+
+/* Sub-tabs in content area */
+.dt-sub-tab-item {
+  height: 100%;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: all 0.15s;
+  user-select: none;
+}
+.dt-sub-tab-item:hover {
+  color: #15803d;
+}
+.dt-sub-tab-item.active {
+  color: #15803d;
+  border-bottom-color: #22c55e;
+  font-weight: 700;
+}
+
+/* Top bar icon buttons */
+.dt-topbar-icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  color: #55697d;
+  position: relative;
+  transition: background 0.15s;
+}
+.dt-topbar-icon-btn:hover {
+  background: #f1f5f9;
+}
+.dt-topbar-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  line-height: 1;
+}
+
+/* "Thêm nhanh" button */
+.dt-btn-them-nhanh {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 12px;
+  padding: 9px 20px;
+  background: linear-gradient(135deg, #22c55e, #15803d);
+  border: none;
+  border-radius: 20px;
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  width: calc(100% - 24px);
+  justify-content: center;
+}
+.dt-btn-them-nhanh:hover {
+  opacity: 0.88;
+}
+
+/* Sidebar section label */
+.dt-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 18px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #627b8f;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+
+/* Scrollbar hide */
+.dt-hide-scrollbar::-webkit-scrollbar { display: none; }
+.dt-hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Expand/collapse button in sidebar group */
+.dt-group-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: calc(100% - 16px);
+  margin: 2px 8px;
+  padding: 8px 10px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: #a3b8cc;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.15s;
+}
+.dt-group-btn:hover { background: rgba(255,255,255,0.06); color: #e2eaf2; }
+.dt-group-btn.active { color: #86efac; }
+
+.dt-group-items {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 0 0 4px;
+}

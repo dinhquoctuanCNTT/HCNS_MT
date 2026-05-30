@@ -60,6 +60,7 @@ const AppRouter = () => {
             {keToanRoutes}
             {truyenThongRoutes}
             {muaHangRoutes}
+            {daoTaoRoutes}
 
             <Route element={<AdminLayout />}>
               <Route path="crm" element={<CRMPage />} />
@@ -69,7 +70,6 @@ const AppRouter = () => {
               <Route path="profile" element={<ProfilePage />} />
 
               {hrmRoutes}
-              {daoTaoRoutes}
               {phanMemMuaHangRoutes}
               {banHangRoutes}
               {workflowRoutes}
