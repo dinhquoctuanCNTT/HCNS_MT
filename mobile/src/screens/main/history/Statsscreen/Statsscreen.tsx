@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import {
   View,
   Text,
@@ -495,7 +496,7 @@ export default function StatsScreen({ navigation }: Props) {
             <View style={styles.overviewWrap}>
               <View style={styles.overviewGrid}>
                 <View style={styles.overviewCard}>
-                  <Text style={styles.overviewIcon}>📅</Text>
+                  <Ionicons name="calendar" size={24} color="#3b82f6" />
                   <Text style={styles.overviewValue}>
                     {stats?.total_present ?? totalPresent}
                     <Text style={styles.overviewValueSub}>
@@ -505,7 +506,7 @@ export default function StatsScreen({ navigation }: Props) {
                   <Text style={styles.overviewLabel}>Ngày công</Text>
                 </View>
                 <View style={styles.overviewCard}>
-                  <Text style={styles.overviewIcon}>⏰</Text>
+                  <Ionicons name="alarm" size={24} color="#f59e0b" />
                   <Text style={styles.overviewValueWarning}>
                     {totalLateMinutes}
                     <Text style={{ fontSize: 11 }}>p</Text>
@@ -513,7 +514,7 @@ export default function StatsScreen({ navigation }: Props) {
                   <Text style={styles.overviewLabel}>Đi muộn</Text>
                 </View>
                 <View style={styles.overviewCard}>
-                  <Text style={styles.overviewIcon}>🏃</Text>
+                  <MaterialCommunityIcons name="run-fast" size={24} color="#8b5cf6" />
                   <Text style={styles.overviewValueWarning}>
                     {totalEarlyMinutes}
                     <Text style={{ fontSize: 11 }}>p</Text>
@@ -521,7 +522,7 @@ export default function StatsScreen({ navigation }: Props) {
                   <Text style={styles.overviewLabel}>Về sớm</Text>
                 </View>
                 <View style={styles.overviewCard}>
-                  <Text style={styles.overviewIcon}>🏖️</Text>
+                  <Ionicons name="sunny" size={24} color="#ef4444" />
                   <Text style={styles.overviewValueDanger}>
                     {stats?.total_absent ?? leaveDays + absentDays}
                   </Text>
@@ -695,7 +696,7 @@ export default function StatsScreen({ navigation }: Props) {
             {/* ── Banner cảnh báo ── */}
             {uncheckedDays.length > 0 && (
               <View style={styles.warningBanner}>
-                <Text style={{ fontSize: 20 }}>ℹ️</Text>
+                <Ionicons name="information-circle" size={22} color="#3b82f6" />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.warningTitle}>
                     Bạn còn {uncheckedDays.length} ngày chưa chấm công trong

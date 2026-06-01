@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef } from "react";
 import Svg, { Path } from "react-native-svg";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import {
   View,
   Text,
@@ -219,21 +220,23 @@ type FieldConfig = {
   keyboard?: "default" | "numeric" | "phone-pad" | "email-address";
 };
 
-const FIELDS: FieldConfig[] = [
-  { key: "full_name",         label: "Họ và tên",              icon: "👤", iconBg: "#dbeafe", editable: true },
-  { key: "date_of_birth",     label: "Ngày sinh",               icon: "📅", iconBg: "#fef3c7", editable: true,  type: "date" },
-  { key: "gender",            label: "Giới tính",               icon: "⚧️", iconBg: "#ede9fe", editable: true,  type: "gender" },
-  { key: "cccd",              label: "Số định danh (CCCD)",     icon: "🪪", iconBg: "#d1fae5", editable: true,  keyboard: "numeric" },
-  { key: "cccd_date",         label: "Ngày cấp",                icon: "🗓️", iconBg: "#fef3c7", editable: true,  type: "date" },
-  { key: "cccd_place",        label: "Nơi cấp",                 icon: "🏛️", iconBg: "#cffafe", editable: true },
-  { key: "address",           label: "Địa chỉ thường trú",      icon: "🏠", iconBg: "#dbeafe", editable: true },
-  { key: "phone",             label: "Số điện thoại",           icon: "📞", iconBg: "#d1fae5", editable: true,  keyboard: "phone-pad" },
-  { key: "email",             label: "Email",                   icon: "✉️", iconBg: "#fee2e2", editable: false },
-  { key: "role",              label: "Chức vụ",                 icon: "💼", iconBg: "#ede9fe", editable: false },
-  { key: "department_name",   label: "Phòng ban",               icon: "🏢", iconBg: "#fef3c7", editable: false },
-  { key: "joined_date",       label: "Ngày vào làm",            icon: "📆", iconBg: "#dbeafe", editable: false, type: "date" },
-  { key: "bank_account",      label: "Số tài khoản ngân hàng",  icon: "💳", iconBg: "#d1fae5", editable: true },
-  { key: "emergency_contact", label: "Người liên hệ khẩn cấp", icon: "👥", iconBg: "#fef9c3", editable: true },
+type IconDef = { lib: "ion" | "mci"; name: string; color: string };
+
+const FIELDS: (FieldConfig & { iconDef: IconDef })[] = [
+  { key: "full_name",         label: "Họ và tên",              icon: "", iconBg: "#dbeafe", editable: true,  iconDef: { lib: "ion", name: "person",              color: "#3b82f6" } },
+  { key: "date_of_birth",     label: "Ngày sinh",               icon: "", iconBg: "#fef3c7", editable: true,  type: "date",   iconDef: { lib: "ion", name: "calendar",            color: "#f59e0b" } },
+  { key: "gender",            label: "Giới tính",               icon: "", iconBg: "#ede9fe", editable: true,  type: "gender", iconDef: { lib: "mci", name: "gender-male-female",  color: "#8b5cf6" } },
+  { key: "cccd",              label: "Số định danh (CCCD)",     icon: "", iconBg: "#d1fae5", editable: true,  keyboard: "numeric", iconDef: { lib: "ion", name: "card",           color: "#10b981" } },
+  { key: "cccd_date",         label: "Ngày cấp",                icon: "", iconBg: "#fef3c7", editable: true,  type: "date",   iconDef: { lib: "ion", name: "calendar-outline",   color: "#f59e0b" } },
+  { key: "cccd_place",        label: "Nơi cấp",                 icon: "", iconBg: "#cffafe", editable: true,  iconDef: { lib: "ion", name: "business",            color: "#06b6d4" } },
+  { key: "address",           label: "Địa chỉ thường trú",      icon: "", iconBg: "#dbeafe", editable: true,  iconDef: { lib: "ion", name: "home",                color: "#3b82f6" } },
+  { key: "phone",             label: "Số điện thoại",           icon: "", iconBg: "#d1fae5", editable: true,  keyboard: "phone-pad", iconDef: { lib: "ion", name: "call",         color: "#10b981" } },
+  { key: "email",             label: "Email",                   icon: "", iconBg: "#fee2e2", editable: false, iconDef: { lib: "ion", name: "mail",                color: "#ef4444" } },
+  { key: "role",              label: "Chức vụ",                 icon: "", iconBg: "#ede9fe", editable: false, iconDef: { lib: "ion", name: "briefcase",           color: "#8b5cf6" } },
+  { key: "department_name",   label: "Phòng ban",               icon: "", iconBg: "#fef3c7", editable: false, iconDef: { lib: "mci", name: "office-building",    color: "#f59e0b" } },
+  { key: "joined_date",       label: "Ngày vào làm",            icon: "", iconBg: "#dbeafe", editable: false, type: "date",   iconDef: { lib: "ion", name: "time",             color: "#3b82f6" } },
+  { key: "bank_account",      label: "Số tài khoản ngân hàng",  icon: "", iconBg: "#d1fae5", editable: true,  iconDef: { lib: "ion", name: "wallet",              color: "#10b981" } },
+  { key: "emergency_contact", label: "Người liên hệ khẩn cấp", icon: "", iconBg: "#fef9c3", editable: true,  iconDef: { lib: "ion", name: "people",              color: "#eab308" } },
 ];
 
 /* ── Main Screen ── */
@@ -320,7 +323,10 @@ export default function ProfileScreen({ navigation }: any) {
     return (
       <View key={field.key} style={[s.row, !isLast && s.rowDivider]}>
         <View style={[s.iconContainer, { backgroundColor: field.iconBg }]}>
-          <Text style={s.iconEmoji}>{field.icon}</Text>
+          {field.iconDef.lib === "ion"
+            ? <Ionicons name={field.iconDef.name as any} size={18} color={field.iconDef.color} />
+            : <MaterialCommunityIcons name={field.iconDef.name as any} size={18} color={field.iconDef.color} />
+          }
         </View>
 
         <View style={s.rowContent}>
@@ -424,7 +430,7 @@ export default function ProfileScreen({ navigation }: any) {
         <View style={s.faceCard}>
           <View style={[s.faceBadge, hasFace ? s.faceOk : s.faceWarn]}>
             <Text style={[s.faceBadgeText, hasFace ? s.faceOkText : s.faceWarnText]}>
-              {hasFace ? "✓  Đã đăng ký khuôn mặt" : "⚠  Chưa đăng ký khuôn mặt"}
+              {hasFace ? "Đã đăng ký khuôn mặt" : "Chưa đăng ký khuôn mặt"}
             </Text>
           </View>
           <TouchableOpacity
@@ -455,7 +461,8 @@ export default function ProfileScreen({ navigation }: any) {
 
         {!hasChanges && (
           <TouchableOpacity style={s.logoutBtn} onPress={() => dispatch(logout())}>
-            <Text style={s.logoutText}>🚪  Đăng xuất</Text>
+            <Ionicons name="log-out-outline" size={18} color="#ef4444" style={{ marginRight: 6 }} />
+            <Text style={s.logoutText}>Đăng xuất</Text>
           </TouchableOpacity>
         )}
       </ScrollView>

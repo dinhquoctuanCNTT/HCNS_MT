@@ -8,6 +8,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { HistoryStackParamList } from "./types";
 import { fmtTime, isLate } from "./helpers";
@@ -94,23 +95,23 @@ export default function DayDetailScreen({ route, navigation }: Props) {
           <Text style={s.cardTitle}>Chi tiết chấm công</Text>
           <View style={s.rowSpace}>
             <Text style={s.textNormal}>
-              🕒 Giờ vào: <Text style={s.textBold}>{r?.check_in ? fmtTime(r.check_in) : "--:--"}</Text>
+              Giờ vào:<Text style={s.textBold}>{r?.check_in ? fmtTime(r.check_in) : "--:--"}</Text>
             </Text>
             <Text style={s.textNormal}>
-              🕒 Giờ ra: <Text style={s.textBold}>{r?.check_out ? fmtTime(r.check_out) : "--:--"}</Text>
+              Giờ ra:<Text style={s.textBold}>{r?.check_out ? fmtTime(r.check_out) : "--:--"}</Text>
             </Text>
           </View>
           {lateMinutes > 0 && (
             <View style={s.badgeRow}>
               <View style={s.badgeWarn}>
-                <Text style={s.badgeWarnText}>⚠️ Đi muộn: {lateMinutes} phút</Text>
+                <Ionicons name="warning" size={13} color="#b45309" /><Text style={s.badgeWarnText}> Đi muộn: {lateMinutes} phút</Text>
               </View>
             </View>
           )}
           {earlyMinutes > 0 && (
             <View style={s.badgeRow}>
               <View style={s.badgeInfo}>
-                <Text style={s.badgeInfoText}>🏃 Về sớm: {earlyMinutes} phút</Text>
+                <Ionicons name="time" size={13} color="#7c3aed" /><Text style={s.badgeInfoText}> Về sớm: {earlyMinutes} phút</Text>
               </View>
             </View>
           )}
@@ -121,10 +122,10 @@ export default function DayDetailScreen({ route, navigation }: Props) {
           <Text style={s.cardTitle}>Tăng ca</Text>
           <View style={{ marginTop: 10, gap: 8 }}>
             <Text style={s.textNormal}>
-              🕒 Làm thêm hưởng lương (giờ): <Text style={s.textBold}>0</Text>
+              Làm thêm hưởng lương (giờ):<Text style={s.textBold}>0</Text>
             </Text>
             <Text style={s.textNormal}>
-              ⏱️ Làm thêm nghỉ bù (giờ): <Text style={s.textBold}>0</Text>
+              Làm thêm nghỉ bù (giờ):<Text style={s.textBold}>0</Text>
             </Text>
           </View>
         </View>
@@ -134,10 +135,10 @@ export default function DayDetailScreen({ route, navigation }: Props) {
           <Text style={s.cardTitle}>Nghỉ lễ & Công tác</Text>
           <View style={{ marginTop: 10, gap: 8 }}>
             <Text style={s.textNormal}>
-              🏖️ Nghỉ lễ (ngày): <Text style={s.textBold}>0</Text>
+              Nghỉ lễ (ngày):<Text style={s.textBold}>0</Text>
             </Text>
             <Text style={s.textNormal}>
-              ✈️ Công tác (ngày): <Text style={s.textBold}>0</Text>
+              Công tác (ngày):<Text style={s.textBold}>0</Text>
             </Text>
           </View>
         </View>

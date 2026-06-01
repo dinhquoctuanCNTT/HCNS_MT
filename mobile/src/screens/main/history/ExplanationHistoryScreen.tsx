@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
+import { Ionicons } from "@expo/vector-icons";
 import {
   View,
   Text,
@@ -35,16 +36,16 @@ export default function ExplanationHistoryScreen({ navigation }: Props) {
       const oldStatus = prev[item.id];
       if (oldStatus && oldStatus !== item.status) {
         if (item.status === "approved") {
-          notifications.push(`✅ Đơn giải trình ngày ${new Date(item.work_date).toLocaleDateString("vi-VN")} đã được DUYỆT`);
+          notifications.push(`Đơn giải trình ngày ${new Date(item.work_date).toLocaleDateString("vi-VN")} đã được DUYỆT`);
         } else if (item.status === "rejected") {
           const note = item.admin_note ? `\nLý do: ${item.admin_note}` : "";
-          notifications.push(`❌ Đơn giải trình ngày ${new Date(item.work_date).toLocaleDateString("vi-VN")} bị TỪ CHỐI${note}`);
+          notifications.push(`Đơn giải trình ngày ${new Date(item.work_date).toLocaleDateString("vi-VN")} bị TỪ CHỐI${note}`);
         }
       }
     });
 
     if (notifications.length > 0) {
-      Alert.alert("📋 Cập nhật đơn giải trình", notifications.join("\n\n"));
+      Alert.alert("Cập nhật đơn giải trình", notifications.join("\n\n"));
     }
 
     // Cập nhật map trạng thái mới
@@ -109,7 +110,7 @@ export default function ExplanationHistoryScreen({ navigation }: Props) {
         <ActivityIndicator style={{ marginTop: 40 }} color="#1c64f2" size="large" />
       ) : data.length === 0 ? (
         <View style={s.empty}>
-          <Text style={{ fontSize: 40 }}>📋</Text>
+          <Ionicons name="document-text-outline" size={48} color="#94a3b8" />
           <Text style={s.emptyText}>Bạn chưa gửi yêu cầu giải trình nào</Text>
         </View>
       ) : (

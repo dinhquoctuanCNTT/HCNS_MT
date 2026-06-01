@@ -301,20 +301,10 @@ export default function KeToanLayout({ children }: KeToanLayoutProps) {
             overflow: "hidden",
           }}
         >
-          {/* Nine-dots menu button */}
-          <button
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              padding: "6px",
-              borderRadius: "6px",
-            }}
-          >
-            <LayoutGrid size={22} color="#55697d" />
-          </button>
+          {/* Home — Quay về Dashboard */}
+          <Link to="/admin" style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", padding: "6px", borderRadius: "6px", textDecoration: "none" }} title="Quay về Dashboard">
+            <Home size={22} color="#00b4c5" />
+          </Link>
 
           {/* MISA Conic Logo */}
           <div
@@ -625,28 +615,14 @@ export default function KeToanLayout({ children }: KeToanLayoutProps) {
             zIndex: 5,
           }}
         >
-          {/* oval Button "+ Thêm nhanh" */}
-          <div style={{ padding: "10px 0", flexShrink: 0 }}>
-            {sidebarOpen ? (
-              <button className="misa-btn-them-nhanh">
-                <Plus size={16} />
-                <span>Thêm nhanh</span>
-              </button>
-            ) : (
-              <button
-                className="misa-btn-them-nhanh"
-                style={{
-                  width: "36px",
-                  height: "36px",
-                  borderRadius: "50%",
-                  margin: "0 auto",
-                  padding: 0,
-                }}
-                title="Thêm nhanh"
-              >
-                <Plus size={18} />
-              </button>
-            )}
+          {/* Home — Quay về Dashboard */}
+          <div style={{ padding: "12px 0 4px", display: "flex", justifyContent: "center", flexShrink: 0 }}>
+            <Link to="/admin" style={{ width: "38px", height: "38px", borderRadius: "50%", background: "rgba(0,180,197,0.15)", border: "2px solid #00b4c5", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.2s", outline: "none", textDecoration: "none" }}
+              title="Quay lại Dashboard"
+              onMouseEnter={(e) => { e.currentTarget.style.background = "#00b4c5"; e.currentTarget.style.transform = "scale(1.1)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(0,180,197,0.15)"; e.currentTarget.style.transform = "scale(1)"; }}>
+              <Home size={18} color="#00b4c5" />
+            </Link>
           </div>
 
           {/* Sidebar Menu items scroll container */}
@@ -810,7 +786,9 @@ export default function KeToanLayout({ children }: KeToanLayoutProps) {
               })}
             </div>
           </div>
-          {/* Nút Home - Quay lại Module Dashboard */}
+          {/* Nút Home - đã chuyển lên đầu sidebar */}
+          <div style={{ display: "none" }}>{/* placeholder */}</div>
+          {/* old Home - */}
           <div
             style={{
               padding: "16px 0",

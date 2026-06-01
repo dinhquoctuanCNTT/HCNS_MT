@@ -47,7 +47,10 @@ export default function LoginScreen({ navigation }: any) {
 
     try {
       setLoading(true);
-      const res = await axiosClient.post("/auth/login", { employee_code: employeeCode.trim().toUpperCase(), password });
+      const res = await axiosClient.post("/auth/login", {
+        employee_code: employeeCode.trim().toUpperCase(),
+        password,
+      });
       dispatch(setCredentials({ token: res.data.token, user: res.data.user }));
     } catch (err: any) {
       Alert.alert(
@@ -63,7 +66,6 @@ export default function LoginScreen({ navigation }: any) {
     <View style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor="#1B3F7E" />
 
-      {/* ── Geometric background shapes dùng View ── */}
       <View style={styles.geoBg}>
         <View style={styles.geoShape1} />
         <View style={styles.geoShape2} />
@@ -81,9 +83,7 @@ export default function LoginScreen({ navigation }: any) {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.inner}>
-            {/* ── Card thống nhất — logo + form + illustration ── */}
             <View style={styles.card}>
-              {/* Logo trong card */}
               <View style={styles.cardLogoWrap}>
                 <Image
                   source={require("../../assets/mt-logo.png")}
@@ -92,10 +92,8 @@ export default function LoginScreen({ navigation }: any) {
                 />
               </View>
 
-              {/* Divider */}
               <View style={styles.divider} />
 
-              {/* Input tài khoản */}
               <View
                 style={[
                   styles.inputBox,

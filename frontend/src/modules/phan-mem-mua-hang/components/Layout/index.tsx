@@ -132,9 +132,9 @@ export default function PhanMemMuaHangLayout({ children }: PhanMemMuaHangLayoutP
       >
         {/* Left */}
         <div style={{ display: "flex", alignItems: "center", gap: "14px", overflow: "hidden" }}>
-          <button style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", padding: "6px", borderRadius: "6px" }}>
-            <LayoutGrid size={22} color="#55697d" />
-          </button>
+          <Link to="/admin" style={{ background: "none", border: "none", cursor: "pointer", padding: "6px", borderRadius: "6px", display: "flex", alignItems: "center", textDecoration: "none" }} title="Quay về Dashboard">
+            <Home size={22} color="#f59e0b" />
+          </Link>
 
           <div style={{ display: "flex", alignItems: "center", gap: "10px", marginRight: "10px", flexShrink: 0 }}>
             <div style={{
@@ -225,16 +225,9 @@ export default function PhanMemMuaHangLayout({ children }: PhanMemMuaHangLayoutP
           transition: "width 0.2s cubic-bezier(0.4,0,0.2,1)",
           overflow: "hidden", flexShrink: 0, zIndex: 5,
         }}>
-          <div style={{ padding: "10px 0", flexShrink: 0 }}>
-            {sidebarOpen ? (
-              <button className="pmm-btn-them-nhanh">
-                <Plus size={16} /><span>Thêm nhanh</span>
-              </button>
-            ) : (
-              <button className="pmm-btn-them-nhanh" style={{ width: "36px", height: "36px", borderRadius: "50%", margin: "0 auto", padding: 0 }} title="Thêm nhanh">
-                <Plus size={18} />
-              </button>
-            )}
+          {/* Home removed - now in header */}
+          <div style={{ display: "none" }}>
+            <Link to="/admin"
           </div>
 
           <div style={{ flex: 1, overflowY: "auto" }} className="pmm-hide-scrollbar">
@@ -292,10 +285,9 @@ export default function PhanMemMuaHangLayout({ children }: PhanMemMuaHangLayoutP
             </div>
           </div>
 
-          {/* Home button */}
-          <div style={{ padding: "16px 0", display: "flex", justifyContent: "center", flexShrink: 0 }}>
-            <Link
-              to="/admin"
+          {/* Home removed - moved to top */}
+          <div style={{ display: "none" }}>
+            <Link to="/admin"
               style={{
                 width: "38px", height: "38px", borderRadius: "50%",
                 background: "rgba(245,158,11,0.15)", border: "2px solid #f59e0b",

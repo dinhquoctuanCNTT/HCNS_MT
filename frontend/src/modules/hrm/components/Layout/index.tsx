@@ -217,17 +217,9 @@ export default function HRMLayout({ children }: HRMLayoutProps) {
             overflow: "hidden",
           }}
         >
-          <button
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              padding: "6px",
-              borderRadius: "6px",
-            }}
-          >
-            <LayoutGrid size={22} color="#55697d" />
-          </button>
+          <Link to="/admin" style={{ background: "none", border: "none", cursor: "pointer", padding: "6px", borderRadius: "6px", display: "flex", alignItems: "center", textDecoration: "none" }} title="Quay về Dashboard">
+            <Home size={22} color="#3b82f6" />
+          </Link>
 
           {/* Logo + label */}
           <div
@@ -445,29 +437,6 @@ export default function HRMLayout({ children }: HRMLayoutProps) {
             zIndex: 5,
           }}
         >
-          {/* Thêm nhanh */}
-          <div style={{ padding: "10px 0", flexShrink: 0 }}>
-            {sidebarOpen ? (
-              <button className="hrm-btn-them-nhanh">
-                <Plus size={16} />
-                <span>Thêm nhanh</span>
-              </button>
-            ) : (
-              <button
-                className="hrm-btn-them-nhanh"
-                style={{
-                  width: "36px",
-                  height: "36px",
-                  borderRadius: "50%",
-                  margin: "0 auto",
-                  padding: 0,
-                }}
-              >
-                <Plus size={18} />
-              </button>
-            )}
-          </div>
-
           {/* Menu scroll */}
           <div
             style={{ flex: 1, overflowY: "auto" }}
@@ -616,36 +585,11 @@ export default function HRMLayout({ children }: HRMLayoutProps) {
             </div>
           </div>
 
-          {/* Home button */}
-          <div
-            style={{
-              padding: "16px 0",
-              display: "flex",
-              justifyContent: "center",
-              flexShrink: 0,
+          {/* Home button — removed (moved to top) */}
+          <div style={{ display: "none" }}>
+            <Link to="/admin" onMouseEnter={(e) => {
+              e.currentTarget.style.background = "#3b82f6";
             }}
-          >
-            <Link
-              to="/admin"
-              style={{
-                width: "38px",
-                height: "38px",
-                borderRadius: "50%",
-                background: "rgba(59,130,246,0.15)",
-                border: "2px solid #3b82f6",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                transition: "all 0.2s",
-                outline: "none",
-                textDecoration: "none",
-              }}
-              title="Quay lại Module Dashboard"
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "#3b82f6";
-                e.currentTarget.style.transform = "scale(1.1)";
-              }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = "rgba(59,130,246,0.15)";
                 e.currentTarget.style.transform = "scale(1)";

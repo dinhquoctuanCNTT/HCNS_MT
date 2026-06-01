@@ -145,9 +145,9 @@ export default function DaoTaoLayout({ children }: DaoTaoLayoutProps) {
       >
         {/* Left */}
         <div style={{ display: "flex", alignItems: "center", gap: "14px", overflow: "hidden" }}>
-          <button style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", padding: "6px", borderRadius: "6px" }}>
-            <LayoutGrid size={22} color="#55697d" />
-          </button>
+          <Link to="/admin" style={{ background: "none", border: "none", cursor: "pointer", padding: "6px", borderRadius: "6px", display: "flex", alignItems: "center", textDecoration: "none" }} title="Quay về Dashboard">
+            <Home size={22} color="#22c55e" />
+          </Link>
 
           {/* Logo + label */}
           <div style={{ display: "flex", alignItems: "center", gap: "10px", marginRight: "10px", flexShrink: 0 }}>
@@ -241,19 +241,6 @@ export default function DaoTaoLayout({ children }: DaoTaoLayoutProps) {
           transition: "width 0.2s cubic-bezier(0.4,0,0.2,1)",
           overflow: "hidden", flexShrink: 0, zIndex: 5,
         }}>
-          {/* Thêm nhanh button */}
-          <div style={{ padding: "10px 0", flexShrink: 0 }}>
-            {sidebarOpen ? (
-              <button className="dt-btn-them-nhanh">
-                <Plus size={16} /><span>Thêm nhanh</span>
-              </button>
-            ) : (
-              <button className="dt-btn-them-nhanh" style={{ width: "36px", height: "36px", borderRadius: "50%", margin: "0 auto", padding: 0 }} title="Thêm nhanh">
-                <Plus size={18} />
-              </button>
-            )}
-          </div>
-
           {/* Menu groups */}
           <div style={{ flex: 1, overflowY: "auto" }} className="dt-hide-scrollbar">
             {sidebarOpen && (
@@ -310,29 +297,6 @@ export default function DaoTaoLayout({ children }: DaoTaoLayoutProps) {
             </div>
           </div>
 
-          {/* Home button */}
-          <div style={{ padding: "16px 0", display: "flex", justifyContent: "center", flexShrink: 0 }}>
-            <Link
-              to="/admin"
-              style={{
-                width: "38px", height: "38px", borderRadius: "50%",
-                background: "rgba(34,197,94,0.15)", border: "2px solid #22c55e",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                cursor: "pointer", transition: "all 0.2s", outline: "none", textDecoration: "none",
-              }}
-              title="Quay lại Module Dashboard"
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "#22c55e";
-                e.currentTarget.style.transform = "scale(1.1)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "rgba(34,197,94,0.15)";
-                e.currentTarget.style.transform = "scale(1)";
-              }}
-            >
-              <Home size={20} color="#22c55e" />
-            </Link>
-          </div>
 
           {/* Collapse toggle */}
           <div

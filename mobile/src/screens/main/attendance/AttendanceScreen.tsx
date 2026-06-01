@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import {
   View,
   Text,
@@ -426,7 +427,7 @@ export default function AttendanceScreen({ navigation }: any) {
   if (!permission.granted) {
     return (
       <View style={styles.permissionContainer}>
-        <Text style={styles.permissionIcon}>📷</Text>
+        <Ionicons name="camera" size={64} color="#94a3b8" style={{ marginBottom: 8 }} />
         <Text style={styles.permissionTitle}>Cần quyền camera</Text>
         <Text style={styles.permissionSub}>
           Ứng dụng cần quyền truy cập camera để nhận diện khuôn mặt khi chấm
@@ -490,13 +491,16 @@ export default function AttendanceScreen({ navigation }: any) {
           <View style={{ marginBottom: 8, alignItems: "center" }}>
             {currentAddress ? (
               <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 4, maxWidth: "90%" }}>
-                <Text style={{ fontSize: 13 }}>📍</Text>
+                <Ionicons name="location" size={14} color="#94a3b8" />
                 <Text style={{ color: "#e2e8f0", fontSize: 12, flex: 1, textAlign: "center", lineHeight: 18 }}>
                   {currentAddress}
                 </Text>
               </View>
             ) : (
-              <Text style={styles.gpsText}>📍 Đang xác định vị trí...</Text>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                <Ionicons name="location-outline" size={14} color="#94a3b8" />
+                <Text style={styles.gpsText}>Đang xác định vị trí...</Text>
+              </View>
             )}
             {currentCoords && (
               <Text style={{ color: "rgba(255,255,255,0.4)", fontSize: 10, marginTop: 2 }}>
@@ -520,7 +524,7 @@ export default function AttendanceScreen({ navigation }: any) {
             </TouchableOpacity>
           </Animated.View>
           <Text style={styles.captureBtnLabel}>
-            {isCheckout ? "🔴  Nhấn để chấm ra ca" : "🟢  Nhấn để chấm vào ca"}
+            {isCheckout ? "Nhấn để chấm ra ca" : "Nhấn để chấm vào ca"}
           </Text>
         </View>
       )}
@@ -577,23 +581,21 @@ export default function AttendanceScreen({ navigation }: any) {
                 {/* Tên chi nhánh / văn phòng */}
                 {location ? (
                   <View style={styles.locationRow}>
-                    <Text style={{ fontSize: 12 }}>🏢</Text>
+                    <Ionicons name="business" size={13} color="#64748b" />
                     <Text style={styles.locationText}>{location}</Text>
                   </View>
                 ) : null}
-                {/* Địa chỉ thực tế từ GPS */}
                 {currentAddress ? (
                   <View style={[styles.locationRow, { marginTop: 4 }]}>
-                    <Text style={{ fontSize: 12 }}>📍</Text>
+                    <Ionicons name="location" size={13} color="#64748b" />
                     <Text style={[styles.locationText, { fontSize: 12, color: "#64748b" }]}>
                       {currentAddress}
                     </Text>
                   </View>
                 ) : null}
-                {/* Tọa độ GPS */}
                 {currentCoords && (
                   <View style={[styles.locationRow, { marginTop: 2 }]}>
-                    <Text style={{ fontSize: 11 }}>🛰️</Text>
+                    <MaterialCommunityIcons name="satellite-variant" size={12} color="#94a3b8" />
                     <Text style={{ fontSize: 11, color: "#94a3b8" }}>
                       {currentCoords.lat.toFixed(5)}, {currentCoords.lng.toFixed(5)}
                     </Text>

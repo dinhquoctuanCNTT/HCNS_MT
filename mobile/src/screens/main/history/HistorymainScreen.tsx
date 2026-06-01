@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
+import { Ionicons } from "@expo/vector-icons";
 import {
   View,
   Text,
@@ -442,7 +443,7 @@ export default function HistoryMainScreen({ navigation }: Props) {
     const isAbsent = detail.status === "absent";
     const color = isAbsent ? "#ef4444" : "#f59e0b";
     const bg = isAbsent ? "#fee2e2" : "#fef3c7";
-    const icon = isAbsent ? "📄" : "⏱️";
+    const iconName = isAbsent ? "document-text-outline" : "time-outline";
 
     return (
       <TouchableOpacity
@@ -459,7 +460,7 @@ export default function HistoryMainScreen({ navigation }: Props) {
         </View>
         <View style={styles.explainInfo}>
           <View style={styles.explainHeader}>
-            <Text style={styles.explainIcon}>{icon}</Text>
+            <Ionicons name={iconName as any} size={16} color={color} />
             <Text style={styles.explainReason} numberOfLines={1}>
               {isAbsent ? "Nghỉ không phép" : "Đi muộn"} - {detail.dateStr}
             </Text>
@@ -799,7 +800,7 @@ export default function HistoryMainScreen({ navigation }: Props) {
             </View>
             {filteredRecords.length === 0 ? (
               <View style={styles.empty}>
-                <Text style={{ fontSize: 36 }}>📋</Text>
+                <Ionicons name="document-text-outline" size={40} color="#94a3b8" />
                 <Text style={styles.emptyText}>Không có dữ liệu</Text>
               </View>
             ) : (
