@@ -225,10 +225,6 @@ export default function PhanMemMuaHangLayout({ children }: PhanMemMuaHangLayoutP
           transition: "width 0.2s cubic-bezier(0.4,0,0.2,1)",
           overflow: "hidden", flexShrink: 0, zIndex: 5,
         }}>
-          {/* Home removed - now in header */}
-          <div style={{ display: "none" }}>
-            <Link to="/admin"
-          </div>
 
           <div style={{ flex: 1, overflowY: "auto" }} className="pmm-hide-scrollbar">
             {sidebarOpen && (

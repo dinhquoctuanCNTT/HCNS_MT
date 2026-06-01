@@ -422,11 +422,11 @@ export default function PheDuyetGiaiTrinhPage() {
                           <button
                             onClick={() => setModal({ item, action: "reject" })}
                             style={{
-                              padding: "6px 14px", borderRadius: 6, border: "none",
+                              padding: "6px 14px", borderRadius: 6,
+                              border: "1.5px solid #fca5a5",
                               background: "#fff", color: "#dc2626", cursor: "pointer",
                               fontSize: 13, fontWeight: 700,
-                              border: "1.5px solid #fca5a5",
-                            } as any}
+                            }}
                           >✕ Từ chối</button>
                         </div>
                       ) : (
