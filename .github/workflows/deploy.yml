@@ -25,10 +25,10 @@ jobs:
       - name: Restart backend with PM2
         run: |
           $list = pm2 list
-          if ($list -match "backend") {
-            pm2 restart backend
+          if ($list -match "hcns-backend") {
+            pm2 restart hcns-backend
           } else {
-            pm2 start C:\HCNS_MT\backend\src\index.js --name backend
+            pm2 start C:\HCNS_MT\backend\src\index.js --name hcns-backend --cwd C:\HCNS_MT\backend
           }
           pm2 save
         shell: powershell
@@ -47,7 +47,7 @@ jobs:
       - name: Build frontend
         working-directory: ./frontend
         env:
-          VITE_API_URL: https://unjustly-paralegal-jellied.ngrok-free.dev
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
         run: npm run build
 
       - name: Clear old frontend

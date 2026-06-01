@@ -110,18 +110,22 @@ export async function getAllExplanations({ status, page = 1, limit = 20, departm
         ac.reason,
         ac.corrected_check_in,
         ac.corrected_check_out,
+        ac.admin_note,
         ac.reviewed_at,
         ac.created_at,
         al.work_date,
         al.check_in_time,
         al.check_out_time,
-        u.full_name AS employee_name,
-        u.phone
+        u.full_name  AS employee_name,
+        u.phone,
+        u.employee_code
       FROM attendance_corrections ac
       JOIN attendance_logs al ON ac.attendance_log_id = al.id
       JOIN users u ON ac.requested_by = u.id
       ${where}
-      ORDER BY ac.created_at DESC
+      ORDER BY
+        CASE ac.status WHEN 'pending' THEN 0 ELSE 1 END,
+        ac.created_at DESC
       OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY
     `);
   return result.recordset;

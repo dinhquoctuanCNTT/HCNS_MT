@@ -201,6 +201,8 @@ export default function AttendanceScreen({ navigation }: any) {
   const [resultDate, setResultDate] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [location, setLocation] = useState("");
+  const [currentAddress, setCurrentAddress] = useState("");
+  const [currentCoords, setCurrentCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [now, setNow] = useState(new Date());
 
   const cameraRef = useRef<CameraView>(null);
@@ -253,11 +255,45 @@ export default function AttendanceScreen({ navigation }: any) {
     }
   };
 
+  // Lấy địa chỉ từ tọa độ GPS
+  const getAddressFromCoords = useCallback(async (lat: number, lng: number): Promise<string> => {
+    try {
+      const results = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lng });
+      if (results?.length > 0) {
+        const r = results[0];
+        const parts = [r.streetNumber, r.street, r.district, r.city].filter(Boolean);
+        return parts.join(", ");
+      }
+    } catch (e) {
+      console.warn("[ReverseGeocode] error:", e);
+    }
+    return "";
+  }, []);
+
+  // Tự động lấy vị trí hiện tại khi màn hình idle
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { granted } = await Location.requestForegroundPermissionsAsync();
+        if (!granted || cancelled) return;
+        const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+        if (cancelled) return;
+        const { latitude, longitude } = pos.coords;
+        setCurrentCoords({ lat: latitude, lng: longitude });
+        const addr = await getAddressFromCoords(latitude, longitude);
+        if (!cancelled) setCurrentAddress(addr);
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, [mode, getAddressFromCoords]);
+
   const handleCapture = useCallback(async () => {
     if (isCapturing.current || !cameraRef.current) return;
 
     let latitude: number | undefined;
     let longitude: number | undefined;
+    let address: string | undefined;
 
     try {
       await Location.requestForegroundPermissionsAsync();
@@ -275,6 +311,10 @@ export default function AttendanceScreen({ navigation }: any) {
         });
         latitude = fresh.coords.latitude;
         longitude = fresh.coords.longitude;
+      }
+
+      if (latitude && longitude) {
+        address = await getAddressFromCoords(latitude, longitude);
       }
     } catch (e) {
       console.warn("[GPS] error:", e);
@@ -308,8 +348,8 @@ export default function AttendanceScreen({ navigation }: any) {
       const base64Full = `data:image/jpg;base64,${photo.base64}`;
       const res =
         mode === "check_in"
-          ? await attendanceApi.checkIn(base64Full, latitude, longitude)
-          : await attendanceApi.checkOut(base64Full, latitude, longitude);
+          ? await attendanceApi.checkIn(base64Full, latitude, longitude, address)
+          : await attendanceApi.checkOut(base64Full, latitude, longitude, address);
 
       Vibration.vibrate([0, 60, 60, 60]);
       // Sau check_in → bước tiếp là check_out, và ngược lại
@@ -339,6 +379,7 @@ export default function AttendanceScreen({ navigation }: any) {
         }),
       );
       setLocation(res.data.location ?? "");
+      if (address) setCurrentAddress(address);
       showResult("success");
     } catch (err: any) {
       Vibration.vibrate(200);
@@ -445,9 +486,24 @@ export default function AttendanceScreen({ navigation }: any) {
       {/* Bottom bar */}
       {status === "idle" && (
         <View style={styles.bottomBar}>
-          <Text style={styles.gpsText}>
-            📍 Vị trí sẽ được xác định khi chấm công
-          </Text>
+          {/* Thông tin vị trí hiện tại */}
+          <View style={{ marginBottom: 8, alignItems: "center" }}>
+            {currentAddress ? (
+              <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 4, maxWidth: "90%" }}>
+                <Text style={{ fontSize: 13 }}>📍</Text>
+                <Text style={{ color: "#e2e8f0", fontSize: 12, flex: 1, textAlign: "center", lineHeight: 18 }}>
+                  {currentAddress}
+                </Text>
+              </View>
+            ) : (
+              <Text style={styles.gpsText}>📍 Đang xác định vị trí...</Text>
+            )}
+            {currentCoords && (
+              <Text style={{ color: "rgba(255,255,255,0.4)", fontSize: 10, marginTop: 2 }}>
+                {currentCoords.lat.toFixed(5)}, {currentCoords.lng.toFixed(5)}
+              </Text>
+            )}
+          </View>
           <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
             <TouchableOpacity onPress={handleCapture} activeOpacity={0.85}>
               <View style={styles.captureBtn}>
@@ -518,12 +574,31 @@ export default function AttendanceScreen({ navigation }: any) {
                     <Text style={styles.checkinDate}>{resultDate}</Text>
                   </View>
                 </View>
+                {/* Tên chi nhánh / văn phòng */}
                 {location ? (
                   <View style={styles.locationRow}>
-                    <Text style={{ fontSize: 12 }}>📍</Text>
+                    <Text style={{ fontSize: 12 }}>🏢</Text>
                     <Text style={styles.locationText}>{location}</Text>
                   </View>
                 ) : null}
+                {/* Địa chỉ thực tế từ GPS */}
+                {currentAddress ? (
+                  <View style={[styles.locationRow, { marginTop: 4 }]}>
+                    <Text style={{ fontSize: 12 }}>📍</Text>
+                    <Text style={[styles.locationText, { fontSize: 12, color: "#64748b" }]}>
+                      {currentAddress}
+                    </Text>
+                  </View>
+                ) : null}
+                {/* Tọa độ GPS */}
+                {currentCoords && (
+                  <View style={[styles.locationRow, { marginTop: 2 }]}>
+                    <Text style={{ fontSize: 11 }}>🛰️</Text>
+                    <Text style={{ fontSize: 11, color: "#94a3b8" }}>
+                      {currentCoords.lat.toFixed(5)}, {currentCoords.lng.toFixed(5)}
+                    </Text>
+                  </View>
+                )}
               </>
             ) : (
               <>

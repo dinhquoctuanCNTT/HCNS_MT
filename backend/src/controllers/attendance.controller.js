@@ -1,5 +1,6 @@
 import * as attendanceService from "../services/attendance.service.js";
 import { getPool } from "../config/db.js";
+import sql from "mssql";
 
 export async function registerFace(req, res) {
   try {
@@ -96,6 +97,7 @@ export async function getHistoryAdmin(req, res) {
       limit = 20,
       departmentId,
       branchId,
+      search,
     } = req.query;
 
     const pageInt = parseInt(page);
@@ -109,6 +111,7 @@ export async function getHistoryAdmin(req, res) {
       if (userId) req.input("userId", parseInt(userId));
       if (departmentId) req.input("deptId", parseInt(departmentId));
       if (branchId) req.input("branchId", parseInt(branchId));
+      if (search) req.input("search", sql.NVarChar, `%${search}%`);
     };
 
     if (from) where += " AND a.date >= @from";
@@ -116,6 +119,7 @@ export async function getHistoryAdmin(req, res) {
     if (userId) where += " AND a.user_id = @userId";
     if (departmentId) where += " AND u.department_id = @deptId";
     if (branchId) where += " AND u.branch_id = @branchId";
+    if (search) where += " AND (u.full_name LIKE @search OR u.employee_code LIKE @search)";
     if (status === "late") where += " AND a.late_minutes > 0";
     if (status === "absent") where += " AND a.check_in IS NULL";
     if (status === "normal")
@@ -155,8 +159,10 @@ export async function getHistoryAdmin(req, res) {
         a.note,
         a.check_in_image_url,
         a.check_out_image_url,
-        a.check_in_address,   -- ✅ thêm
-        a.check_out_address,  -- ✅ thêm
+        a.check_in_address,
+        a.check_out_address,
+        a.latitude,
+        a.longitude,
         CASE
           WHEN a.check_in IS NULL THEN 'absent'
           WHEN a.late_minutes > 0 THEN 'late'

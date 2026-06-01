@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -9,8 +9,11 @@ import {
   StyleSheet,
   Platform,
   RefreshControl,
+  AppState,
+  Alert,
 } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useFocusEffect } from "@react-navigation/native";
 import { HistoryStackParamList } from "./types";
 import { explanationApi } from "../../../api/explanationApi";
 import BackButton from "./BackButton";
@@ -21,26 +24,62 @@ export default function ExplanationHistoryScreen({ navigation }: Props) {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  // Lưu trạng thái các đơn lần trước để phát hiện thay đổi
+  const prevStatusMap = useRef<Record<number, string>>({});
 
-  const fetchHistory = async () => {
+  const checkForUpdates = (newData: any[]) => {
+    const prev = prevStatusMap.current;
+    const notifications: string[] = [];
+
+    newData.forEach((item) => {
+      const oldStatus = prev[item.id];
+      if (oldStatus && oldStatus !== item.status) {
+        if (item.status === "approved") {
+          notifications.push(`✅ Đơn giải trình ngày ${new Date(item.work_date).toLocaleDateString("vi-VN")} đã được DUYỆT`);
+        } else if (item.status === "rejected") {
+          const note = item.admin_note ? `\nLý do: ${item.admin_note}` : "";
+          notifications.push(`❌ Đơn giải trình ngày ${new Date(item.work_date).toLocaleDateString("vi-VN")} bị TỪ CHỐI${note}`);
+        }
+      }
+    });
+
+    if (notifications.length > 0) {
+      Alert.alert("📋 Cập nhật đơn giải trình", notifications.join("\n\n"));
+    }
+
+    // Cập nhật map trạng thái mới
+    const newMap: Record<number, string> = {};
+    newData.forEach((item) => { newMap[item.id] = item.status; });
+    prevStatusMap.current = newMap;
+  };
+
+  const fetchHistory = async (isRefresh = false) => {
     try {
       const res = await explanationApi.getMy();
-      setData(Array.isArray(res.data) ? res.data : []);
+      const newData = Array.isArray(res.data) ? res.data : [];
+      checkForUpdates(newData);
+      setData(newData);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
-      setRefreshing(false);
+      if (isRefresh) setRefreshing(false);
     }
   };
 
-  useEffect(() => {
-    fetchHistory();
-  }, []);
+  // Load lần đầu
+  useEffect(() => { fetchHistory(); }, []);
+
+  // Refresh khi màn hình được focus lại
+  useFocusEffect(
+    useCallback(() => {
+      if (!loading) fetchHistory();
+    }, [])
+  );
 
   const onRefresh = () => {
     setRefreshing(true);
-    fetchHistory();
+    fetchHistory(true);
   };
 
   const getStatusStyle = (status: string) => {

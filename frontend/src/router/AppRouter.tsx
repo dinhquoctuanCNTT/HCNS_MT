@@ -1,10 +1,12 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { Warehouse, Cog, Network, GitFork } from "lucide-react";
 
 import LoginPage from "@auth/login/LoginPage";
 import RegisterPage from "@auth/register/RegisterPage";
 import ProtectedRoute from "./ProtectedRoute";
 import AdminLayout from "@shell/AdminLayout/AdminLayout";
 import ModuleDashboardPage from "@shell/ModuleDashboard/ModuleDashboardPage";
+import ComingSoonModule from "@shell/ComingSoonModule/ComingSoonModule";
 
 import UserHomePage from "../features/user/UserHomePage";
 import ProfilePage from "../features/user/ProfilePage";
@@ -15,6 +17,7 @@ import IconsPage from "../features/admin/pages/IconsPage/IconsPage";
 
 import hrmRoutes from "./routes/hrm.routes";
 import keToanRoutes from "./routes/ke-toan.routes";
+import HRMLayout from "@modules/hrm/components/Layout";
 import daoTaoRoutes from "./routes/dao-tao.routes";
 import phanMemMuaHangRoutes from "./routes/phan-mem-mua-hang.routes";
 import banHangRoutes from "./routes/ban-hang.routes";
@@ -63,6 +66,58 @@ const AppRouter = () => {
             {daoTaoRoutes}
             {phanMemMuaHangRoutes}
 
+            {/* ── Modules chưa phát triển — hiện ComingSoon thay vì 404 ── */}
+            <Route
+              path="kho-hang/*"
+              element={
+                <ComingSoonModule
+                  label="Kho hàng"
+                  color="linear-gradient(135deg,#0ea5e9,#0369a1)"
+                  icon={Warehouse}
+                  description="Hệ thống quản lý kho hàng, nhập xuất tồn và kiểm kê toàn bộ kho của MT Holdings."
+                />
+              }
+            />
+            <Route
+              path="san-xuat/*"
+              element={
+                <ComingSoonModule
+                  label="Sản xuất"
+                  color="linear-gradient(135deg,#6366f1,#4338ca)"
+                  icon={Cog}
+                  description="Quản lý quy trình sản xuất, định mức nguyên liệu và theo dõi tiến độ sản xuất."
+                />
+              }
+            />
+            <Route
+              path="so-do/*"
+              element={
+                <ComingSoonModule
+                  label="Sơ đồ chính"
+                  color="linear-gradient(135deg,#ec4899,#9d174d)"
+                  icon={Network}
+                  description="Sơ đồ tổ chức và quy trình nghiệp vụ tổng thể của MT Holdings."
+                />
+              }
+            />
+            <Route
+              path="so-do-to-chuc-mth/*"
+              element={
+                <ComingSoonModule
+                  label="Sơ đồ tổ chức MTH"
+                  color="linear-gradient(135deg,#14b8a6,#0f766e)"
+                  icon={GitFork}
+                  description="Sơ đồ tổ chức chi tiết của tập đoàn MTH theo từng công ty và phòng ban."
+                />
+              }
+            />
+
+            {/* ── HRM + Workflow cùng 1 layout ── */}
+            <Route element={<HRMLayout><Outlet /></HRMLayout>}>
+              {hrmRoutes}
+              {workflowRoutes}
+            </Route>
+
             <Route element={<AdminLayout />}>
               <Route path="crm" element={<CRMPage />} />
               <Route path="analytics" element={<AnalyticsPage />} />
@@ -70,9 +125,7 @@ const AppRouter = () => {
               <Route path="icons" element={<IconsPage />} />
               <Route path="profile" element={<ProfilePage />} />
 
-              {hrmRoutes}
               {banHangRoutes}
-              {workflowRoutes}
             </Route>
           </Route>
         </Route>

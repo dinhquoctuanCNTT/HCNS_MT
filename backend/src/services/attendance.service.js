@@ -184,7 +184,7 @@ function calcEarlyMins(checkOutMins) {
 export async function checkIn(
   userId,
   base64Image,
-  { latitude, longitude } = {},
+  { latitude, longitude, address } = {},
 ) {
   const pool = getPool();
 
@@ -241,37 +241,35 @@ export async function checkIn(
     faceConfidence = faceResult.confidence;
   }
 
-  // 5. Đã chấm công chưa
   const today = new Date().toISOString().slice(0, 10);
-  const existing = await pool
-    .request()
-    .input("userId", sql.Int, userId)
-    .input("date", sql.Date, today)
-    .query(
-      `SELECT id FROM Attendance WHERE user_id = @userId AND date = @date`,
-    );
-  if (existing.recordset[0]) throw new Error("Bạn đã chấm công hôm nay rồi");
 
-  // 6. INSERT vào DB ngay — không chờ upload ảnh
+  // 5+6. Dùng MERGE để kiểm tra + INSERT nguyên tử — tránh race condition khi 2 request đến cùng lúc
   const insertResult = await pool
     .request()
     .input("userId", sql.Int, userId)
     .input("date", sql.Date, today)
     .input("lat", sql.Float, latitude ?? null)
     .input("lng", sql.Float, longitude ?? null)
+    .input("checkInAddress", sql.NVarChar(500), address ?? null)
     .input("locationVerified", sql.Bit, 1)
     .input("antiSpoofScore", sql.Float, liveness.confidence ?? 0)
     .query(`
       INSERT INTO Attendance (
-        user_id, date, check_in, latitude, longitude,
+        user_id, date, check_in, latitude, longitude, check_in_address,
         location_verified, face_verified, anti_spoof_score
       )
       OUTPUT INSERTED.check_in AS time
-      VALUES (
-        @userId, @date, GETDATE(), @lat, @lng,
+      SELECT
+        @userId, @date, GETDATE(), @lat, @lng, @checkInAddress,
         @locationVerified, 1, @antiSpoofScore
+      WHERE NOT EXISTS (
+        SELECT 1 FROM Attendance WITH (UPDLOCK, HOLDLOCK)
+        WHERE user_id = @userId AND date = @date
       )
     `);
+
+  if (!insertResult.recordset[0])
+    throw new Error("Bạn đã chấm công hôm nay rồi");
 
   const checkInTime = insertResult.recordset[0]?.time;
   const checkInVN = new Date(
@@ -319,7 +317,7 @@ export async function checkIn(
 export async function checkOut(
   userId,
   base64Image,
-  { latitude, longitude } = {},
+  { latitude, longitude, address } = {},
 ) {
   const pool = getPool();
 
@@ -376,9 +374,10 @@ export async function checkOut(
     .request()
     .input("userId", sql.Int, userId)
     .input("date", sql.Date, today)
+    .input("checkOutAddress", sql.NVarChar(500), address ?? null)
     .query(`
       UPDATE Attendance
-      SET check_out = GETDATE()
+      SET check_out = GETDATE(), check_out_address = @checkOutAddress
       OUTPUT INSERTED.check_out AS time
       WHERE user_id = @userId AND date = @date
     `);
